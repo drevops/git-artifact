@@ -2,6 +2,13 @@
   "name": "integratedexperts/robo-git-artefact",
   "description": "Robo task to push git artefact to remote repository",
   "type": "robo-tasks",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Alex Skrypnyk",
+      "email": "alex.designworks@gmail.com"
+    }
+  ],
   "require": {
     "php": ">=5.5.0",
     "consolidation/robo": "~1"
