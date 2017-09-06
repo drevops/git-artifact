@@ -1,0 +1,31 @@
+{
+  "name": "integratedexperts/robo-git-artefact",
+  "description": "Robo task to push git artefact to remote repository",
+  "type": "robo-tasks",
+  "require": {
+    "php": ">=5.5.0",
+    "consolidation/robo": "~1"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "2.*",
+    "escapestudios/symfony2-coding-standard": "~2.0",
+    "beet/box": "^0.7.2",
+    "phpunit/phpunit": "^6.3"
+  },
+  "scripts": {
+    "cs": "./vendor/bin/phpcs --runtime-set installed_paths $(pwd)/vendor/escapestudios/symfony2-coding-standard --colors -s -p",
+    "cbf": "./vendor/bin/phpcbf --runtime-set installed_paths $(pwd)/vendor/escapestudios/symfony2-coding-standard --colors",
+    "test": "./vendor/bin/phpunit --colors=always --fail-on-warning",
+    "cleanup": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;"
+  },
+  "autoload": {
+    "psr-4": {
+      "IntegratedExperts\\Robo\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "IntegratedExperts\\Robo\\Tests\\": "tests"
+    }
+  }
+}

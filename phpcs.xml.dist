@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ruleset name="robo-git-artefact">
+  <description>The coding standard for behat-relativity.</description>
+
+  <rule ref="Symfony2" />
+
+  <file>src/</file>
+  <file>tests/</file>
+
+  <!--Allow uncommented functions in tests as they usually provide enough
+  information from their names.-->
+  <rule ref="Symfony2.Commenting.FunctionComment.Missing">
+    <exclude-pattern>tests/*.Test\.php</exclude-pattern>
+    <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
+  </rule>
+</ruleset>
