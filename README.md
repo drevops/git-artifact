@@ -1,6 +1,11 @@
 # robo-git-artefact
 Robo task to push git artefact to remote repository
-[![CircleCI](https://circleci.com/gh/integratedexperts/robo-git-artefact.svg?style=svg&circle-token=04cc2cab69b05f60a48e474f966a5bce8a71b1aa)](https://circleci.com/gh/integratedexperts/robo-git-artefact)
+
+[![CircleCI](https://circleci.com/gh/integratedexperts/robo-git-artefact.svg?style=shield&circle-token=04cc2cab69b05f60a48e474f966a5bce8a71b1aa)](https://circleci.com/gh/integratedexperts/robo-git-artefact)
+[![Latest Stable Version](https://poser.pugx.org/integratedexperts/robo-git-artefact/version)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
+[![Total Downloads](https://poser.pugx.org/integratedexperts/robo-git-artefact/downloads)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
+[![License](https://poser.pugx.org/integratedexperts/robo-git-artefact/license)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
+
 
 ## How it works
 Say, you have 2 git repositories: _source_ and _destination_. 
