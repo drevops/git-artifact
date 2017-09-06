@@ -260,11 +260,12 @@ trait ArtefactTrait
     /**
      * Token callback to get tags.
      */
-    protected function getTokenTags()
+    protected function getTokenTags($delimiter)
     {
+        $delimiter = empty($delimiter) ? ', ' : $delimiter;
         $tags = $this->gitGetTags($this->gitGetSrcRepo());
 
-        return implode(', ', $tags);
+        return implode($delimiter, $tags);
     }
 
     /**

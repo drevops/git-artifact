@@ -180,4 +180,57 @@ class ArtefactTest extends AbstractTest
         ], $this->defaultCurrentBranch);
         $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '4.txt', $this->defaultCurrentBranch);
     }
+
+    public function testPushsSingleTags()
+    {
+        $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '1.txt');
+        $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 1');
+        $this->gitAddTag($this->getFixtureSrcDir(), 'tag1');
+        $remoteBranch = 'tag1';
+
+        $output = $this->runRoboCommand(sprintf('artefact --src=%s --push %s --branch=[tags]', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
+        $output = implode(PHP_EOL, $output);
+
+        $this->assertContains('Will push:             Yes', $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $remoteBranch), $output);
+
+        $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
+        // @note: Deployment commit has not been added since there were no
+        // modified files.
+        $this->assertEquals([
+            'Commit number 1',
+            'Deployment commit',
+        ], $remoteCommits);
+
+        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
+            '1.txt',
+        ], $remoteBranch);
+    }
+
+    public function testPushMultipleTags()
+    {
+        $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '1.txt');
+        $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 1');
+        $this->gitAddTag($this->getFixtureSrcDir(), 'tag1');
+        $this->gitAddTag($this->getFixtureSrcDir(), 'tag2');
+        $remoteBranch = 'tag1-tag2';
+
+        $output = $this->runRoboCommand(sprintf('artefact --src=%s --push %s --branch=[tags:-]', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
+        $output = implode(PHP_EOL, $output);
+
+        $this->assertContains('Will push:             Yes', $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $remoteBranch), $output);
+
+        $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
+        // @note: Deployment commit has not been added since there were no
+        // modified files.
+        $this->assertEquals([
+            'Commit number 1',
+            'Deployment commit',
+        ], $remoteCommits);
+
+        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
+            '1.txt',
+        ], $remoteBranch);
+    }
 }

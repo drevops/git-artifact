@@ -267,22 +267,19 @@ trait CommandTrait
      * representation in git, therefore may need to be created explicitly for
      * some tests.
      *
+     * @param string $path
+     *   Optional path to the repository directory.
      * @param string $name
      *   Tag name.
-     * @param string $ref
-     *   Commit reference to tag.
      * @param bool   $annotate
      *   Optional flag to add random annotation to the tag. Defaults to FALSE.
-     * @param string $path
-     *   Optional path to the repository directory. If not provided, fixture
-     *   directory is used.
      */
-    protected function gitCreateFixtureTag($name, $ref, $annotate = false, $path = null)
+    protected function gitAddTag($path, $name, $annotate = false)
     {
         if ($annotate) {
-            $this->runGitCommand(sprintf('tag -a %s -m "%s" %s', $name, 'Annotation for tag '.$name, $ref), $path);
+            $this->runGitCommand(sprintf('tag -a %s -m "%s"', $name, 'Annotation for tag '.$name), $path);
         } else {
-            $this->runGitCommand(sprintf('tag %s %s', $name, $ref), $path);
+            $this->runGitCommand(sprintf('tag %s', $name), $path);
         }
     }
 

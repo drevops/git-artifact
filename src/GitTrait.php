@@ -121,7 +121,7 @@ trait GitTrait
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s %s', $remoteName, $remoteBranch),
+            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s', $remoteName, $remoteBranch),
             sprintf('Unable to push to "%s" remote', $remoteName)
         );
     }
@@ -180,7 +180,7 @@ trait GitTrait
             'Unable to retrieve tags'
         );
 
-        return preg_split('/\R/', $result->getMessage());
+        return array_filter(preg_split('/\R/', $result->getMessage()));
     }
 
     /**
