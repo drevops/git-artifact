@@ -264,10 +264,7 @@ trait ArtefactTrait
         $dirs = glob($path.DIRECTORY_SEPARATOR.'.git', GLOB_ONLYDIR);
         if (!empty($dirs)) {
             // Make sure that current repo's .git dir is not removed.
-            $dirs = array_diff($dirs, [
-                $path.DIRECTORY_SEPARATOR.'.git',
-                $dirs,
-            ]);
+            $dirs = array_diff($dirs, [$path.DIRECTORY_SEPARATOR.'.git']);
             $this->fsFileSystem->remove($dirs);
         }
     }
