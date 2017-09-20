@@ -160,7 +160,7 @@ trait GitTrait
 
         return $this->gitCommandRun(
             $location,
-            sprintf('commit --allow-empty -m "%s"', $message)
+            sprintf('commit --quiet --allow-empty -m "%s"', $message)
         );
     }
 
