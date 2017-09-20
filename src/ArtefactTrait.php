@@ -120,6 +120,8 @@ trait ArtefactTrait
             $this->replaceGitignore($this->gitignoreFile, $this->gitGetSrcRepo());
         }
 
+        $this->removeSubRepos($this->gitGetSrcRepo());
+
         $currentBranch = $this->gitGetCurrentBranch($this->gitGetSrcRepo());
         // Switch to a new branch in current repo (for possible rollback),
         // but only if the deployment branch is different from current one.
@@ -247,6 +249,25 @@ trait ArtefactTrait
     {
         $this->fsFileSystem->copy($filename, $path.DIRECTORY_SEPARATOR.'.gitignore', true);
         $this->fsFileSystem->remove($filename);
+    }
+
+    /**
+     * Remove any repositories within current repository.
+     *
+     * @param string $path
+     *   Path to current repository.
+     */
+    protected function removeSubRepos($path)
+    {
+        $dirs = glob($path.DIRECTORY_SEPARATOR.'.git', GLOB_ONLYDIR);
+        if (!empty($dirs)) {
+            // Make sure that current repo's .git dir is not removed.
+            $dirs = array_diff($dirs, [
+                $path.DIRECTORY_SEPARATOR.'.git',
+                $dirs,
+            ]);
+            $this->fsFileSystem->remove($dirs);
+        }
     }
 
     /**
