@@ -261,12 +261,15 @@ trait ArtefactTrait
      */
     protected function removeSubRepos($path)
     {
-        $dirs = glob($path.DIRECTORY_SEPARATOR.'.git', GLOB_ONLYDIR);
-        if (!empty($dirs)) {
-            // Make sure that current repo's .git dir is not removed.
-            $dirs = array_diff($dirs, [$path.DIRECTORY_SEPARATOR.'.git']);
-            $this->fsFileSystem->remove($dirs);
-        }
+        $dirs = $this->fsFinder
+            ->in($path)
+            ->name('/\.git$/')
+            ->ignoreDotFiles(false)
+            ->ignoreVCS(false)
+            ->notPath('vendor')
+            ->depth('>1');
+
+        $this->fsFileSystem->remove($dirs);
     }
 
     /**
