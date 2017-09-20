@@ -94,6 +94,31 @@ trait GitTrait
         );
     }
 
+    /**
+     * Check if specified remote already exists in current repo.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository to add remote for.
+     * @param string $name
+     *   Remote name.
+     *
+     * @return bool
+     *   TRUE if remote with the name already exists in current repo, FALSE
+     *   otherwise.
+     */
+    protected function gitRemoteExists($location, $name)
+    {
+        $result = $this->gitCommandRun(
+            $location,
+            sprintf('remote'),
+            'Unable to list remotes'
+        );
+
+        $lines = preg_split('/\R/', $result->getMessage());
+
+        return in_array($name, $lines);
+    }
+
     protected function gitCreateNewBranch($location, $branch)
     {
         return $this->gitCommandRun(

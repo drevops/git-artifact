@@ -112,7 +112,9 @@ trait ArtefactTrait
      */
     protected function doPush()
     {
-        $this->gitAddRemote($this->gitGetSrcRepo(), 'dst', $this->gitGetRemoteRepo());
+        if (!$this->gitRemoteExists($this->gitGetSrcRepo(), 'dst')) {
+            $this->gitAddRemote($this->gitGetSrcRepo(), 'dst', $this->gitGetRemoteRepo());
+        }
 
         // Gitignore may not be provided in which case we just send send current
         // repo as is to remote.
