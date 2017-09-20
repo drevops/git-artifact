@@ -184,7 +184,7 @@ trait FilesystemTrait
         $paths = is_array($paths) ? $paths : [$paths];
         if (!$this->fsFileSystem->exists($paths)) {
             if ($strict) {
-                throw new Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
+                throw new \Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
             } else {
                 return false;
             }
