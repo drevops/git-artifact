@@ -138,15 +138,23 @@ trait GitTrait
      *   Remote branch to push to.
      * @param string $message
      *   Commit message.
+     * @param bool $force
+     *   Performe a force push.
      *
      * @return \Robo\Result
      *   Result object.
      */
-    protected function gitPush($location, $remoteName, $remoteBranch)
+    protected function gitPush($location, $remoteName, $remoteBranch, $force = false)
     {
+        $pushCommand = 'push';
+
+        if ($force) {
+            $pushCommand .= ' --force';
+        }
+
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s', $remoteName, $remoteBranch),
+            sprintf('%s %s refs/heads/%2$s:refs/heads/%2$s', $pushCommand, $remoteName, $remoteBranch),
             sprintf('Unable to push to "%s" remote', $remoteName)
         );
     }

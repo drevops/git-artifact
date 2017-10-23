@@ -59,6 +59,13 @@ trait ArtefactTrait
     protected $now;
 
     /**
+     * Flag to specify if force push is required.
+     *
+     * @var string
+     */
+    protected $force;
+
+    /**
      * Artefact constructor.
      */
     public function __construct()
@@ -82,6 +89,7 @@ trait ArtefactTrait
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
+     * @option $mirror Overwrite remote branch. Defaults to FALSE.
      */
     public function artefact($remote, array $opts = [
         'root' => InputOption::VALUE_REQUIRED,
@@ -91,6 +99,7 @@ trait ArtefactTrait
         'gitignore' => InputOption::VALUE_REQUIRED,
         'push' => false,
         'now' => InputOption::VALUE_REQUIRED,
+        'force' =>  false,
     ])
     {
         $this->checkRequirements();
@@ -101,17 +110,20 @@ trait ArtefactTrait
         $this->showInfo();
 
         if ($this->needsPush) {
-            $this->doPush();
+            if ($this->force) {
+                $this->doForcePush();
+            } else {
+                $this->doPush();
+            }
         } else {
             $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
         }
     }
 
     /**
-     * Perform actual push to remote.
+     * Perform common push steps.
      */
-    protected function doPush()
-    {
+    protected function preparePush() {
         if (!$this->gitRemoteExists($this->gitGetSrcRepo(), 'dst')) {
             $this->gitAddRemote($this->gitGetSrcRepo(), 'dst', $this->gitGetRemoteRepo());
         }
@@ -133,12 +145,33 @@ trait ArtefactTrait
 
         $result = $this->gitCommit($this->gitGetSrcRepo(), $this->message);
         $this->say(sprintf('Added changes: %s', $result->getMessage()));
+    }
+
+    /**
+     * Perform actual push to remote.
+     */
+    protected function doPush()
+    {
 
         $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
         if ($result->wasSuccessful()) {
             $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
         } else {
             $this->say(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->branch, $this->message));
+        }
+    }
+
+    /**
+     * Perform force push to remote.
+     */
+    protected function doPushForce()
+    {
+
+        $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch, true);
+        if ($result->wasSuccessful()) {
+            $this->sayOkay(sprintf('Force pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
+        } else {
+            $this->say(sprintf('Error occurred while force pushing branch "%s" with commit message "%s"', $this->branch, $this->message));
         }
     }
 
@@ -171,6 +204,8 @@ trait ArtefactTrait
         }
 
         $this->needsPush = !empty($options['push']);
+
+        $this->force = !empty($options['force']);
     }
 
     /**

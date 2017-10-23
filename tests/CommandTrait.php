@@ -6,7 +6,7 @@ use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Error\Error;
 use SebastianBergmann\GlobalState\RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
-
+use Composer\Util\Filesystem as CFilesystem;
 /**
  * Trait CommandTrait
  *
@@ -37,6 +37,13 @@ trait CommandTrait
     protected $fs;
 
     /**
+     * Composer File system.
+     *
+     * @var \Composer\Util\Filesystem
+     */
+    protected $cfs;
+
+    /**
      * Flag to denote that debug information should be printed.
      *
      * @var bool
@@ -58,6 +65,7 @@ trait CommandTrait
     {
         $this->printDebug = $printDebug;
         $this->fs = new Filesystem();
+        $this->cfs = new CFilesystem();
         $this->fixtureSrcRepo = $src;
         $this->gitInitRepo($this->fixtureSrcRepo);
         $this->fixtureRemoteRepo = $remote;
@@ -75,10 +83,10 @@ trait CommandTrait
     protected function tearDown()
     {
         if ($this->fs->exists($this->fixtureSrcRepo)) {
-            $this->fs->remove($this->fixtureSrcRepo);
+            $this->cfs->remove($this->fixtureSrcRepo);
         }
         if ($this->fs->exists($this->fixtureRemoteRepo)) {
-            $this->fs->remove($this->fixtureRemoteRepo);
+            $this->cfs->remove($this->fixtureRemoteRepo);
         }
     }
 
@@ -91,7 +99,7 @@ trait CommandTrait
     protected function gitInitRepo($path)
     {
         if ($this->fs->exists($path)) {
-            $this->fs->remove($path);
+            $this->cfs->remove($path);
         }
         $this->fs->mkdir($path);
 
@@ -363,7 +371,7 @@ trait CommandTrait
      * @return array Array of output lines.
      *   Array of output lines.
      */
-    public function runRoboCommand($command, $expectFail = false, $roboBin = 'vendor/bin/robo')
+    public function runRoboCommand($command, $expectFail = false, $roboBin = 'vendor\\bin\\robo')
     {
         if (!file_exists($roboBin)) {
             throw new RuntimeException(sprintf('Robo binary is not available at path "%s"', $roboBin));
