@@ -63,7 +63,7 @@ trait ArtefactTrait
      *
      * @var string
      */
-    protected $force;
+    protected $update;
 
     /**
      * Artefact constructor.
@@ -89,7 +89,7 @@ trait ArtefactTrait
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
-     * @option $mirror Overwrite remote branch. Defaults to FALSE.
+     * @option $update Update remote branch, squashing new commits. Defaults to FALSE.
      */
     public function artefact($remote, array $opts = [
         'root' => InputOption::VALUE_REQUIRED,
@@ -99,7 +99,7 @@ trait ArtefactTrait
         'gitignore' => InputOption::VALUE_REQUIRED,
         'push' => false,
         'now' => InputOption::VALUE_REQUIRED,
-        'force' =>  false,
+        'update' =>  false,
     ])
     {
         $this->checkRequirements();
@@ -110,8 +110,8 @@ trait ArtefactTrait
         $this->showInfo();
 
         if ($this->needsPush) {
-            if ($this->force) {
-                $this->doForcePush();
+            if ($this->update) {
+                $this->doPushUpdate();
             } else {
                 $this->doPush();
             }
@@ -152,7 +152,6 @@ trait ArtefactTrait
      */
     protected function doPush()
     {
-
         $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
         if ($result->wasSuccessful()) {
             $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
@@ -162,12 +161,11 @@ trait ArtefactTrait
     }
 
     /**
-     * Perform force push to remote.
+     * Perform push to remote, updating remote branch.
      */
-    protected function doPushForce()
+    protected function doPushUpdate()
     {
-
-        $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch, true);
+        $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
         if ($result->wasSuccessful()) {
             $this->sayOkay(sprintf('Force pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
         } else {

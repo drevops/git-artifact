@@ -18,7 +18,6 @@
     "escapestudios/symfony2-coding-standard": "~2.0",
     "beet/box": "^0.7.2",
     "phpunit/phpunit": "^6.3",
-    "cognitive/file-system": "^0.0.9",
     "composer/composer": "^1.5"
   },
   "scripts": {
