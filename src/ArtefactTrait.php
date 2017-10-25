@@ -66,6 +66,13 @@ trait ArtefactTrait
     protected $update;
 
     /**
+     * Flag to specify artefact build directory.
+     *
+     * @var string
+     */
+    protected $artefact;
+
+    /**
      * Artefact constructor.
      */
     public function __construct()
@@ -85,6 +92,7 @@ trait ArtefactTrait
      *         specified, current directory is used.
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
+     * @option $artefact Location of the directory where artefact will be created.
      * @option $branch Destination branch with optional tokens. Ignored if --update set.
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
@@ -95,6 +103,7 @@ trait ArtefactTrait
     public function artefact($remote, array $opts = [
         'root' => InputOption::VALUE_REQUIRED,
         'src' => InputOption::VALUE_REQUIRED,
+        'artefact' => 'artefact',
         'branch' => InputOption::VALUE_REQUIRED,
         'message' => InputOption::VALUE_REQUIRED,
         'gitignore' => InputOption::VALUE_REQUIRED,
@@ -110,6 +119,8 @@ trait ArtefactTrait
         $this->gitSetRemoteRepo($remote);
 
         $this->showInfo();
+
+        $this->doBuild();
 
         if ($this->needsPush) {
             if ($this->update) {
@@ -189,6 +200,8 @@ trait ArtefactTrait
         $this->update = !empty($options['update']);
 
         $this->force = !empty($options['force']);
+
+        $this->artefact = $options['artefact'];
 
         $this->fsSetRootDir($options['root']);
 
@@ -369,5 +382,17 @@ trait ArtefactTrait
         $char = $this->decorationCharacter('V', '✔');
         $format = "<fg=white;bg=$color;options=bold>%s %s</fg=white;bg=$color;options=bold>";
         $this->writeln(sprintf($format, $char, $text));
+    }
+
+    /**
+     * Make the artefact.
+     */
+    protected function doBuild() {
+        $this->fsCreateDir($this->artefact, true);
+        $this->gitInit($this->artefactDir)
+             ->gitAddRemote($this->artefactDir, 'dst', $this->gitRemote)
+             ->gitPull($this->artefactDir, 'dst', $this->getDefaultBranch);
+        // Next, copy files, check changes, squash, then commit and push in the other push methods.
+
     }
 }

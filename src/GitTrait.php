@@ -159,6 +159,15 @@ trait GitTrait
         );
     }
 
+    protected function gitPull($location, $remoteName, $remoteBranch)
+    {
+        return $this->gitCommandRun(
+            $location,
+            sprintf('pull --tags %s %s', $remoteName, $remoteBranch),
+            sprintf('Unable to push to "%s" remote', $remoteName)
+        );
+    }
+
     protected function gitCommit($location, $message)
     {
         $this->gitCommandRun(
@@ -317,5 +326,28 @@ trait GitTrait
     protected static function gitIsUri($location)
     {
         return (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $location);
+    }
+
+    /**
+     * Initialise a git repository at $location.
+     *
+     * @param string $location
+     *   Repository location path or URI.
+     *
+     * @return object
+     *   Returns $this for fluid interface.
+     *
+     * @throws \Exception
+     *   If unable to init repo.
+     */
+    protected function gitInit($location)
+    {
+        $result = $this->gitCommandRun(
+            $location,
+            'init',
+            'Unable to initialise repository.'
+        );
+
+        return $this;
     }
 }
