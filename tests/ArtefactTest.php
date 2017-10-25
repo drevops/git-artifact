@@ -36,6 +36,7 @@ class ArtefactTest extends AbstractTest
     {
         $output = $this->runRoboCommand('--help artefact');
         $this->assertContains('artefact [options] [--] <remote>', implode(PHP_EOL, $output));
+        $this->assertContains('--mirror', implode(PHP_EOL, $output));
     }
 
     public function testCompulsoryParameter()
@@ -232,5 +233,38 @@ class ArtefactTest extends AbstractTest
         $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
             '1.txt',
         ], $remoteBranch);
+    }
+
+    public function testPushReplaceBranch() {
+        $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '1.txt');
+        $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 1');
+        $this->gitAddTag($this->getFixtureSrcDir(), 'tag1');
+        $remoteBranch = 'branch-to-replace';
+
+        $output = $this->runRoboCommand(sprintf('artefact -- --src=%s --push %s --branch=[tags]', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
+        $output = implode(PHP_EOL, $output);
+
+        $this->assertContains('Will push:             Yes', $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $remoteBranch), $output);
+
+        $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
+        // @note: Deployment commit has not been added since there were no
+        // modified files.
+        $this->assertEquals([
+            'Commit number 1',
+            'Deployment commit',
+        ], $remoteCommits);
+
+        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
+            '1.txt',
+        ], $remoteBranch);
+
+        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
+            '1.txt',
+            '2.txt',
+            '3.txt',
+            '.gitignore',
+        ], $remoteBranch);
+        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '4.txt', $remoteBranch);
     }
 }

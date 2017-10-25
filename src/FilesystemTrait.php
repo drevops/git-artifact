@@ -194,6 +194,33 @@ trait FilesystemTrait
     }
 
     /**
+     * Create a directory, optionally delete and recreate.
+     *
+     * @param string $path
+     *   Path to create.
+     * @param bool $recreate
+     *   Delete directory if it exists.
+     *
+     * @throws \Exception
+     *   If path exists and recreate is false; or creation fails.
+     *
+     * @return object
+     *   Returns $this for call chaining.
+     *
+     */
+    protected function fsCreateDir($path, $recreate = false) {
+        if ($this->fsFileSystem->exists($path)) {
+            if (!$recreate) {
+                throw new \Exception(sprintf('Path: %s exists. Use recreate option to ignore.', $path));
+            }
+            $this->fsFileSystem->rmdir($path);
+        }
+        $this->fsFileSystem->mkdir($path, 0777, true);
+
+        return $this;
+    }
+
+    /**
      * Replacement for PHP's `realpath` resolves non-existing paths.
      *
      * The main deference is that it does not return FALSE on non-existing

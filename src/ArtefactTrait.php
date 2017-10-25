@@ -59,6 +59,20 @@ trait ArtefactTrait
     protected $now;
 
     /**
+     * Flag to specify if force push is required.
+     *
+     * @var string
+     */
+    protected $update;
+
+    /**
+     * Flag to specify artefact build directory.
+     *
+     * @var string
+     */
+    protected $artefact;
+
+    /**
      * Artefact constructor.
      */
     public function __construct()
@@ -78,19 +92,25 @@ trait ArtefactTrait
      *         specified, current directory is used.
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
-     * @option $branch Destination branch with optional tokens.
+     * @option $artefact Location of the directory where artefact will be created.
+     * @option $branch Destination branch with optional tokens. Ignored if --update set.
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
+     * @option $update Update remote branch, squashing new commits. Defaults to FALSE.
+     * @option $force Force replacement if remote branch exists. Defaults to FALSE.
      */
     public function artefact($remote, array $opts = [
         'root' => InputOption::VALUE_REQUIRED,
         'src' => InputOption::VALUE_REQUIRED,
+        'artefact' => 'artefact',
         'branch' => InputOption::VALUE_REQUIRED,
         'message' => InputOption::VALUE_REQUIRED,
         'gitignore' => InputOption::VALUE_REQUIRED,
         'push' => false,
         'now' => InputOption::VALUE_REQUIRED,
+        'update' =>  false,
+        'force' => false,
     ])
     {
         $this->checkRequirements();
@@ -100,18 +120,23 @@ trait ArtefactTrait
 
         $this->showInfo();
 
+        $this->doBuild();
+
         if ($this->needsPush) {
-            $this->doPush();
+            if ($this->update) {
+                $this->doPushUpdate();
+            } else {
+                $this->doPush();
+            }
         } else {
             $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
         }
     }
 
     /**
-     * Perform actual push to remote.
+     * Perform common push steps.
      */
-    protected function doPush()
-    {
+    protected function preparePush() {
         if (!$this->gitRemoteExists($this->gitGetSrcRepo(), 'dst')) {
             $this->gitAddRemote($this->gitGetSrcRepo(), 'dst', $this->gitGetRemoteRepo());
         }
@@ -133,12 +158,31 @@ trait ArtefactTrait
 
         $result = $this->gitCommit($this->gitGetSrcRepo(), $this->message);
         $this->say(sprintf('Added changes: %s', $result->getMessage()));
+    }
 
+    /**
+     * Perform actual push to remote.
+     */
+    protected function doPush()
+    {
         $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
         if ($result->wasSuccessful()) {
             $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
         } else {
             $this->say(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->branch, $this->message));
+        }
+    }
+
+    /**
+     * Perform push to remote, updating remote branch.
+     */
+    protected function doPushUpdate()
+    {
+        $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
+        if ($result->wasSuccessful()) {
+            $this->sayOkay(sprintf('Force pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
+        } else {
+            $this->say(sprintf('Error occurred while force pushing branch "%s" with commit message "%s"', $this->branch, $this->message));
         }
     }
 
@@ -151,6 +195,13 @@ trait ArtefactTrait
     protected function resolveOptions(array $options)
     {
         $this->now = !empty($options['now']) ? $options['now'] : time();
+
+        // Set this early to handle remote branch naming.
+        $this->update = !empty($options['update']);
+
+        $this->force = !empty($options['force']);
+
+        $this->artefact = $options['artefact'];
 
         $this->fsSetRootDir($options['root']);
 
@@ -171,6 +222,7 @@ trait ArtefactTrait
         }
 
         $this->needsPush = !empty($options['push']);
+
     }
 
     /**
@@ -304,7 +356,7 @@ trait ArtefactTrait
      */
     protected static function getDefaultBranch()
     {
-        return '[branch]-[timestamp:Y-m-d_H-i-s]';
+        return $this->update ? '[branch]' : '[branch]-[timestamp:Y-m-d_H-i-s]';
     }
 
     /**
@@ -330,5 +382,17 @@ trait ArtefactTrait
         $char = $this->decorationCharacter('V', '✔');
         $format = "<fg=white;bg=$color;options=bold>%s %s</fg=white;bg=$color;options=bold>";
         $this->writeln(sprintf($format, $char, $text));
+    }
+
+    /**
+     * Make the artefact.
+     */
+    protected function doBuild() {
+        $this->fsCreateDir($this->artefact, true);
+        $this->gitInit($this->artefactDir)
+             ->gitAddRemote($this->artefactDir, 'dst', $this->gitRemote)
+             ->gitPull($this->artefactDir, 'dst', $this->getDefaultBranch);
+        // Next, copy files, check changes, squash, then commit and push in the other push methods.
+
     }
 }

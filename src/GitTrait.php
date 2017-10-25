@@ -138,15 +138,32 @@ trait GitTrait
      *   Remote branch to push to.
      * @param string $message
      *   Commit message.
+     * @param bool $force
+     *   Performe a force push.
      *
      * @return \Robo\Result
      *   Result object.
      */
-    protected function gitPush($location, $remoteName, $remoteBranch)
+    protected function gitPush($location, $remoteName, $remoteBranch, $force = false)
+    {
+        $pushCommand = 'push';
+
+        if ($force) {
+            $pushCommand .= ' --force';
+        }
+
+        return $this->gitCommandRun(
+            $location,
+            sprintf('%s %s refs/heads/%2$s:refs/heads/%2$s', $pushCommand, $remoteName, $remoteBranch),
+            sprintf('Unable to push to "%s" remote', $remoteName)
+        );
+    }
+
+    protected function gitPull($location, $remoteName, $remoteBranch)
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s', $remoteName, $remoteBranch),
+            sprintf('pull --tags %s %s', $remoteName, $remoteBranch),
             sprintf('Unable to push to "%s" remote', $remoteName)
         );
     }
@@ -309,5 +326,28 @@ trait GitTrait
     protected static function gitIsUri($location)
     {
         return (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $location);
+    }
+
+    /**
+     * Initialise a git repository at $location.
+     *
+     * @param string $location
+     *   Repository location path or URI.
+     *
+     * @return object
+     *   Returns $this for fluid interface.
+     *
+     * @throws \Exception
+     *   If unable to init repo.
+     */
+    protected function gitInit($location)
+    {
+        $result = $this->gitCommandRun(
+            $location,
+            'init',
+            'Unable to initialise repository.'
+        );
+
+        return $this;
     }
 }
