@@ -371,7 +371,7 @@ trait CommandTrait
      * @return array Array of output lines.
      *   Array of output lines.
      */
-    public function runRoboCommand($command, $expectFail = false, $roboBin = 'vendor\\bin\\robo')
+    public function runRoboCommand($command, $expectFail = false, $roboBin = 'vendor/bin/robo')
     {
         if (!file_exists($roboBin)) {
             throw new RuntimeException(sprintf('Robo binary is not available at path "%s"', $roboBin));

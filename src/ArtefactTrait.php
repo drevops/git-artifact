@@ -85,11 +85,12 @@ trait ArtefactTrait
      *         specified, current directory is used.
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
-     * @option $branch Destination branch with optional tokens.
+     * @option $branch Destination branch with optional tokens. Ignored if --update set.
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
      * @option $update Update remote branch, squashing new commits. Defaults to FALSE.
+     * @option $force Force replacement if remote branch exists. Defaults to FALSE.
      */
     public function artefact($remote, array $opts = [
         'root' => InputOption::VALUE_REQUIRED,
@@ -100,6 +101,7 @@ trait ArtefactTrait
         'push' => false,
         'now' => InputOption::VALUE_REQUIRED,
         'update' =>  false,
+        'force' => false,
     ])
     {
         $this->checkRequirements();
@@ -183,6 +185,11 @@ trait ArtefactTrait
     {
         $this->now = !empty($options['now']) ? $options['now'] : time();
 
+        // Set this early to handle remote branch naming.
+        $this->update = !empty($options['update']);
+
+        $this->force = !empty($options['force']);
+
         $this->fsSetRootDir($options['root']);
 
         // Default source to the root directory.
@@ -203,7 +210,6 @@ trait ArtefactTrait
 
         $this->needsPush = !empty($options['push']);
 
-        $this->force = !empty($options['force']);
     }
 
     /**
@@ -337,7 +343,7 @@ trait ArtefactTrait
      */
     protected static function getDefaultBranch()
     {
-        return '[branch]-[timestamp:Y-m-d_H-i-s]';
+        return $this->update ? '[branch]' : '[branch]-[timestamp:Y-m-d_H-i-s]';
     }
 
     /**
