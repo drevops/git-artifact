@@ -233,4 +233,22 @@ class ArtefactTest extends AbstractTest
             '1.txt',
         ], $remoteBranch);
     }
+
+    public function testReport()
+    {
+        $report = $this->getFixtureSrcDir().DIRECTORY_SEPARATOR.'report.txt';
+
+        $this->gitCreateFixtureCommits(1, $this->getFixtureSrcDir());
+        $this->runRoboCommand(sprintf('artefact --src=%s --push %s --report=%s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $report));
+
+        $this->assertFileExists($report);
+        $output = file_get_contents($report);
+
+        $this->assertContains('Artefact report', $output);
+        $this->assertContains(sprintf('Source repository: %s', $this->getFixtureSrcDir()), $output);
+        $this->assertContains(sprintf('Remote repository: %s', $this->getFixtureRemoteDir()), $output);
+        $this->assertContains(sprintf('Remote branch:     %s', $this->defaultCurrentBranch), $output);
+        $this->assertContains('Gitignore file:    No', $output);
+        $this->assertContains('Push result:       Success', $output);
+    }
 }
