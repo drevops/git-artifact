@@ -59,6 +59,20 @@ trait ArtefactTrait
     protected $now;
 
     /**
+     * Path to report file.
+     *
+     * @var string
+     */
+    protected $report;
+
+    /**
+     * Artefact build result.
+     *
+     * @var bool
+     */
+    protected $result;
+
+    /**
      * Artefact constructor.
      */
     public function __construct()
@@ -82,6 +96,7 @@ trait ArtefactTrait
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
+     * @option $report Path to the report file.
      */
     public function artefact($remote, array $opts = [
         'root' => InputOption::VALUE_REQUIRED,
@@ -91,6 +106,7 @@ trait ArtefactTrait
         'gitignore' => InputOption::VALUE_REQUIRED,
         'push' => false,
         'now' => InputOption::VALUE_REQUIRED,
+        'report' => InputOption::VALUE_REQUIRED,
     ])
     {
         $this->checkRequirements();
@@ -135,10 +151,15 @@ trait ArtefactTrait
         $this->say(sprintf('Added changes: %s', $result->getMessage()));
 
         $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
-        if ($result->wasSuccessful()) {
+        $this->result = $result->wasSuccessful();
+        if ($this->result) {
             $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
         } else {
             $this->say(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->branch, $this->message));
+        }
+
+        if ($this->report) {
+            $this->dumpReport();
         }
     }
 
@@ -171,6 +192,8 @@ trait ArtefactTrait
         }
 
         $this->needsPush = !empty($options['push']);
+
+        $this->report = !empty($options['report']) ? $options['report'] : null;
     }
 
     /**
@@ -181,12 +204,33 @@ trait ArtefactTrait
         $this->writeln('----------------------------------------------------------------------');
         $this->writeln(' Artefact information');
         $this->writeln('----------------------------------------------------------------------');
+        $this->writeln(' Build timestamp:       '.date('Y/m/d H:i:s', $this->now));
         $this->writeln(' Source repository:     '.$this->gitGetSrcRepo());
         $this->writeln(' Remote repository:     '.$this->gitGetRemoteRepo());
         $this->writeln(' Remote branch:         '.$this->branch);
         $this->writeln(' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
         $this->writeln(' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
         $this->writeln('----------------------------------------------------------------------');
+    }
+
+    /**
+     * Dump artefact report to a file.
+     */
+    protected function dumpReport()
+    {
+        $lines[] = '----------------------------------------------------------------------';
+        $lines[] = ' Artefact report';
+        $lines[] = '----------------------------------------------------------------------';
+        $lines[] = ' Build timestamp:   '.date('Y/m/d H:i:s', $this->now);
+        $lines[] = ' Source repository: '.$this->gitGetSrcRepo();
+        $lines[] = ' Remote repository: '.$this->gitGetRemoteRepo();
+        $lines[] = ' Remote branch:     '.$this->branch;
+        $lines[] = ' Gitignore file:    '.($this->gitignoreFile ? $this->gitignoreFile : 'No');
+        $lines[] = ' Commit message:    '.$this->message;
+        $lines[] = ' Push result:       '.($this->result ? 'Success' : 'Failure');
+        $lines[] = '----------------------------------------------------------------------';
+
+        $this->fsFileSystem->dumpFile($this->report, implode(PHP_EOL, $lines));
     }
 
     /**
