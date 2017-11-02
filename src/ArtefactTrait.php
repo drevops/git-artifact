@@ -45,6 +45,13 @@ trait ArtefactTrait
     protected $gitignoreFile;
 
     /**
+     * Flag to specify that artefact should be force-pushed to the same branch.
+     *
+     * @var bool
+     */
+    protected $forcePush;
+
+    /**
      * Flag to specify if push is required or should be using dry run.
      *
      * @var string
@@ -95,6 +102,7 @@ trait ArtefactTrait
      * @option $branch Destination branch with optional tokens.
      * @option $message Commit message with optional tokens.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
+     * @option $force-push Force-push to the same branch.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
      * @option $report Path to the report file.
      */
@@ -107,6 +115,7 @@ trait ArtefactTrait
         'push' => false,
         'now' => InputOption::VALUE_REQUIRED,
         'report' => InputOption::VALUE_REQUIRED,
+        'force-push' => false,
     ])
     {
         $this->checkRequirements();
@@ -194,6 +203,7 @@ trait ArtefactTrait
         $this->needsPush = !empty($options['push']);
 
         $this->report = !empty($options['report']) ? $options['report'] : null;
+        $this->forcePush = !empty($options['force-push']);
     }
 
     /**
@@ -210,6 +220,7 @@ trait ArtefactTrait
         $this->writeln(' Remote branch:         '.$this->branch);
         $this->writeln(' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
         $this->writeln(' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
+        $this->writeln(' Will force-push:       '.($this->forcePush ? 'Yes' : 'No'));
         $this->writeln('----------------------------------------------------------------------');
     }
 
