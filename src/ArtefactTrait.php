@@ -22,11 +22,25 @@ trait ArtefactTrait
     use TokenTrait;
 
     /**
+     * Original branch in current repository.
+     *
+     * @var string
+     */
+    protected $originalBranch;
+
+    /**
      * Destination branch with optional tokens.
      *
      * @var string
      */
-    protected $branch;
+    protected $dstBranch;
+
+    /**
+     * Local branch where artefact will be built.
+     *
+     * @var string
+     */
+    protected $artefactBranch;
 
     /**
      * Gitignore file to be used during artefact creation.
@@ -128,12 +142,43 @@ trait ArtefactTrait
         $this->gitSetRemoteRepo($remote);
 
         $this->showInfo();
+        try {
+            $this->prepareArtefact();
 
-        if ($this->needsPush) {
-            $this->doPush();
-        } else {
-            $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
+            if ($this->needsPush) {
+                $this->doPush();
+            } else {
+                $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
+            }
+
+            if ($this->report) {
+                $this->dumpReport();
+            }
+        } finally {
+            $this->cleanup();
         }
+    }
+
+    protected function prepareArtefact()
+    {
+        if (!empty($this->gitignoreFile)) {
+            $this->replaceGitignore($this->gitignoreFile, $this->gitGetSrcRepo());
+        }
+
+        $this->removeSubRepos($this->gitGetSrcRepo());
+
+        $this->localBranch = $this->dstBranch.'-artefact';
+        $this->gitSwitchToNewBranch($this->gitGetSrcRepo(), $this->localBranch);
+
+        $result = $this->gitCommit($this->gitGetSrcRepo(), $this->message);
+        $this->say(sprintf('Added changes: %s', $result->getMessage()));
+    }
+
+    protected function cleanup()
+    {
+        $this->gitSwitchToBranch($this->gitGetSrcRepo(), $this->originalBranch);
+        $this->gitRemoveBranch($this->gitGetSrcRepo(), $this->artefactBranch);
+        $this->gitRemoveRemote($this->gitGetSrcRepo(), 'dst');
     }
 
     /**
@@ -141,38 +186,17 @@ trait ArtefactTrait
      */
     protected function doPush()
     {
+        // @todo: Replace 'dst' with proper const.
         if (!$this->gitRemoteExists($this->gitGetSrcRepo(), 'dst')) {
             $this->gitAddRemote($this->gitGetSrcRepo(), 'dst', $this->gitGetRemoteRepo());
         }
 
-        // Gitignore may not be provided in which case we just send send current
-        // repo as is to remote.
-        if (!empty($this->gitignoreFile)) {
-            $this->replaceGitignore($this->gitignoreFile, $this->gitGetSrcRepo());
-        }
-
-        $this->removeSubRepos($this->gitGetSrcRepo());
-
-        $currentBranch = $this->gitGetCurrentBranch($this->gitGetSrcRepo());
-        // Switch to a new branch in current repo (for possible rollback),
-        // but only if the deployment branch is different from current one.
-        if ($this->branch != $currentBranch) {
-            $this->gitCreateNewBranch($this->gitGetSrcRepo(), $this->branch);
-        }
-
-        $result = $this->gitCommit($this->gitGetSrcRepo(), $this->message);
-        $this->say(sprintf('Added changes: %s', $result->getMessage()));
-
-        $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->branch);
+        $result = $this->gitPush($this->gitGetSrcRepo(), 'dst', $this->dstBranch, $this->mode == self::modeForcePush());
         $this->result = $result->wasSuccessful();
         if ($this->result) {
-            $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->branch, $this->message));
+            $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
         } else {
-            $this->say(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->branch, $this->message));
-        }
-
-        if ($this->report) {
-            $this->dumpReport();
+            $this->say(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
         }
     }
 
@@ -192,12 +216,10 @@ trait ArtefactTrait
         $srcPath = !empty($options['src']) ? $this->fsGetAbsolutePath($options['src']) : $this->fsGetRootDir();
         $this->gitSetSrcRepo($srcPath);
 
-        $branch = !empty($options['branch']) ? $options['branch'] : self::getDefaultBranch();
-        $branch = $this->tokenProcess($branch);
-        $this->setBranch($branch);
+        $this->originalBranch = $this->gitGetCurrentBranch($this->gitGetSrcRepo());
+        $this->setDstBranch($options['branch']);
 
         $message = !empty($options['message']) ? $options['message'] : self::getDefaultMessage();
-        $message = $this->tokenProcess($message);
         $this->setMessage($message);
 
         if (!empty($options['gitignore'])) {
@@ -223,7 +245,7 @@ trait ArtefactTrait
         $this->writeln(' Mode:                  '.$this->mode);
         $this->writeln(' Source repository:     '.$this->gitGetSrcRepo());
         $this->writeln(' Remote repository:     '.$this->gitGetRemoteRepo());
-        $this->writeln(' Remote branch:         '.$this->branch);
+        $this->writeln(' Remote branch:         '.$this->dstBranch);
         $this->writeln(' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
         $this->writeln(' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
         $this->writeln('----------------------------------------------------------------------');
@@ -241,7 +263,7 @@ trait ArtefactTrait
         $lines[] = ' Mode:              '.$this->mode;
         $lines[] = ' Source repository: '.$this->gitGetSrcRepo();
         $lines[] = ' Remote repository: '.$this->gitGetRemoteRepo();
-        $lines[] = ' Remote branch:     '.$this->branch;
+        $lines[] = ' Remote branch:     '.$this->dstBranch;
         $lines[] = ' Gitignore file:    '.($this->gitignoreFile ? $this->gitignoreFile : 'No');
         $lines[] = ' Commit message:    '.$this->message;
         $lines[] = ' Push result:       '.($this->result ? 'Success' : 'Failure');
@@ -322,17 +344,19 @@ trait ArtefactTrait
     }
 
     /**
-     * Set the branch of the remote repository.
+     * Set the branch in the remote repository where commits will be pushed to.
      *
      * @param string $branch
-     *   Branch of the remote repository.
+     *   Branch in the remote repository.
      */
-    protected function setBranch($branch)
+    protected function setDstBranch($branch)
     {
+        $branch = $this->tokenProcess($branch);
+
         if (!self::gitIsValidBranch($branch)) {
             throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch', $branch));
         }
-        $this->branch = $branch;
+        $this->dstBranch = $branch;
     }
 
     /**
@@ -343,6 +367,7 @@ trait ArtefactTrait
      */
     protected function setMessage($message)
     {
+        $message = $this->tokenProcess($message);
         $this->message = $message;
     }
 

@@ -121,12 +121,31 @@ trait GitTrait
         return in_array($name, $lines);
     }
 
-    protected function gitCreateNewBranch($location, $branch)
+    // @todo: Join 2 functions in 1.
+    protected function gitSwitchToNewBranch($location, $branch)
     {
         return $this->gitCommandRun(
             $location,
             sprintf('checkout -b %s', $branch)
         );
+    }
+
+    protected function gitSwitchToBranch($location, $branch)
+    {
+        return $this->gitCommandRun(
+            $location,
+            sprintf('checkout %s', $branch)
+        );
+    }
+
+    protected function gitRemoveBranch($location, $branch)
+    {
+        // @todo: Implement this.
+    }
+
+    protected function gitRemoveRemote($location, $name)
+    {
+        // @todo: Implement this.
     }
 
     /**
@@ -144,11 +163,11 @@ trait GitTrait
      * @return \Robo\Result
      *   Result object.
      */
-    protected function gitPush($location, $remoteName, $remoteBranch)
+    protected function gitPush($location, $remoteName, $remoteBranch, $force = false)
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s', $remoteName, $remoteBranch),
+            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s%s', $remoteName, $remoteBranch, $force ? ' --force' : ''),
             sprintf('Unable to push to "%s" remote', $remoteName)
         );
     }
