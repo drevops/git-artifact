@@ -23,6 +23,15 @@ abstract class AbstractTest extends TestCase
     const FIXTURE_REMOTE_DIR = 'fixture_remote_git';
 
     /**
+     * Current default branch.
+     *
+     * Used as a helper for test assertions.
+     *
+     * @var string
+     */
+    protected $defaultCurrentBranch;
+
+    /**
      * Current timestamp to run commands with.
      *
      * @var int
@@ -37,6 +46,7 @@ abstract class AbstractTest extends TestCase
         $this->gitCommandTraitSetUp($this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $this->isDebug());
 
         $this->now = time();
+        $this->defaultCurrentBranch = 'master';
     }
 
     /**

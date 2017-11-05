@@ -3,19 +3,10 @@
 namespace IntegratedExperts\Robo\Tests;
 
 /**
- * Class BuildArtefactTest.
+ * Class BranchTest.
  */
-class ArtefactTest extends AbstractTest
+class BranchTest extends AbstractTest
 {
-
-    /**
-     * Current default branch.
-     *
-     * Used as a helper for test assertions.
-     *
-     * @var string
-     */
-    protected $defaultCurrentBranch;
 
     /**
      * {@inheritdoc}
@@ -24,45 +15,6 @@ class ArtefactTest extends AbstractTest
     {
         parent::setUp();
         $this->defaultCurrentBranch = 'master-'.date('Y-m-d_H-i-s', $this->now);
-    }
-
-    public function testPresence()
-    {
-        $output = $this->runRoboCommand('list');
-        $this->assertContains('artefact', implode(PHP_EOL, $output));
-    }
-
-    public function testHelp()
-    {
-        $output = $this->runRoboCommand('--help artefact');
-        $this->assertContains('artefact [options] [--] <remote>', implode(PHP_EOL, $output));
-    }
-
-    public function testCompulsoryParameter()
-    {
-        $output = $this->runRoboCommand('artefact', true);
-
-        $this->assertContains('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
-    }
-
-    public function testInfo()
-    {
-        $this->gitCreateFixtureCommits(1, $this->getFixtureSrcDir());
-        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
-        $output = implode(PHP_EOL, $output);
-
-        // Assert information is correct.
-        $this->assertContains('Artefact information', $output);
-        $this->assertContains('Source repository:     '.$this->getFixtureSrcDir(), $output);
-        $this->assertContains('Remote repository:     '.$this->getFixtureRemoteDir(), $output);
-        $this->assertContains(sprintf('Remote branch:         %s', $this->defaultCurrentBranch), $output);
-        $this->assertContains('Gitignore file:        No', $output);
-        $this->assertContains('Will push:             No', $output);
-        $this->assertContains(' Will force-push:       No', $output);
-
-        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
-
-        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '1.txt', $this->defaultCurrentBranch);
     }
 
     public function testPushNoChanges()
@@ -251,39 +203,5 @@ class ArtefactTest extends AbstractTest
         $this->assertContains(sprintf('Remote branch:     %s', $this->defaultCurrentBranch), $output);
         $this->assertContains('Gitignore file:    No', $output);
         $this->assertContains('Push result:       Success', $output);
-    }
-
-    /**
-     * @group wip
-     */
-    public function testForcePush()
-    {
-        $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '1.txt');
-        $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 1');
-
-        $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '2.txt');
-        $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 2');
-
-        $remoteBranch = 'testbranch';
-
-        $output = $this->runRoboCommand(sprintf('artefact --src=%s --push --force-push %s --branch=testbranch', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
-
-        $output = implode(PHP_EOL, $output);
-        $this->assertContains('Will push:             Yes', $output);
-        $this->assertContains('Will force-push:       Yes', $output);
-
-        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $remoteBranch), $output);
-
-        $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
-        $this->assertEquals([
-            'Commit number 1',
-            'Commit number 2',
-            'Deployment commit',
-        ], $remoteCommits);
-
-        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
-            '1.txt',
-            '2.txt',
-        ], $remoteBranch);
     }
 }
