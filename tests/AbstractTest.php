@@ -193,6 +193,22 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
+     * Run artefact build.
+     *
+     * @param string $args
+     *   Additional arguments or options as a string.
+     *
+     * @return string
+     *   Output string.
+     */
+    protected function runBuild($args = '')
+    {
+        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $args));
+
+        return implode(PHP_EOL, $output);
+    }
+
+    /**
      * Run Robo command with current timestamp attached to artefact commands.
      *
      * @param string $command

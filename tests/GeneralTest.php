@@ -30,10 +30,8 @@ class GeneralTest extends AbstractTest
     public function testInfo()
     {
         $this->gitCreateFixtureCommits(1, $this->getFixtureSrcDir());
-        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
-        $output = implode(PHP_EOL, $output);
+        $output = $this->runBuild();
 
-        // Assert information is correct.
         $this->assertContains('Artefact information', $output);
         $this->assertContains('Source repository:     '.$this->getFixtureSrcDir(), $output);
         $this->assertContains('Remote repository:     '.$this->getFixtureRemoteDir(), $output);
