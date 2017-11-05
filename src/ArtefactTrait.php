@@ -29,13 +29,6 @@ trait ArtefactTrait
     protected $branch;
 
     /**
-     * Commit message with optional tokens.
-     *
-     * @var string
-     */
-    protected $message;
-
-    /**
      * Gitignore file to be used during artefact creation.
      *
      * If not set, the current `.gitignore` will be used, if any.
@@ -45,11 +38,20 @@ trait ArtefactTrait
     protected $gitignoreFile;
 
     /**
-     * Flag to specify that artefact should be force-pushed to the same branch.
+     * Commit message with optional tokens.
      *
-     * @var bool
+     * @var string
      */
-    protected $forcePush;
+    protected $message;
+
+    /**
+     * Mode in which current build is going to run.
+     *
+     * Available modes: branch, force-push, diff.
+     *
+     * @var string
+     */
+    protected $mode;
 
     /**
      * Flag to specify if push is required or should be using dry run.
@@ -95,27 +97,29 @@ trait ArtefactTrait
      * @param array  $opts
      *   Options.
      *
+     * @option $branch Destination branch with optional tokens.
+     * @option $gitignore Path to gitignore file to replace current .gitignore.
+     * @option $message Commit message with optional tokens.
+     * @option $mode Mode of artefact build: branch, force-push or diff.
+     *   Defaults to force-push.
+     * @option $now Internal value used to set internal time.
+     * @option $push Push artefact to the remote repository. Defaults to FALSE.
+     * @option $report Path to the report file.
      * @option $root Path to the root for file path resolution. If not
      *         specified, current directory is used.
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
-     * @option $branch Destination branch with optional tokens.
-     * @option $message Commit message with optional tokens.
-     * @option $gitignore Path to gitignore file to replace current .gitignore.
-     * @option $force-push Force-push to the same branch.
-     * @option $push Push artefact to the remote repository. Defaults to FALSE.
-     * @option $report Path to the report file.
      */
     public function artefact($remote, array $opts = [
+        'branch' => InputOption::VALUE_REQUIRED,
+        'gitignore' => InputOption::VALUE_REQUIRED,
+        'message' => InputOption::VALUE_REQUIRED,
+        'mode' => 'force-push',
+        'now' => InputOption::VALUE_REQUIRED,
+        'push' => false,
+        'report' => InputOption::VALUE_REQUIRED,
         'root' => InputOption::VALUE_REQUIRED,
         'src' => InputOption::VALUE_REQUIRED,
-        'branch' => InputOption::VALUE_REQUIRED,
-        'message' => InputOption::VALUE_REQUIRED,
-        'gitignore' => InputOption::VALUE_REQUIRED,
-        'push' => false,
-        'now' => InputOption::VALUE_REQUIRED,
-        'report' => InputOption::VALUE_REQUIRED,
-        'force-push' => false,
     ])
     {
         $this->checkRequirements();
@@ -203,7 +207,8 @@ trait ArtefactTrait
         $this->needsPush = !empty($options['push']);
 
         $this->report = !empty($options['report']) ? $options['report'] : null;
-        $this->forcePush = !empty($options['force-push']);
+
+        $this->setMode($options['mode'], $options);
     }
 
     /**
@@ -215,12 +220,12 @@ trait ArtefactTrait
         $this->writeln(' Artefact information');
         $this->writeln('----------------------------------------------------------------------');
         $this->writeln(' Build timestamp:       '.date('Y/m/d H:i:s', $this->now));
+        $this->writeln(' Mode:                  '.$this->mode);
         $this->writeln(' Source repository:     '.$this->gitGetSrcRepo());
         $this->writeln(' Remote repository:     '.$this->gitGetRemoteRepo());
         $this->writeln(' Remote branch:         '.$this->branch);
         $this->writeln(' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
         $this->writeln(' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
-        $this->writeln(' Will force-push:       '.($this->forcePush ? 'Yes' : 'No'));
         $this->writeln('----------------------------------------------------------------------');
     }
 
@@ -233,6 +238,7 @@ trait ArtefactTrait
         $lines[] = ' Artefact report';
         $lines[] = '----------------------------------------------------------------------';
         $lines[] = ' Build timestamp:   '.date('Y/m/d H:i:s', $this->now);
+        $lines[] = ' Mode:              '.$this->mode;
         $lines[] = ' Source repository: '.$this->gitGetSrcRepo();
         $lines[] = ' Remote repository: '.$this->gitGetRemoteRepo();
         $lines[] = ' Remote branch:     '.$this->branch;
@@ -242,6 +248,77 @@ trait ArtefactTrait
         $lines[] = '----------------------------------------------------------------------';
 
         $this->fsFileSystem->dumpFile($this->report, implode(PHP_EOL, $lines));
+    }
+
+    /**
+     * Set build mode.
+     *
+     * @param string $mode
+     *   Mode to set.
+     * @param array  $options
+     *   CLI options to use as a context for modevalidation.
+     */
+    protected function setMode($mode, array $options)
+    {
+        $this->say(sprintf('Running in "%s" mode', $mode));
+
+        switch ($mode) {
+            case self::modeForcePush():
+                // Intentionally empty.
+                break;
+
+            case self::modeBranch():
+                if ($options['branch'] == $this->gitGetCurrentBranch($this->gitGetSrcRepo())) {
+                    throw new \RuntimeException('Invalid branch name for "branch" mode. Try adding a suffix to make the branch unique.');
+                }
+                break;
+
+            case self::modeDiff():
+                throw new \RuntimeException('Diff mode is not yet implemented.');
+                break;
+
+            default:
+                throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: %s'), implode(', ', [
+                    self::modeForcePush(),
+                    self::modeBranch(),
+                    self::modeDiff(),
+                ]));
+        }
+
+        $this->mode = $mode;
+    }
+
+    /**
+     * Branch mode.
+     *
+     * @return string
+     *   Branch mode name.
+     */
+    public static function modeBranch()
+    {
+        return 'branch';
+    }
+
+    /**
+     * Force-push mode.
+     *
+     * @return string
+     *   Force-push mode name.
+     */
+    public static function modeForcePush()
+    {
+        return 'force-push';
+    }
+
+    /**
+     * Diff mode.
+     *
+     * @return string
+     *   Diff mode name.
+     */
+    public static function modeDiff()
+    {
+        return 'diff';
     }
 
     /**
