@@ -2,6 +2,8 @@
 
 namespace IntegratedExperts\Robo\Tests;
 
+use IntegratedExperts\Robo\ArtefactTrait;
+
 /**
  * Class ForcePushTest.
  */
@@ -10,19 +12,17 @@ class ForcePushTest extends AbstractTest
 
     public function testForcePush()
     {
+        $remoteBranch = 'testbranch';
+
         $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '1.txt');
         $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 1');
 
         $this->gitCreateFixtureFile($this->getFixtureSrcDir(), '2.txt');
         $this->gitCommitAll($this->getFixtureSrcDir(), 'Commit number 2');
 
-        $remoteBranch = 'testbranch';
-
-        $output = $this->runRoboCommand(sprintf('artefact --src=%s --push --force-push %s --branch=testbranch', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
-
-        $output = implode(PHP_EOL, $output);
-        $this->assertContains('Will push:             Yes', $output);
-        $this->assertContains('Will force-push:       Yes', $output);
+        $output = $this->runBuild(sprintf('--push --mode=force-push --branch=%s', $remoteBranch));
+        $this->assertContains(sprintf('Mode:                  %s', ArtefactTrait::modeForcePush()), $output);
+        $this->assertContains(sprintf('Will push:             Yes'), $output);
 
         $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $remoteBranch), $output);
 
