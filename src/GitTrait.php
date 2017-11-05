@@ -2,6 +2,8 @@
 
 namespace IntegratedExperts\Robo;
 
+use Robo\Contract\VerbosityThresholdInterface;
+
 /**
  * Trait GitTrait.
  *
@@ -251,8 +253,10 @@ trait GitTrait
      */
     protected function gitCommand($location = null)
     {
-        $git = $this->taskExec('git');
-        $git->arg('--no-pager');
+        $git = $this->taskExec('git')
+            ->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG)
+            ->printOutput(false)
+            ->arg('--no-pager');
         if (!empty($location)) {
             $git->arg('--git-dir='.$location.'/.git');
             $git->arg('--work-tree='.$location);

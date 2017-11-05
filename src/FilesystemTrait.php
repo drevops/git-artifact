@@ -2,6 +2,7 @@
 
 namespace IntegratedExperts\Robo;
 
+use Robo\Contract\VerbosityThresholdInterface;
 use Robo\LoadAllTasks;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -132,8 +133,9 @@ trait FilesystemTrait
      */
     protected function fsIsCommandAvailable($command)
     {
-        // @todo: Find a better way to do this.
         $result = $this->taskExecStack()
+            ->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG)
+            ->printOutput(false)
             ->exec('which '.$command)
             ->run();
 
