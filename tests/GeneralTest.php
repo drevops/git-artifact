@@ -2,8 +2,6 @@
 
 namespace IntegratedExperts\Robo\Tests;
 
-use IntegratedExperts\Robo\ArtefactTrait;
-
 /**
  * Class GeneralTest.
  */
@@ -31,16 +29,16 @@ class GeneralTest extends AbstractTest
 
     public function testInfo()
     {
-        $this->gitCreateFixtureCommits(1, $this->src);
+        $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild();
 
-        $this->assertContains(sprintf('Artefact information'), $output);
-        $this->assertContains(sprintf('Mode:                  %s', ArtefactTrait::modeForcePush()), $output);
-        $this->assertContains(sprintf('Source repository:     %s', $this->src), $output);
-        $this->assertContains(sprintf('Remote repository:     %s', $this->dst), $output);
-        $this->assertContains(sprintf('Remote branch:         %s', $this->currentBranch), $output);
-        $this->assertContains(sprintf('Gitignore file:        No'), $output);
-        $this->assertContains(sprintf('Will push:             No'), $output);
+        $this->assertContains('Artefact information', $output);
+        $this->assertContains('Mode:                  force-push', $output);
+        $this->assertContains('Source repository:     '.$this->src, $output);
+        $this->assertContains('Remote repository:     '.$this->dst, $output);
+        $this->assertContains('Remote branch:         '.$this->currentBranch, $output);
+        $this->assertContains('Gitignore file:        No', $output);
+        $this->assertContains('Will push:             No', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 

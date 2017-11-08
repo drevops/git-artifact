@@ -19,7 +19,7 @@ class BranchTest extends AbstractTest
 
     public function testPushNoChanges()
     {
-        $this->gitCreateFixtureCommits(1, $this->src);
+        $this->gitCreateFixtureCommits(1);
         $output = $this->runRoboCommand(sprintf('artefact --src=%s --push %s', $this->src, $this->dst));
         $output = implode(PHP_EOL, $output);
 
@@ -40,7 +40,7 @@ class BranchTest extends AbstractTest
 
     public function testPushUncommittedChanges()
     {
-        $this->gitCreateFixtureCommits(1, $this->src);
+        $this->gitCreateFixtureCommits(1);
         $this->gitCreateFixtureFile($this->src, '2.txt');
         $output = $this->runRoboCommand(sprintf('artefact --src=%s --push %s', $this->src, $this->dst));
         $output = implode(PHP_EOL, $output);
@@ -191,7 +191,7 @@ class BranchTest extends AbstractTest
     {
         $report = $this->src.DIRECTORY_SEPARATOR.'report.txt';
 
-        $this->gitCreateFixtureCommits(1, $this->src);
+        $this->gitCreateFixtureCommits(1);
         $this->runRoboCommand(sprintf('artefact --src=%s --push %s --report=%s', $this->src, $this->dst, $report));
 
         $this->assertFileExists($report);

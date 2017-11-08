@@ -132,9 +132,9 @@ trait ArtefactTrait
      *   specified, root directory is used.
      */
     public function artefact($remote, array $opts = [
-        'branch' => InputOption::VALUE_REQUIRED,
+        'branch' => '[branch]',
         'gitignore' => InputOption::VALUE_REQUIRED,
-        'message' => InputOption::VALUE_REQUIRED,
+        'message' => 'Deployment commit',
         'mode' => 'force-push',
         'now' => InputOption::VALUE_REQUIRED,
         'push' => false,
@@ -233,8 +233,7 @@ trait ArtefactTrait
         $this->setDstBranch($options['branch']);
         $this->artefactBranch = $this->dstBranch.'-artefact';
 
-        $message = !empty($options['message']) ? $options['message'] : self::getDefaultMessage();
-        $this->setMessage($message);
+        $this->setMessage($options['message']);
 
         if (!empty($options['gitignore'])) {
             $this->setGitignoreFile($options['gitignore']);
@@ -487,14 +486,6 @@ trait ArtefactTrait
     protected static function getDefaultBranch()
     {
         return '[branch]-[timestamp:Y-m-d_H-i-s]';
-    }
-
-    /**
-     * Returns default commit message.
-     */
-    protected static function getDefaultMessage()
-    {
-        return 'Deployment commit';
     }
 
     /**

@@ -147,16 +147,15 @@ trait GitTrait
      *   Local path or remote URI of the repository.
      * @param string $remote
      *   Remote name.
-     *
-     * @return \Robo\Result
-     *   Result object.
      */
     protected function gitRemoveRemote($location, $remote)
     {
-        return $this->gitCommandRun(
-            $location,
-            sprintf('remote rm %s', $remote)
-        );
+        if ($this->gitRemoteExists($location, $remote)) {
+            $this->gitCommandRun(
+                $location,
+                sprintf('remote rm %s', $remote)
+            );
+        }
     }
 
     /**
