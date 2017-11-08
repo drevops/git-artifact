@@ -39,7 +39,18 @@ class ForcePushTest extends AbstractTest
         $this->assertFixtureCommits(5, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testCleanup()
+    public function testIdempotence()
+    {
+        $this->gitCreateFixtureCommits(2);
+
+        $this->assertBuildSuccess();
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+
+        $this->assertBuildSuccess();
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    }
+
+    public function testCleanupAfterSuccess()
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -50,20 +61,31 @@ class ForcePushTest extends AbstractTest
         $this->assertGitNoRemote($this->src, $this->remote);
     }
 
-    public function testIdempotence()
+    public function testCleanupAfterFailure()
     {
+        $this->gitCreateFixtureCommits(1);
+
+        $this->assertBuildFailure('--branch=&invalid');
+
+        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
+        $this->assertGitNoRemote($this->src, $this->remote);
+    }
+
+    public function testGitignore()
+    {
+        $this->gitCreateFixtureFile($this->src, '.gitignore', '3.txt');
         $this->gitCreateFixtureCommits(2);
+        $this->gitCreateFixtureFile($this->src, '3.txt');
 
         $this->assertBuildSuccess();
+
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+        $this->gitAssertFilesNotExist($this->dst, '3.txt');
 
-        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
-        $this->assertGitNoRemote($this->src, $this->remote);
-
+        // Now, remove the .gitignore and push again.
+        $this->gitRemoveFixtureFile($this->src, '.gitignore');
+        $this->gitCommitAll($this->src, 'Commit number 3');
         $this->assertBuildSuccess();
-        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
-
-        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
-        $this->assertGitNoRemote($this->src, $this->remote);
+        $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);
     }
 }

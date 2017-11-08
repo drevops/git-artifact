@@ -86,9 +86,9 @@ abstract class AbstractTest extends TestCase
      *
      * @param object|string $object
      *   Object or class name to use for a method call.
-     * @param string        $method
+     * @param string $method
      *   Method name. Method can be static.
-     * @param array         $args
+     * @param array $args
      *   Array of arguments to pass to the method. To pass arguments by
      *   reference, pass them by reference as an element of this array.
      *
@@ -112,7 +112,7 @@ abstract class AbstractTest extends TestCase
      *   Object to set the value on.
      * @param string $property
      *   Property name to set the value. Property should exists in the object.
-     * @param mixed  $value
+     * @param mixed $value
      *   Value to set to the property.
      */
     protected static function setProtectedValue($object, $property, $value)
@@ -149,9 +149,9 @@ abstract class AbstractTest extends TestCase
      *
      * @param string $class
      *   Class name to generate the mock.
-     * @param array  $methodsMap
+     * @param array $methodsMap
      *   Optional array of methods and values, keyed by method name.
-     * @param array  $args
+     * @param array $args
      *   Optional array of constructor arguments. If omitted, a constructor will
      *   not be called.
      *
@@ -230,10 +230,9 @@ abstract class AbstractTest extends TestCase
      */
     protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
-        $output = $this->runBuild(sprintf('--push --mode=force-push --branch=%s%s', $branch, $args));
+        $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
         $this->assertNotContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
 
-        // @todo: Add more assertions here.
         return $output;
     }
 
@@ -246,13 +245,13 @@ abstract class AbstractTest extends TestCase
      * @return string
      *   Output string.
      */
-    protected function runBuild($args = '')
+    protected function runBuild($args = '', $expectFail = false)
     {
         if ($this->mode) {
-            $args .= '--mode='.$this->mode;
+            $args .= ' --mode='.$this->mode;
         }
 
-        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->src, $this->dst, $args));
+        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
 
         return implode(PHP_EOL, $output);
     }
@@ -262,7 +261,7 @@ abstract class AbstractTest extends TestCase
      *
      * @param string $command
      *   Command string to run.
-     * @param bool   $expectFail
+     * @param bool $expectFail
      *   Flag to state that the command should fail.
      *
      * @return array Array of output lines.

@@ -245,9 +245,9 @@ trait CommandTrait
     /**
      * Create fixture file at provided path.
      *
-     * @param string  $path
+     * @param string $path
      *    File path.
-     * @param  string $name
+     * @param string $name
      *    Optional file name.
      *
      * @return string
@@ -264,6 +264,20 @@ trait CommandTrait
         }
 
         return $path;
+    }
+
+    /**
+     * Remove fixture file at provided path.
+     *
+     * @param string $path
+     *    File path.
+     * @param string $name
+     *    File name.
+     */
+    protected function gitRemoveFixtureFile($path, $name)
+    {
+        $path = $path.DIRECTORY_SEPARATOR.$name;
+        $this->fs->remove($path);
     }
 
     /**
