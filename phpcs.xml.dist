@@ -13,4 +13,8 @@
     <exclude-pattern>tests/*.Test\.php</exclude-pattern>
     <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
   </rule>
+  <rule ref="Symfony2.Commenting.FunctionComment.MissingParamTag">
+    <exclude-pattern>tests/*.Test\.php</exclude-pattern>
+    <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
+  </rule>
 </ruleset>

@@ -112,7 +112,7 @@ abstract class AbstractTest extends TestCase
      *   Object to set the value on.
      * @param string $property
      *   Property name to set the value. Property should exists in the object.
-     * @param mixed $value
+     * @param mixed  $value
      *   Value to set to the property.
      */
     protected static function setProtectedValue($object, $property, $value)
@@ -145,15 +145,17 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
-     * Helper to prepare class mock.
+     * Helper to prepare class or trait mock.
      *
      * @param string $class
-     *   Class name to generate the mock.
-     * @param array $methodsMap
-     *   Optional array of methods and values, keyed by method name.
-     * @param array $args
-     *   Optional array of constructor arguments. If omitted, a constructor will
-     *   not be called.
+     *   Class or trait name to generate the mock.
+     * @param array  $methodsMap
+     *   Optional array of methods and values, keyed by method name. Array
+     *   elements can be return values, callbacks created with
+     *   $this->returnCallback(), or closures.
+     * @param array  $args
+     *   Optional array of constructor arguments. If omitted, a constructor
+     *   will not be called.
      *
      * @return object
      *   Mocked class.
@@ -166,6 +168,8 @@ abstract class AbstractTest extends TestCase
 
         if ($reflectionClass->isAbstract()) {
             $mock = $this->getMockForAbstractClass($class, $args, '', !empty($args), true, true, $methods);
+        } elseif ($reflectionClass->isTrait()) {
+            $mock = $this->getMockForTrait($class, [], '', true, true, true, array_keys($methodsMap));
         } else {
             $mockBuilder = $this->getMockBuilder($class);
             if (!empty($args)) {
@@ -184,6 +188,10 @@ abstract class AbstractTest extends TestCase
                 $mock->expects($this->any())
                     ->method($method)
                     ->will($value);
+            } elseif (is_object($value) && strpos(get_class($value), 'Closure') !== false) {
+                $mock->expects($this->any())
+                    ->method($method)
+                    ->will($this->returnCallback($value));
             } else {
                 $mock->expects($this->any())
                     ->method($method)
@@ -261,7 +269,7 @@ abstract class AbstractTest extends TestCase
      *
      * @param string $command
      *   Command string to run.
-     * @param bool $expectFail
+     * @param bool   $expectFail
      *   Flag to state that the command should fail.
      *
      * @return array Array of output lines.
