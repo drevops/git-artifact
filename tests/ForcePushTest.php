@@ -65,7 +65,7 @@ class ForcePushTest extends AbstractTest
     {
         $this->gitCreateFixtureCommits(1);
 
-        $this->assertBuildFailure('--branch=&invalid');
+        $this->assertBuildFailure('--branch=*invalid');
 
         $this->assertGitCurrentBranch($this->src, $this->currentBranch);
         $this->assertGitNoRemote($this->src, $this->remote);
@@ -84,6 +84,24 @@ class ForcePushTest extends AbstractTest
 
         // Now, remove the .gitignore and push again.
         $this->gitRemoveFixtureFile($this->src, '.gitignore');
+        $this->gitCommitAll($this->src, 'Commit number 3');
+        $this->assertBuildSuccess();
+        $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);
+    }
+
+    public function testGitignoreCustom()
+    {
+        $this->gitCreateFixtureFile($this->src, 'mygitignore', '3.txt');
+        $this->gitCreateFixtureCommits(2);
+        $this->gitCreateFixtureFile($this->src, '3.txt');
+
+        $this->assertBuildSuccess('--gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore');
+
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+
+        // Now, remove the .gitignore and push again.
+        $this->gitRemoveFixtureFile($this->src, 'mygitignore');
         $this->gitCommitAll($this->src, 'Commit number 3');
         $this->assertBuildSuccess();
         $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);

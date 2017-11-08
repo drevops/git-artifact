@@ -139,10 +139,10 @@ trait ArtefactTrait
         $this->checkRequirements();
         $this->resolveOptions($opts);
 
-        $this->gitSetRemoteRepo($remote);
-
-        $this->showInfo();
         try {
+            $this->gitSetRemoteRepo($remote);
+
+            $this->showInfo();
             $this->prepareArtefact();
 
             if ($this->needsPush) {
@@ -169,8 +169,7 @@ trait ArtefactTrait
 
         $this->removeSubRepos($this->gitGetSrcRepo());
 
-        $this->localBranch = $this->dstBranch.'-artefact';
-        $this->gitSwitchToNewBranch($this->gitGetSrcRepo(), $this->localBranch);
+        $this->gitSwitchToNewBranch($this->gitGetSrcRepo(), $this->artefactBranch);
 
         $result = $this->gitCommit($this->gitGetSrcRepo(), $this->message);
         $this->say(sprintf('Added changes: %s', $result->getMessage()));
@@ -281,7 +280,7 @@ trait ArtefactTrait
      * @param string $mode
      *   Mode to set.
      * @param array  $options
-     *   CLI options to use as a context for modevalidation.
+     *   CLI options to use as a context for mode validation.
      */
     protected function setMode($mode, array $options)
     {
@@ -406,6 +405,8 @@ trait ArtefactTrait
      *
      * @param string $filename
      *   Path to new gitignore to replace current file with.
+     * @param string $path
+     *   Path to repository.
      */
     protected function replaceGitignore($filename, $path)
     {
@@ -442,10 +443,14 @@ trait ArtefactTrait
 
     /**
      * Token callback to get tags.
+     *
+     * @param string $delimiter
+     *   Optional token delimiter. Default to ', '.
+     *
+     * @return string
      */
-    protected function getTokenTags($delimiter)
+    protected function getTokenTags($delimiter = ', ')
     {
-        $delimiter = empty($delimiter) ? ', ' : $delimiter;
         $tags = $this->gitGetTags($this->gitGetSrcRepo());
 
         return implode($delimiter, $tags);
@@ -453,6 +458,11 @@ trait ArtefactTrait
 
     /**
      * Token callback to get current timestamp.
+     *
+     * @param string $format
+     *   Date format suitable for date() function.
+     *
+     * @return false|string
      */
     protected function getTokenTimestamp($format)
     {
