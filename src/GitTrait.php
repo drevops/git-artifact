@@ -99,23 +99,39 @@ trait GitTrait
         return in_array($name, $lines);
     }
 
-    // @todo: Join 2 functions in 1.
-    protected function gitSwitchToNewBranch($location, $branch)
+    /**
+     * Switch to new branch.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository.
+     * @param string $branch
+     *   Branch name.
+     * @param bool   $createNew
+     *   Optional flag to also create a branch before switching. Defaults to
+     *   false.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
+    protected function gitSwitchToBranch($location, $branch, $createNew = false)
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('checkout -b %s', $branch)
+            sprintf('checkout %s %s', $createNew ? '-b' : '', $branch)
         );
     }
 
-    protected function gitSwitchToBranch($location, $branch)
-    {
-        return $this->gitCommandRun(
-            $location,
-            sprintf('checkout %s', $branch)
-        );
-    }
-
+    /**
+     * Remove git branch.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository.
+     * @param string $branch
+     *   Branch name.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
     protected function gitRemoveBranch($location, $branch)
     {
         return $this->gitCommandRun(
@@ -124,6 +140,17 @@ trait GitTrait
         );
     }
 
+    /**
+     * Removed git remote.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository.
+     * @param string $remote
+     *   Remote name.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
     protected function gitRemoveRemote($location, $remote)
     {
         return $this->gitCommandRun(
@@ -156,6 +183,17 @@ trait GitTrait
         );
     }
 
+    /**
+     * Commit all files to git repo.
+     *
+     * @param string $location
+     *   Repository location path or URI.
+     * @param string $message
+     *   Commit message.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
     protected function gitCommit($location, $message)
     {
         $this->gitCommandRun(
@@ -165,7 +203,6 @@ trait GitTrait
 
         return $this->gitCommandRun(
             $location,
-            //            sprintf('commit --quiet --allow-empty -m "%s"', $message)
             sprintf('commit --allow-empty -m "%s"', $message)
         );
     }

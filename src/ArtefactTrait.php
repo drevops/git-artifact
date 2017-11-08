@@ -166,6 +166,9 @@ trait ArtefactTrait
         }
     }
 
+    /**
+     * prepare artefact to be then deployed.
+     */
     protected function prepareArtefact()
     {
         if (!empty($this->gitignoreFile)) {
@@ -174,12 +177,15 @@ trait ArtefactTrait
 
         $this->removeSubRepos($this->src);
 
-        $this->gitSwitchToNewBranch($this->src, $this->artefactBranch);
+        $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
         $result = $this->gitCommit($this->src, $this->message);
         $this->say(sprintf('Added changes: %s', $result->getMessage()));
     }
 
+    /**
+     * Cleanup after build.
+     */
     protected function cleanup()
     {
         $this->gitSwitchToBranch($this->src, $this->originalBranch);
