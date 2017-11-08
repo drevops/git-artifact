@@ -165,10 +165,10 @@ trait CommandTrait
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      */
-    protected function gitCreateFixtureCommits($count, $path = null)
+    protected function gitCreateFixtureCommits($count, $offset = 0, $path = null)
     {
         $path = $path ? $path : $this->fixtureSrcRepo;
-        for ($i = 0; $i < $count; $i++) {
+        for ($i = $offset; $i < $count + $offset; $i++) {
             $this->gitCreateFixtureCommit($i + 1, $path);
         }
     }
@@ -236,6 +236,12 @@ trait CommandTrait
         }
     }
 
+    protected function gitReset($path)
+    {
+        $this->runGitCommand('reset --hard', $path);
+        $this->runGitCommand('clean -dfx', $path);
+    }
+
     /**
      * Create fixture file at provided path.
      *
@@ -292,8 +298,10 @@ trait CommandTrait
      *   File or array of files.
      * @param string|null  $branch
      *   Optional branch. If set, will be checked out before assertion.
+     *
+     * @todo: Update arguments order and add assertion message.
      */
-    protected function gitAssertFilesExist($path, $files, $branch)
+    protected function gitAssertFilesExist($path, $files, $branch = null)
     {
         $files = is_array($files) ? $files : [$files];
         if ($branch) {
@@ -323,6 +331,25 @@ trait CommandTrait
         foreach ($files as $file) {
             $this->assertFileNotExists($path.DIRECTORY_SEPARATOR.$file);
         }
+    }
+
+    protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [])
+    {
+        $this->gitCheckout($path, $branch);
+        $this->gitReset($path);
+
+        $expectedCommits = [];
+        $expectedFiles = [];
+        for ($i = 1; $i <= $count; $i++) {
+            $expectedCommits[] = sprintf('Commit number %s', $i);
+            $expectedFiles[] = sprintf('%s.txt', $i);
+        }
+        $expectedCommits = array_merge($expectedCommits, $additionalCommits);
+
+        $commits = $this->gitGetAllCommits($path);
+        $this->assertEquals($commits, $expectedCommits, 'All fixture commits are present');
+
+        $this->gitAssertFilesExist($this->fixtureRemoteRepo, $expectedFiles, $branch);
     }
 
     /**

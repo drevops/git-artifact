@@ -14,7 +14,7 @@ class BranchTest extends AbstractTest
     public function setUp()
     {
         parent::setUp();
-        $this->defaultCurrentBranch = 'master-'.date('Y-m-d_H-i-s', $this->now);
+        $this->currentBranch = 'master-'.date('Y-m-d_H-i-s', $this->now);
     }
 
     public function testPushNoChanges()
@@ -23,10 +23,10 @@ class BranchTest extends AbstractTest
         $output = $this->runRoboCommand(sprintf('artefact --src=%s --push %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
         $output = implode(PHP_EOL, $output);
 
-        $this->assertContains(sprintf('Remote branch:         %s', $this->defaultCurrentBranch), $output);
+        $this->assertContains(sprintf('Remote branch:         %s', $this->currentBranch), $output);
         $this->assertContains('Will push:             Yes', $output);
 
-        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->defaultCurrentBranch), $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->currentBranch), $output);
         $this->assertNotContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 
         $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
@@ -35,7 +35,7 @@ class BranchTest extends AbstractTest
             'Deployment commit',
         ], $remoteCommits);
 
-        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), '1.txt', $this->defaultCurrentBranch);
+        $this->gitAssertFilesExist($this->getFixtureRemoteDir(), '1.txt', $this->currentBranch);
     }
 
     public function testPushUncommittedChanges()
@@ -47,7 +47,7 @@ class BranchTest extends AbstractTest
 
         $this->assertContains('Will push:             Yes', $output);
 
-        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->defaultCurrentBranch), $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->currentBranch), $output);
         $this->assertNotContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 
         $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
@@ -59,7 +59,7 @@ class BranchTest extends AbstractTest
         $this->gitAssertFilesExist($this->getFixtureRemoteDir(), [
             '1.txt',
             '2.txt',
-        ], $this->defaultCurrentBranch);
+        ], $this->currentBranch);
     }
 
     public function testPushGitignore()
@@ -75,7 +75,7 @@ class BranchTest extends AbstractTest
         $output = $this->runRoboCommand(sprintf('artefact --src=%s --push %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir()));
         $output = implode(PHP_EOL, $output);
         $this->assertContains('Will push:             Yes', $output);
-        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->defaultCurrentBranch), $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->currentBranch), $output);
 
         $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
         // @note: Deployment commit has not been added since there were no
@@ -91,8 +91,8 @@ class BranchTest extends AbstractTest
             '1.txt',
             '3.txt',
             '.gitignore',
-        ], $this->defaultCurrentBranch);
-        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '2.txt', $this->defaultCurrentBranch);
+        ], $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '2.txt', $this->currentBranch);
     }
 
     public function testPushGitignoreReplaced()
@@ -113,7 +113,7 @@ class BranchTest extends AbstractTest
         $output = implode(PHP_EOL, $output);
         $this->assertContains(sprintf('Gitignore file:        %s', $this->getFixtureSrcDir().DIRECTORY_SEPARATOR.$gitignoreArtefactFile), $output);
         $this->assertContains('Will push:             Yes', $output);
-        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->defaultCurrentBranch), $output);
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "Deployment commit"', $this->currentBranch), $output);
 
         $remoteCommits = $this->gitGetAllCommits($this->getFixtureRemoteDir());
         // @note: Deployment commit has not been added since there were no
@@ -130,8 +130,8 @@ class BranchTest extends AbstractTest
             '2.txt',
             '3.txt',
             '.gitignore',
-        ], $this->defaultCurrentBranch);
-        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '4.txt', $this->defaultCurrentBranch);
+        ], $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '4.txt', $this->currentBranch);
     }
 
     public function testPushsSingleTags()
@@ -200,7 +200,7 @@ class BranchTest extends AbstractTest
         $this->assertContains('Artefact report', $output);
         $this->assertContains(sprintf('Source repository: %s', $this->getFixtureSrcDir()), $output);
         $this->assertContains(sprintf('Remote repository: %s', $this->getFixtureRemoteDir()), $output);
-        $this->assertContains(sprintf('Remote branch:     %s', $this->defaultCurrentBranch), $output);
+        $this->assertContains(sprintf('Remote branch:     %s', $this->currentBranch), $output);
         $this->assertContains('Gitignore file:    No', $output);
         $this->assertContains('Push result:       Success', $output);
     }

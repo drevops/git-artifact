@@ -23,13 +23,26 @@ abstract class AbstractTest extends TestCase
     const FIXTURE_REMOTE_DIR = 'fixture_remote_git';
 
     /**
-     * Current default branch.
+     * Current branch.
      *
      * Used as a helper for test assertions.
      *
      * @var string
      */
-    protected $defaultCurrentBranch;
+    protected $currentBranch;
+
+    protected $artefactBranch;
+
+    protected $remote;
+
+    /**
+     * Mode in which the build will run.
+     *
+     * Passed as a value of the --mode option.
+     *
+     * @var string
+     */
+    protected $mode;
 
     /**
      * Current timestamp to run commands with.
@@ -46,7 +59,9 @@ abstract class AbstractTest extends TestCase
         $this->gitCommandTraitSetUp($this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $this->isDebug());
 
         $this->now = time();
-        $this->defaultCurrentBranch = 'master';
+        $this->currentBranch = 'master';
+        $this->artefactBranch = 'master-artefact';
+        $this->remote = 'dst';
     }
 
     /**
@@ -192,6 +207,23 @@ abstract class AbstractTest extends TestCase
         return getcwd().DIRECTORY_SEPARATOR.self::FIXTURE_REMOTE_DIR;
     }
 
+    protected function assertBuildSuccess($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
+    {
+        $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+
+        return $output;
+    }
+
+    protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
+    {
+        $output = $this->runBuild(sprintf('--push --mode=force-push --branch=%s%s', $branch, $args));
+        $this->assertNotContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+
+        // @todo: Add more assertions here.
+        return $output;
+    }
+
     /**
      * Run artefact build.
      *
@@ -203,6 +235,10 @@ abstract class AbstractTest extends TestCase
      */
     protected function runBuild($args = '')
     {
+        if ($this->mode) {
+            $args .= '--mode='.$this->mode;
+        }
+
         $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $args));
 
         return implode(PHP_EOL, $output);
@@ -227,6 +263,20 @@ abstract class AbstractTest extends TestCase
         }
 
         return $this->gitRunRoboCommand($command, $expectFail);
+    }
+
+    protected function assertGitCurrentBranch($location, $branch)
+    {
+        $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $location);
+
+        $this->assertContains($branch, $currentBranch, sprintf('Current branch is "%s"', $branch));
+    }
+
+    protected function assertGitNoRemote($location, $remote)
+    {
+        $remotes = $this->runGitCommand('remote', $location);
+
+        $this->assertNotContains($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
     }
 
     /**

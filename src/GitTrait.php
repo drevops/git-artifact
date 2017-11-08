@@ -140,12 +140,18 @@ trait GitTrait
 
     protected function gitRemoveBranch($location, $branch)
     {
-        // @todo: Implement this.
+        return $this->gitCommandRun(
+            $location,
+            sprintf('branch -D %s', $branch)
+        );
     }
 
-    protected function gitRemoveRemote($location, $name)
+    protected function gitRemoveRemote($location, $remote)
     {
-        // @todo: Implement this.
+        return $this->gitCommandRun(
+            $location,
+            sprintf('remote rm %s', $remote)
+        );
     }
 
     /**
@@ -163,12 +169,12 @@ trait GitTrait
      * @return \Robo\Result
      *   Result object.
      */
-    protected function gitPush($location, $remoteName, $remoteBranch, $force = false)
+    protected function gitPush($location, $localBranch, $remoteName, $remoteBranch, $force = false)
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s%s', $remoteName, $remoteBranch, $force ? ' --force' : ''),
-            sprintf('Unable to push to "%s" remote', $remoteName)
+            sprintf('push %s refs/heads/%s:refs/heads/%s%s', $remoteName, $localBranch, $remoteBranch, $force ? ' --force' : ''),
+            sprintf('Unable to push local branch "%s" to "%s" remote branch "%s"', $localBranch, $remoteName, $remoteBranch)
         );
     }
 
@@ -181,7 +187,8 @@ trait GitTrait
 
         return $this->gitCommandRun(
             $location,
-            sprintf('commit --quiet --allow-empty -m "%s"', $message)
+            //            sprintf('commit --quiet --allow-empty -m "%s"', $message)
+            sprintf('commit --allow-empty -m "%s"', $message)
         );
     }
 
