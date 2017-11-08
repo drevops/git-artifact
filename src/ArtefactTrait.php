@@ -154,8 +154,6 @@ trait ArtefactTrait
             if ($this->report) {
                 $this->dumpReport();
             }
-        } catch (\Exception $exception) {
-            $this->sayError(sprintf('Error occurred: %s', $exception->getMessage()));
         } finally {
             $this->cleanup();
         }
@@ -197,7 +195,7 @@ trait ArtefactTrait
         if ($this->result) {
             $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
         } else {
-            $this->sayError(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
+            throw new \Exception(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
         }
     }
 
@@ -498,22 +496,6 @@ trait ArtefactTrait
     {
         $color = 'green';
         $char = $this->decorationCharacter('V', '✔');
-        $format = "<fg=white;bg=$color;options=bold>%s %s</fg=white;bg=$color;options=bold>";
-        $this->writeln(sprintf($format, $char, $text));
-    }
-
-    /**
-     * Print error message.
-     *
-     * Usually used to explicitly state that some action triggered an error.
-     *
-     * @param string $text
-     *   Message text.
-     */
-    protected function sayError($text)
-    {
-        $color = 'red';
-        $char = $this->decorationCharacter('X', '❌');
         $format = "<fg=white;bg=$color;options=bold>%s %s</fg=white;bg=$color;options=bold>";
         $this->writeln(sprintf($format, $char, $text));
     }
