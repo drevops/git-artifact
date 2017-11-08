@@ -20,14 +20,14 @@ trait CommandTrait
      *
      * @var string
      */
-    protected $fixtureSrcRepo;
+    protected $src;
 
     /**
      * Fixture remote repository directory.
      *
      * @var string
      */
-    protected $fixtureRemoteRepo;
+    protected $dst;
 
     /**
      * File system.
@@ -58,13 +58,13 @@ trait CommandTrait
     {
         $this->printDebug = $printDebug;
         $this->fs = new Filesystem();
-        $this->fixtureSrcRepo = $src;
-        $this->gitInitRepo($this->fixtureSrcRepo);
-        $this->fixtureRemoteRepo = $remote;
-        $this->gitInitRepo($this->fixtureRemoteRepo);
+        $this->src = $src;
+        $this->gitInitRepo($this->src);
+        $this->dst = $remote;
+        $this->gitInitRepo($this->dst);
         // Allow pushing into already checked out branch. We need this to
         // avoid additional management of fixture repository.
-        $this->runGitCommand('config receive.denyCurrentBranch ignore', $this->fixtureRemoteRepo);
+        $this->runGitCommand('config receive.denyCurrentBranch ignore', $this->dst);
     }
 
     /**
@@ -74,11 +74,11 @@ trait CommandTrait
      */
     protected function tearDown()
     {
-        if ($this->fs->exists($this->fixtureSrcRepo)) {
-            $this->fs->remove($this->fixtureSrcRepo);
+        if ($this->fs->exists($this->src)) {
+            $this->fs->remove($this->src);
         }
-        if ($this->fs->exists($this->fixtureRemoteRepo)) {
-            $this->fs->remove($this->fixtureRemoteRepo);
+        if ($this->fs->exists($this->dst)) {
+            $this->fs->remove($this->dst);
         }
     }
 
@@ -167,7 +167,7 @@ trait CommandTrait
      */
     protected function gitCreateFixtureCommits($count, $offset = 0, $path = null)
     {
-        $path = $path ? $path : $this->fixtureSrcRepo;
+        $path = $path ? $path : $this->src;
         for ($i = $offset; $i < $count + $offset; $i++) {
             $this->gitCreateFixtureCommit($i + 1, $path);
         }
@@ -187,7 +187,7 @@ trait CommandTrait
      */
     protected function gitCreateFixtureCommit($index, $path = null)
     {
-        $path = $path ? $path : $this->fixtureSrcRepo;
+        $path = $path ? $path : $this->src;
         $this->gitCreateFixtureFile($path, $index.'.txt');
         $this->runGitCommand(sprintf('add %s.txt', $index), $path);
         $this->runGitCommand(sprintf('commit -am "Commit number %s"', $index), $path);
@@ -349,7 +349,7 @@ trait CommandTrait
         $commits = $this->gitGetAllCommits($path);
         $this->assertEquals($commits, $expectedCommits, 'All fixture commits are present');
 
-        $this->gitAssertFilesExist($this->fixtureRemoteRepo, $expectedFiles, $branch);
+        $this->gitAssertFilesExist($this->dst, $expectedFiles, $branch);
     }
 
     /**
@@ -366,7 +366,7 @@ trait CommandTrait
      */
     protected function runGitCommand($args, $path = null)
     {
-        $path = $path ? $path : $this->fixtureSrcRepo;
+        $path = $path ? $path : $this->src;
 
         $command = 'git --no-pager';
         if (!empty($path)) {

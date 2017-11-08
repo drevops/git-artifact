@@ -22,7 +22,7 @@ class ForcePushTest extends AbstractTest
         $this->assertContains('Mode:                  force-push', $output);
         $this->assertContains('Will push:             Yes', $output);
 
-        $this->assertFixtureCommits(2, $this->fixtureRemoteRepo, 'testbranch', ['Deployment commit']);
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
     public function testBuildMoreCommits()
@@ -31,12 +31,12 @@ class ForcePushTest extends AbstractTest
 
         $this->assertBuildSuccess();
 
-        $this->assertFixtureCommits(2, $this->fixtureRemoteRepo, 'testbranch', ['Deployment commit']);
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
 
         $this->gitCreateFixtureCommits(3, 2);
         $this->assertBuildSuccess();
 
-        $this->assertFixtureCommits(5, $this->fixtureRemoteRepo, 'testbranch', ['Deployment commit']);
+        $this->assertFixtureCommits(5, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
     public function testCleanup()
@@ -44,10 +44,10 @@ class ForcePushTest extends AbstractTest
         $this->gitCreateFixtureCommits(2);
 
         $this->assertBuildSuccess();
-        $this->assertFixtureCommits(2, $this->fixtureRemoteRepo, 'testbranch', ['Deployment commit']);
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
 
-        $this->assertGitCurrentBranch($this->fixtureSrcRepo, $this->currentBranch);
-        $this->assertGitNoRemote($this->fixtureSrcRepo, $this->remote);
+        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
+        $this->assertGitNoRemote($this->src, $this->remote);
     }
 
     public function testIdempotence()
@@ -55,15 +55,15 @@ class ForcePushTest extends AbstractTest
         $this->gitCreateFixtureCommits(2);
 
         $this->assertBuildSuccess();
-        $this->assertFixtureCommits(2, $this->fixtureRemoteRepo, 'testbranch', ['Deployment commit']);
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
 
-        $this->assertGitCurrentBranch($this->fixtureSrcRepo, $this->currentBranch);
-        $this->assertGitNoRemote($this->fixtureSrcRepo, $this->remote);
+        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
+        $this->assertGitNoRemote($this->src, $this->remote);
 
         $this->assertBuildSuccess();
-        $this->assertFixtureCommits(2, $this->fixtureRemoteRepo, 'testbranch', ['Deployment commit']);
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
 
-        $this->assertGitCurrentBranch($this->fixtureSrcRepo, $this->currentBranch);
-        $this->assertGitNoRemote($this->fixtureSrcRepo, $this->remote);
+        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
+        $this->assertGitNoRemote($this->src, $this->remote);
     }
 }

@@ -31,19 +31,19 @@ class GeneralTest extends AbstractTest
 
     public function testInfo()
     {
-        $this->gitCreateFixtureCommits(1, $this->getFixtureSrcDir());
+        $this->gitCreateFixtureCommits(1, $this->src);
         $output = $this->runBuild();
 
         $this->assertContains(sprintf('Artefact information'), $output);
         $this->assertContains(sprintf('Mode:                  %s', ArtefactTrait::modeForcePush()), $output);
-        $this->assertContains(sprintf('Source repository:     %s', $this->getFixtureSrcDir()), $output);
-        $this->assertContains(sprintf('Remote repository:     %s', $this->getFixtureRemoteDir()), $output);
+        $this->assertContains(sprintf('Source repository:     %s', $this->src), $output);
+        $this->assertContains(sprintf('Remote repository:     %s', $this->dst), $output);
         $this->assertContains(sprintf('Remote branch:         %s', $this->currentBranch), $output);
         $this->assertContains(sprintf('Gitignore file:        No'), $output);
         $this->assertContains(sprintf('Will push:             No'), $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 
-        $this->gitAssertFilesNotExist($this->getFixtureRemoteDir(), '1.txt', $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
     }
 }

@@ -19,16 +19,6 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
-     * Defines the directory name for source git repository.
-     */
-    const FIXTURE_SRC_DIR = 'fixture_src_git';
-
-    /**
-     * Defines the directory name for remote git repository.
-     */
-    const FIXTURE_REMOTE_DIR = 'fixture_remote_git';
-
-    /**
      * Current branch.
      *
      * @var string
@@ -72,8 +62,11 @@ abstract class AbstractTest extends TestCase
      */
     protected function setUp()
     {
-        $this->gitCommandTraitSetUp($this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $this->isDebug());
-
+        $this->gitCommandTraitSetUp(
+            getcwd().DIRECTORY_SEPARATOR.'git_src',
+            getcwd().DIRECTORY_SEPARATOR.'git_remote',
+            $this->isDebug()
+        );
         $this->now = time();
         $this->currentBranch = 'master';
         $this->artefactBranch = 'master-artefact';
@@ -202,28 +195,6 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
-     * Get the path to the fixture source directory.
-     *
-     * @return string
-     *   Path to the fixture directory.
-     */
-    protected function getFixtureSrcDir()
-    {
-        return getcwd().DIRECTORY_SEPARATOR.self::FIXTURE_SRC_DIR;
-    }
-
-    /**
-     * Get the path to the fixture remote directory.
-     *
-     * @return string
-     *   Path to the fixture directory.
-     */
-    protected function getFixtureRemoteDir()
-    {
-        return getcwd().DIRECTORY_SEPARATOR.self::FIXTURE_REMOTE_DIR;
-    }
-
-    /**
      * Build the artefact and assert success.
      *
      * @param string $args
@@ -281,7 +252,7 @@ abstract class AbstractTest extends TestCase
             $args .= '--mode='.$this->mode;
         }
 
-        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $args));
+        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->src, $this->dst, $args));
 
         return implode(PHP_EOL, $output);
     }
@@ -313,7 +284,7 @@ abstract class AbstractTest extends TestCase
      * @param string $path
      *   Path to repository.
      *
-     * @param $branch
+     * @param        $branch
      *   Branch name to assert.
      */
     protected function assertGitCurrentBranch($path, $branch)
@@ -329,7 +300,7 @@ abstract class AbstractTest extends TestCase
      * @param string $path
      *   Path to repository.
      *
-     * @param $remote
+     * @param        $remote
      *   Remote name to assert.
      */
     protected function assertGitNoRemote($path, $remote)
