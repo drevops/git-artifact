@@ -18,21 +18,35 @@ abstract class AbstractTest extends TestCase
         CommandTrait::runRoboCommand as private gitRunRoboCommand;
     }
 
+    /**
+     * Defines the directory name for source git repository.
+     */
     const FIXTURE_SRC_DIR = 'fixture_src_git';
 
+    /**
+     * Defines the directory name for remote git repository.
+     */
     const FIXTURE_REMOTE_DIR = 'fixture_remote_git';
 
     /**
      * Current branch.
      *
-     * Used as a helper for test assertions.
-     *
      * @var string
      */
     protected $currentBranch;
 
+    /**
+     * Artefact branch.
+     *
+     * @var string
+     */
     protected $artefactBranch;
 
+    /**
+     * Remote name.
+     *
+     * @var string
+     */
     protected $remote;
 
     /**
@@ -46,6 +60,8 @@ abstract class AbstractTest extends TestCase
 
     /**
      * Current timestamp to run commands with.
+     *
+     * Used for generating internal tokens that could be based on time.
      *
      * @var int
      */
@@ -207,6 +223,19 @@ abstract class AbstractTest extends TestCase
         return getcwd().DIRECTORY_SEPARATOR.self::FIXTURE_REMOTE_DIR;
     }
 
+    /**
+     * Build the artefact and assert success.
+     *
+     * @param string $args
+     *   Optional string of arguments to pass to the build.
+     * @param string $branch
+     *   Optional --branch value. Defaults to 'testbranch'.
+     * @param string $commit
+     *   Optional commit string. Defaults to 'Deployment commit'.
+     *
+     * @return string
+     *   Command output.
+     */
     protected function assertBuildSuccess($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
@@ -215,6 +244,19 @@ abstract class AbstractTest extends TestCase
         return $output;
     }
 
+    /**
+     * Build the artefact and assert failure.
+     *
+     * @param string $args
+     *   Optional string of arguments to pass to the build.
+     * @param string $branch
+     *   Optional --branch value. Defaults to 'testbranch'.
+     * @param string $commit
+     *   Optional commit string. Defaults to 'Deployment commit'.
+     *
+     * @return string
+     *   Command output.
+     */
     protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
         $output = $this->runBuild(sprintf('--push --mode=force-push --branch=%s%s', $branch, $args));
@@ -265,16 +307,34 @@ abstract class AbstractTest extends TestCase
         return $this->gitRunRoboCommand($command, $expectFail);
     }
 
-    protected function assertGitCurrentBranch($location, $branch)
+    /**
+     * Assert current git branch.
+     *
+     * @param string $path
+     *   Path to repository.
+     *
+     * @param $branch
+     *   Branch name to assert.
+     */
+    protected function assertGitCurrentBranch($path, $branch)
     {
-        $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $location);
+        $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
 
         $this->assertContains($branch, $currentBranch, sprintf('Current branch is "%s"', $branch));
     }
 
-    protected function assertGitNoRemote($location, $remote)
+    /**
+     * Assert that there is no remote specified in git repository.
+     *
+     * @param string $path
+     *   Path to repository.
+     *
+     * @param $remote
+     *   Remote name to assert.
+     */
+    protected function assertGitNoRemote($path, $remote)
     {
-        $remotes = $this->runGitCommand('remote', $location);
+        $remotes = $this->runGitCommand('remote', $path);
 
         $this->assertNotContains($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
     }
