@@ -22,6 +22,15 @@ trait ArtefactTrait
     use TokenTrait;
 
     /**
+     * Mode in which current build is going to run.
+     *
+     * Available modes: branch, force-push, diff.
+     *
+     * @var string
+     */
+    protected $mode;
+
+    /**
      * Original branch in current repository.
      *
      * @var string
@@ -43,6 +52,13 @@ trait ArtefactTrait
     protected $artefactBranch;
 
     /**
+     * Remote name.
+     *
+     * @var string
+     */
+    protected $remoteName;
+
+    /**
      * Gitignore file to be used during artefact creation.
      *
      * If not set, the current `.gitignore` will be used, if any.
@@ -59,27 +75,11 @@ trait ArtefactTrait
     protected $message;
 
     /**
-     * Mode in which current build is going to run.
-     *
-     * Available modes: branch, force-push, diff.
-     *
-     * @var string
-     */
-    protected $mode;
-
-    /**
      * Flag to specify if push is required or should be using dry run.
      *
      * @var string
      */
     protected $needsPush;
-
-    /**
-     * Internal option to set current timestamp.
-     *
-     * @var int
-     */
-    protected $now;
 
     /**
      * Path to report file.
@@ -94,6 +94,13 @@ trait ArtefactTrait
      * @var bool
      */
     protected $result;
+
+    /**
+     * Internal option to set current timestamp.
+     *
+     * @var int
+     */
+    protected $now;
 
     /**
      * Artefact constructor.
@@ -140,7 +147,7 @@ trait ArtefactTrait
         $this->resolveOptions($opts);
 
         try {
-            $this->gitSetRemoteRepo($remote);
+            $this->gitSetDst($remote);
 
             $this->showInfo();
             $this->prepareArtefact();
@@ -162,22 +169,22 @@ trait ArtefactTrait
     protected function prepareArtefact()
     {
         if (!empty($this->gitignoreFile)) {
-            $this->replaceGitignore($this->gitignoreFile, $this->gitGetSrcRepo());
+            $this->replaceGitignore($this->gitignoreFile, $this->src);
         }
 
-        $this->removeSubRepos($this->gitGetSrcRepo());
+        $this->removeSubRepos($this->src);
 
-        $this->gitSwitchToNewBranch($this->gitGetSrcRepo(), $this->artefactBranch);
+        $this->gitSwitchToNewBranch($this->src, $this->artefactBranch);
 
-        $result = $this->gitCommit($this->gitGetSrcRepo(), $this->message);
+        $result = $this->gitCommit($this->src, $this->message);
         $this->say(sprintf('Added changes: %s', $result->getMessage()));
     }
 
     protected function cleanup()
     {
-        $this->gitSwitchToBranch($this->gitGetSrcRepo(), $this->originalBranch);
-        $this->gitRemoveBranch($this->gitGetSrcRepo(), $this->artefactBranch);
-        $this->gitRemoveRemote($this->gitGetSrcRepo(), 'dst');
+        $this->gitSwitchToBranch($this->src, $this->originalBranch);
+        $this->gitRemoveBranch($this->src, $this->artefactBranch);
+        $this->gitRemoveRemote($this->src, $this->remoteName);
     }
 
     /**
@@ -185,12 +192,11 @@ trait ArtefactTrait
      */
     protected function doPush()
     {
-        // @todo: Replace 'dst' with proper const.
-        if (!$this->gitRemoteExists($this->gitGetSrcRepo(), 'dst')) {
-            $this->gitAddRemote($this->gitGetSrcRepo(), 'dst', $this->gitGetRemoteRepo());
+        if (!$this->gitRemoteExists($this->src, $this->remoteName)) {
+            $this->gitAddRemote($this->src, $this->remoteName, $this->dst);
         }
 
-        $result = $this->gitPush($this->gitGetSrcRepo(), $this->artefactBranch, 'dst', $this->dstBranch, $this->mode == self::modeForcePush());
+        $result = $this->gitPush($this->src, $this->artefactBranch, $this->remoteName, $this->dstBranch, $this->mode == self::modeForcePush());
         $this->result = $result->wasSuccessful();
         if ($this->result) {
             $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
@@ -209,13 +215,15 @@ trait ArtefactTrait
     {
         $this->now = !empty($options['now']) ? $options['now'] : time();
 
+        $this->remoteName = 'dst';
+
         $this->fsSetRootDir($options['root']);
 
         // Default source to the root directory.
         $srcPath = !empty($options['src']) ? $this->fsGetAbsolutePath($options['src']) : $this->fsGetRootDir();
         $this->gitSetSrcRepo($srcPath);
 
-        $this->originalBranch = $this->gitGetCurrentBranch($this->gitGetSrcRepo());
+        $this->originalBranch = $this->gitGetCurrentBranch($this->src);
         $this->setDstBranch($options['branch']);
         $this->artefactBranch = $this->dstBranch.'-artefact';
 
@@ -243,8 +251,8 @@ trait ArtefactTrait
         $this->writeln('----------------------------------------------------------------------');
         $this->writeln(' Build timestamp:       '.date('Y/m/d H:i:s', $this->now));
         $this->writeln(' Mode:                  '.$this->mode);
-        $this->writeln(' Source repository:     '.$this->gitGetSrcRepo());
-        $this->writeln(' Remote repository:     '.$this->gitGetRemoteRepo());
+        $this->writeln(' Source repository:     '.$this->src);
+        $this->writeln(' Remote repository:     '.$this->dst);
         $this->writeln(' Remote branch:         '.$this->dstBranch);
         $this->writeln(' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
         $this->writeln(' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
@@ -261,8 +269,8 @@ trait ArtefactTrait
         $lines[] = '----------------------------------------------------------------------';
         $lines[] = ' Build timestamp:   '.date('Y/m/d H:i:s', $this->now);
         $lines[] = ' Mode:              '.$this->mode;
-        $lines[] = ' Source repository: '.$this->gitGetSrcRepo();
-        $lines[] = ' Remote repository: '.$this->gitGetRemoteRepo();
+        $lines[] = ' Source repository: '.$this->src;
+        $lines[] = ' Remote repository: '.$this->dst;
         $lines[] = ' Remote branch:     '.$this->dstBranch;
         $lines[] = ' Gitignore file:    '.($this->gitignoreFile ? $this->gitignoreFile : 'No');
         $lines[] = ' Commit message:    '.$this->message;
@@ -290,7 +298,7 @@ trait ArtefactTrait
                 break;
 
             case self::modeBranch():
-                if ($options['branch'] == $this->gitGetCurrentBranch($this->gitGetSrcRepo())) {
+                if ($options['branch'] == $this->gitGetCurrentBranch($this->src)) {
                     throw new \RuntimeException('Invalid branch name for "branch" mode. Try adding a suffix to make the branch unique.');
                 }
                 break;
@@ -436,7 +444,7 @@ trait ArtefactTrait
      */
     protected function getTokenBranch()
     {
-        return $this->gitGetCurrentBranch($this->gitGetSrcRepo());
+        return $this->gitGetCurrentBranch($this->src);
     }
 
     /**
@@ -449,7 +457,7 @@ trait ArtefactTrait
      */
     protected function getTokenTags($delimiter = ', ')
     {
-        $tags = $this->gitGetTags($this->gitGetSrcRepo());
+        $tags = $this->gitGetTags($this->src);
 
         return implode($delimiter, $tags);
     }

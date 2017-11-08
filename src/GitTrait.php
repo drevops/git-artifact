@@ -17,58 +17,36 @@ trait GitTrait
      *
      * @var string
      */
-    protected $gitSrcRepo;
+    protected $src;
 
     /**
      * Path to the destination repository.
      *
      * @var string
      */
-    protected $gitRemoteRepo;
+    protected $dst;
 
     /**
-     * Get source repository location.
-     *
-     * @return string
-     *   Source repository location.
-     */
-    protected function gitGetSrcRepo()
-    {
-        return $this->gitSrcRepo;
-    }
-
-    /**
-     * Set source repository location with validation.
+     * Set source repository path with validation.
      */
     protected function gitSetSrcRepo($path)
     {
         $this->fsPathsExist($path);
-        $this->gitSrcRepo = $path;
+        $this->src = $path;
     }
 
     /**
-     * Get remote repository location.
+     * Set remote path.
      *
-     * @return string
-     *   Remote repository location.
-     */
-    protected function gitGetRemoteRepo()
-    {
-        return $this->gitRemoteRepo;
-    }
-
-    /**
-     * Set git remote location.
-     *
-     * @param string $location
+     * @param string $path
      *   Path or URL of the remote git repository.
      */
-    protected function gitSetRemoteRepo($location)
+    protected function gitSetDst($path)
     {
-        if (!$this->gitIsRemote($location)) {
-            throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote', $location));
+        if (!$this->gitIsRemote($path)) {
+            throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote', $path));
         }
-        $this->gitRemoteRepo = $this->gitIsRemote($location, 'local') ? $this->fsGetAbsolutePath($location) : $location;
+        $this->dst = $this->gitIsRemote($path, 'local') ? $this->fsGetAbsolutePath($path) : $path;
     }
 
     /**
