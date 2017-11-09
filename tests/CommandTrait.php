@@ -112,7 +112,7 @@ trait CommandTrait
     {
         $commits = [];
         try {
-            $commits = $this->runGitCommand('log --all --format="'.$format.'"', $path);
+            $commits = $this->runGitCommand('log --format="'.$format.'"', $path);
         } catch (\Exception $exception) {
             $output = trim($exception->getPrevious()->getMessage());
             // Different versions of Git may produce these expected messages.
@@ -361,7 +361,7 @@ trait CommandTrait
         $expectedCommits = array_merge($expectedCommits, $additionalCommits);
 
         $commits = $this->gitGetAllCommits($path);
-        $this->assertEquals($commits, $expectedCommits, 'All fixture commits are present');
+        $this->assertEquals($expectedCommits, $commits, 'All fixture commits are present');
 
         $this->gitAssertFilesExist($this->dst, $expectedFiles, $branch);
     }
