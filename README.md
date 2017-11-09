@@ -1,4 +1,4 @@
-# robo-git-artefact
+# Package and push files to remote repositories
 Robo task to push git artefact to remote repository
 
 [![CircleCI](https://circleci.com/gh/integratedexperts/robo-git-artefact.svg?style=shield&circle-token=04cc2cab69b05f60a48e474f966a5bce8a71b1aa)](https://circleci.com/gh/integratedexperts/robo-git-artefact)
@@ -6,18 +6,25 @@ Robo task to push git artefact to remote repository
 [![Total Downloads](https://poser.pugx.org/integratedexperts/robo-git-artefact/downloads)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 [![License](https://poser.pugx.org/integratedexperts/robo-git-artefact/license)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 
-## How it works
-Say, you have 2 git repositories: _source_ and _destination_. 
+## Modes
+### Force-push mode (default)
+Push packaged artefact to the same branch, preserving the history from the source repository, but overwriting history in destination repository on each push.
 
-You commit your code changes to _source_, run build, which would resolve all dependencies and build assets, and expect to have all of this packaged into a _deployment artefact_ that can be pushed to your _destination_ repository.
+```
+--mode=force-push
+```
 
-The project file structure and git history are preserved.
+![diagram of force-push mode](https://user-images.githubusercontent.com/378794/32588463-ecebf37c-c562-11e7-9379-a570243e10e7.png)
 
-The deployment is performed into a brand-new branch in _destination_ and it is expected that actual code deployment on the environment is done by checking out specific deployment branch.
+### Branch mode
+Push packaged artefact to the new branch on each deployment, preserving history from the source repository, but requiring to trigger a deployment of newly created branch after each deployment.
 
-By default, the _destination_ branch name follows the format `[branch]-[timestamp:Y-m-d_H-i-s]`, which guarantees uniqueness of branches. Overriding of _destination_ branch is available by using `--branch` option. Token replacement is supported (see below). 
+```
+--mode=branch
+```
 
-Each _deployment branch_ will have all _source_ commits plus an extra _deployment commit_ with a _deployment message_. This commit is added even if there were no files added during the artefact build process (see below). By default, the _deployment commit message_ is `Deployment commit`, but it can be overridden by providing a `--message` option. Token replacement is supported (see below). 
+![diagram of branch mode](https://user-images.githubusercontent.com/378794/32588464-ee3a2b7c-c562-11e7-9e5d-2533683318f3.png)
+
 
 ## Usage
 
@@ -46,7 +53,7 @@ class RoboFile extends \Robo\Tasks
 ### Run
 `robo artefact git@myserver.com/repository.git` - this will create an artefact from current directory and will send it to the specified remote repository into the same branch as a current one.
 
-# Options
+## Options
 ```
 Usage:
   artefact [options] [--] <remote>
@@ -88,3 +95,16 @@ Available tokens:
 - `[branch]` - current `source` branch.
 - `[tags]` - tags from latest `_source` commit (if any), separated by comma.
 
+## Examples
+### Push branch to the same remote
+```
+robo artefact git@myserver.com/repository.git --push
+```
+In this example, all commits in the repository will be pushed to the same branch as current one with all processed files (assets etc.) captured in the additional deployment commit. `--push` flag enables actual pushing into remote repository.
+
+
+### Push release branches created from tags
+```
+robo artefact git@myserver.com/repository.git --mode=branch --branch=release/[tags:-] --push
+```
+In this example, if the latest commit was tagged with tag `1.2.0`, the artefact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`. 
