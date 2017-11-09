@@ -67,4 +67,84 @@ class BranchTest extends AbstractTest
         // Also, check that no changes were done to branch1.
         $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
     }
+
+    public function testCleanupAfterSuccess()
+    {
+        $this->gitCreateFixtureCommits(2);
+
+        $this->assertBuildSuccess();
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+
+        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
+        $this->assertGitNoRemote($this->src, $this->remote);
+    }
+
+    public function testCleanupAfterFailure()
+    {
+        $this->gitCreateFixtureCommits(2);
+
+        $this->assertBuildSuccess('', 'testbranch');
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+
+        $this->gitCreateFixtureCommits(3, 2);
+        // Trigger erroneous build by pushing to the same branch.
+        $this->assertBuildFailure('', 'testbranch');
+
+        $this->assertGitCurrentBranch($this->src, $this->currentBranch);
+        $this->assertGitNoRemote($this->src, $this->remote);
+    }
+
+    public function testGitignore()
+    {
+        $this->gitCreateFixtureFile($this->src, '.gitignore', '3.txt');
+        $this->gitCreateFixtureCommits(2);
+        $this->gitCreateFixtureFile($this->src, '3.txt');
+
+        $this->now = time() - rand(1, 10 * 60);
+        $branch1 = 'testbranch-'.date('Y-m-d_H-i-s', $this->now);
+        $this->assertBuildSuccess('--branch=testbranch-[timestamp:Y-m-d_H-i-s]', $branch1);
+
+        $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+
+        // Now, remove the .gitignore and push again.
+        $this->gitRemoveFixtureFile($this->src, '.gitignore');
+        $this->gitCommitAll($this->src, 'Commit number 3');
+        $this->now = time() - rand(1, 10 * 60);
+        $branch2 = 'testbranch-'.date('Y-m-d_H-i-s', $this->now);
+        $this->assertBuildSuccess('--branch=testbranch-[timestamp:Y-m-d_H-i-s]', $branch2);
+
+        $this->assertFixtureCommits(3, $this->dst, $branch2, ['Deployment commit']);
+
+        // Assert that branch from previous deployment was not affected.
+        $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+    }
+
+    public function testGitignoreCustom()
+    {
+        $this->gitCreateFixtureFile($this->src, 'mygitignore', '3.txt');
+        $this->gitCreateFixtureCommits(2);
+        $this->gitCreateFixtureFile($this->src, '3.txt');
+
+        $this->now = time() - rand(1, 10 * 60);
+        $branch1 = 'testbranch-'.date('Y-m-d_H-i-s', $this->now);
+        $this->assertBuildSuccess('--branch=testbranch-[timestamp:Y-m-d_H-i-s] --gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore', $branch1);
+
+        $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+
+        // Now, remove the .gitignore and push again.
+        $this->gitRemoveFixtureFile($this->src, 'mygitignore');
+        $this->gitCommitAll($this->src, 'Commit number 3');
+        $this->now = time() - rand(1, 10 * 60);
+        $branch2 = 'testbranch-'.date('Y-m-d_H-i-s', $this->now);
+        $this->assertBuildSuccess('--branch=testbranch-[timestamp:Y-m-d_H-i-s]', $branch2);
+
+        $this->assertFixtureCommits(3, $this->dst, $branch2, ['Deployment commit']);
+
+        // Assert that branch from previous deployment was not affected.
+        $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+    }
 }
