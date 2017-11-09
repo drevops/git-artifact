@@ -457,12 +457,13 @@ trait ArtefactTrait
      * Token callback to get tags.
      *
      * @param string $delimiter
-     *   Optional token delimiter. Default to ', '.
+     *   Token delimiter. Defaults to ', '.
      *
      * @return string
      */
-    protected function getTokenTags($delimiter = ', ')
+    protected function getTokenTags($delimiter)
     {
+        $delimiter = $delimiter ? $delimiter : '-';
         $tags = $this->gitGetTags($this->src);
 
         return implode($delimiter, $tags);

@@ -106,4 +106,36 @@ class ForcePushTest extends AbstractTest
         $this->assertBuildSuccess();
         $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);
     }
+
+    public function testBuildTag()
+    {
+        $this->gitCreateFixtureCommits(2);
+        $this->gitAddTag($this->src, 'tag1');
+
+        $this->assertBuildSuccess('--branch=[tags]', 'tag1');
+
+        $this->assertFixtureCommits(2, $this->dst, 'tag1', ['Deployment commit']);
+    }
+
+    public function testBuildMultipleTags()
+    {
+        $this->gitCreateFixtureCommits(2);
+        $this->gitAddTag($this->src, 'tag1');
+        $this->gitAddTag($this->src, 'tag2');
+
+        $this->assertBuildSuccess('--branch=[tags]', 'tag1-tag2');
+
+        $this->assertFixtureCommits(2, $this->dst, 'tag1-tag2', ['Deployment commit']);
+    }
+
+    public function testBuildMultipleTagsDelimiter()
+    {
+        $this->gitCreateFixtureCommits(2);
+        $this->gitAddTag($this->src, 'tag1');
+        $this->gitAddTag($this->src, 'tag2');
+
+        $this->assertBuildSuccess('--branch=[tags:__]', 'tag1__tag2');
+
+        $this->assertFixtureCommits(2, $this->dst, 'tag1__tag2', ['Deployment commit']);
+    }
 }
