@@ -18,12 +18,40 @@ abstract class AbstractTest extends TestCase
         CommandTrait::runRoboCommand as private gitRunRoboCommand;
     }
 
-    const FIXTURE_SRC_DIR = 'fixture_src_git';
+    /**
+     * Current branch.
+     *
+     * @var string
+     */
+    protected $currentBranch;
 
-    const FIXTURE_REMOTE_DIR = 'fixture_remote_git';
+    /**
+     * Artefact branch.
+     *
+     * @var string
+     */
+    protected $artefactBranch;
+
+    /**
+     * Remote name.
+     *
+     * @var string
+     */
+    protected $remote;
+
+    /**
+     * Mode in which the build will run.
+     *
+     * Passed as a value of the --mode option.
+     *
+     * @var string
+     */
+    protected $mode;
 
     /**
      * Current timestamp to run commands with.
+     *
+     * Used for generating internal tokens that could be based on time.
      *
      * @var int
      */
@@ -34,9 +62,15 @@ abstract class AbstractTest extends TestCase
      */
     protected function setUp()
     {
-        $this->gitCommandTraitSetUp($this->getFixtureSrcDir(), $this->getFixtureRemoteDir(), $this->isDebug());
-
+        $this->gitCommandTraitSetUp(
+            getcwd().DIRECTORY_SEPARATOR.'git_src',
+            getcwd().DIRECTORY_SEPARATOR.'git_remote',
+            $this->isDebug()
+        );
         $this->now = time();
+        $this->currentBranch = 'master';
+        $this->artefactBranch = 'master-artefact';
+        $this->remote = 'dst';
     }
 
     /**
@@ -52,9 +86,9 @@ abstract class AbstractTest extends TestCase
      *
      * @param object|string $object
      *   Object or class name to use for a method call.
-     * @param string        $method
+     * @param string $method
      *   Method name. Method can be static.
-     * @param array         $args
+     * @param array $args
      *   Array of arguments to pass to the method. To pass arguments by
      *   reference, pass them by reference as an element of this array.
      *
@@ -111,15 +145,17 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
-     * Helper to prepare class mock.
+     * Helper to prepare class or trait mock.
      *
      * @param string $class
-     *   Class name to generate the mock.
+     *   Class or trait name to generate the mock.
      * @param array  $methodsMap
-     *   Optional array of methods and values, keyed by method name.
+     *   Optional array of methods and values, keyed by method name. Array
+     *   elements can be return values, callbacks created with
+     *   $this->returnCallback(), or closures.
      * @param array  $args
-     *   Optional array of constructor arguments. If omitted, a constructor will
-     *   not be called.
+     *   Optional array of constructor arguments. If omitted, a constructor
+     *   will not be called.
      *
      * @return object
      *   Mocked class.
@@ -132,6 +168,8 @@ abstract class AbstractTest extends TestCase
 
         if ($reflectionClass->isAbstract()) {
             $mock = $this->getMockForAbstractClass($class, $args, '', !empty($args), true, true, $methods);
+        } elseif ($reflectionClass->isTrait()) {
+            $mock = $this->getMockForTrait($class, [], '', true, true, true, array_keys($methodsMap));
         } else {
             $mockBuilder = $this->getMockBuilder($class);
             if (!empty($args)) {
@@ -150,6 +188,10 @@ abstract class AbstractTest extends TestCase
                 $mock->expects($this->any())
                     ->method($method)
                     ->will($value);
+            } elseif (is_object($value) && strpos(get_class($value), 'Closure') !== false) {
+                $mock->expects($this->any())
+                    ->method($method)
+                    ->will($this->returnCallback($value));
             } else {
                 $mock->expects($this->any())
                     ->method($method)
@@ -161,25 +203,65 @@ abstract class AbstractTest extends TestCase
     }
 
     /**
-     * Get the path to the fixture source directory.
+     * Build the artefact and assert success.
+     *
+     * @param string $args
+     *   Optional string of arguments to pass to the build.
+     * @param string $branch
+     *   Optional --branch value. Defaults to 'testbranch'.
+     * @param string $commit
+     *   Optional commit string. Defaults to 'Deployment commit'.
      *
      * @return string
-     *   Path to the fixture directory.
+     *   Command output.
      */
-    protected function getFixtureSrcDir()
+    protected function assertBuildSuccess($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
-        return getcwd().DIRECTORY_SEPARATOR.self::FIXTURE_SRC_DIR;
+        $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
+        $this->assertContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+
+        return $output;
     }
 
     /**
-     * Get the path to the fixture remote directory.
+     * Build the artefact and assert failure.
+     *
+     * @param string $args
+     *   Optional string of arguments to pass to the build.
+     * @param string $branch
+     *   Optional --branch value. Defaults to 'testbranch'.
+     * @param string $commit
+     *   Optional commit string. Defaults to 'Deployment commit'.
      *
      * @return string
-     *   Path to the fixture directory.
+     *   Command output.
      */
-    protected function getFixtureRemoteDir()
+    protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
-        return getcwd().DIRECTORY_SEPARATOR.self::FIXTURE_REMOTE_DIR;
+        $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
+        $this->assertNotContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+
+        return $output;
+    }
+
+    /**
+     * Run artefact build.
+     *
+     * @param string $args
+     *   Additional arguments or options as a string.
+     *
+     * @return string
+     *   Output string.
+     */
+    protected function runBuild($args = '', $expectFail = false)
+    {
+        if ($this->mode) {
+            $args .= ' --mode='.$this->mode;
+        }
+
+        $output = $this->runRoboCommand(sprintf('artefact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
+
+        return implode(PHP_EOL, $output);
     }
 
     /**
@@ -201,6 +283,38 @@ abstract class AbstractTest extends TestCase
         }
 
         return $this->gitRunRoboCommand($command, $expectFail);
+    }
+
+    /**
+     * Assert current git branch.
+     *
+     * @param string $path
+     *   Path to repository.
+     *
+     * @param        $branch
+     *   Branch name to assert.
+     */
+    protected function assertGitCurrentBranch($path, $branch)
+    {
+        $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
+
+        $this->assertContains($branch, $currentBranch, sprintf('Current branch is "%s"', $branch));
+    }
+
+    /**
+     * Assert that there is no remote specified in git repository.
+     *
+     * @param string $path
+     *   Path to repository.
+     *
+     * @param        $remote
+     *   Remote name to assert.
+     */
+    protected function assertGitNoRemote($path, $remote)
+    {
+        $remotes = $this->runGitCommand('remote', $path);
+
+        $this->assertNotContains($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
     }
 
     /**

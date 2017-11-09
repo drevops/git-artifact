@@ -2,6 +2,8 @@
 
 namespace IntegratedExperts\Robo;
 
+use Robo\Contract\VerbosityThresholdInterface;
+
 /**
  * Trait GitTrait.
  *
@@ -15,58 +17,36 @@ trait GitTrait
      *
      * @var string
      */
-    protected $gitSrcRepo;
+    protected $src;
 
     /**
      * Path to the destination repository.
      *
      * @var string
      */
-    protected $gitRemoteRepo;
+    protected $dst;
 
     /**
-     * Get source repository location.
-     *
-     * @return string
-     *   Source repository location.
-     */
-    protected function gitGetSrcRepo()
-    {
-        return $this->gitSrcRepo;
-    }
-
-    /**
-     * Set source repository location with validation.
+     * Set source repository path with validation.
      */
     protected function gitSetSrcRepo($path)
     {
         $this->fsPathsExist($path);
-        $this->gitSrcRepo = $path;
+        $this->src = $path;
     }
 
     /**
-     * Get remote repository location.
+     * Set remote path.
      *
-     * @return string
-     *   Remote repository location.
-     */
-    protected function gitGetRemoteRepo()
-    {
-        return $this->gitRemoteRepo;
-    }
-
-    /**
-     * Set git remote location.
-     *
-     * @param string $location
+     * @param string $path
      *   Path or URL of the remote git repository.
      */
-    protected function gitSetRemoteRepo($location)
+    protected function gitSetDst($path)
     {
-        if (!$this->gitIsRemote($location)) {
-            throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote', $location));
+        if (!$this->gitIsRemote($path)) {
+            throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote', $path));
         }
-        $this->gitRemoteRepo = $this->gitIsRemote($location, 'local') ? $this->fsGetAbsolutePath($location) : $location;
+        $this->dst = $this->gitIsRemote($path, 'local') ? $this->fsGetAbsolutePath($path) : $path;
     }
 
     /**
@@ -119,12 +99,63 @@ trait GitTrait
         return in_array($name, $lines);
     }
 
-    protected function gitCreateNewBranch($location, $branch)
+    /**
+     * Switch to new branch.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository.
+     * @param string $branch
+     *   Branch name.
+     * @param bool   $createNew
+     *   Optional flag to also create a branch before switching. Defaults to
+     *   false.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
+    protected function gitSwitchToBranch($location, $branch, $createNew = false)
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('checkout -b %s', $branch)
+            sprintf('checkout %s %s', $createNew ? '-b' : '', $branch)
         );
+    }
+
+    /**
+     * Remove git branch.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository.
+     * @param string $branch
+     *   Branch name.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
+    protected function gitRemoveBranch($location, $branch)
+    {
+        return $this->gitCommandRun(
+            $location,
+            sprintf('branch -D %s', $branch)
+        );
+    }
+
+    /**
+     * Removed git remote.
+     *
+     * @param string $location
+     *   Local path or remote URI of the repository.
+     * @param string $remote
+     *   Remote name.
+     */
+    protected function gitRemoveRemote($location, $remote)
+    {
+        if ($this->gitRemoteExists($location, $remote)) {
+            $this->gitCommandRun(
+                $location,
+                sprintf('remote rm %s', $remote)
+            );
+        }
     }
 
     /**
@@ -142,15 +173,26 @@ trait GitTrait
      * @return \Robo\Result
      *   Result object.
      */
-    protected function gitPush($location, $remoteName, $remoteBranch)
+    protected function gitPush($location, $localBranch, $remoteName, $remoteBranch, $force = false)
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s refs/heads/%2$s:refs/heads/%2$s', $remoteName, $remoteBranch),
-            sprintf('Unable to push to "%s" remote', $remoteName)
+            sprintf('push %s refs/heads/%s:refs/heads/%s%s', $remoteName, $localBranch, $remoteBranch, $force ? ' --force' : ''),
+            sprintf('Unable to push local branch "%s" to "%s" remote branch "%s"', $localBranch, $remoteName, $remoteBranch)
         );
     }
 
+    /**
+     * Commit all files to git repo.
+     *
+     * @param string $location
+     *   Repository location path or URI.
+     * @param string $message
+     *   Commit message.
+     *
+     * @return \Robo\Result
+     *   Result object.
+     */
     protected function gitCommit($location, $message)
     {
         $this->gitCommandRun(
@@ -160,7 +202,7 @@ trait GitTrait
 
         return $this->gitCommandRun(
             $location,
-            sprintf('commit --quiet --allow-empty -m "%s"', $message)
+            sprintf('commit --allow-empty -m "%s"', $message)
         );
     }
 
@@ -251,8 +293,10 @@ trait GitTrait
      */
     protected function gitCommand($location = null)
     {
-        $git = $this->taskExec('git');
-        $git->arg('--no-pager');
+        $git = $this->taskExec('git')
+            ->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG)
+            ->printOutput(false)
+            ->arg('--no-pager');
         if (!empty($location)) {
             $git->arg('--git-dir='.$location.'/.git');
             $git->arg('--work-tree='.$location);
