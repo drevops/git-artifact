@@ -20,7 +20,7 @@ class TokenTest extends AbstractTest
         ]);
 
         $actual = $this->callProtectedMethod($mock, 'tokenProcess', [$string]);
-        $this->assertEquals($actual, $expectedString);
+        $this->assertEquals($expectedString, $actual);
     }
 
     public function dataProviderTokenProcess()
@@ -99,7 +99,7 @@ class TokenTest extends AbstractTest
         $mock = $this->prepareMock('IntegratedExperts\Robo\TokenTrait');
 
         $actual = $this->callProtectedMethod($mock, 'hasToken', [$string]);
-        $this->assertEquals($actual, $hasToken);
+        $this->assertEquals($hasToken, $actual);
     }
 
     public function dataProviderHasToken()
