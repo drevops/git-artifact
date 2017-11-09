@@ -290,8 +290,8 @@ trait ArtefactTrait
      *
      * @param string $mode
      *   Mode to set.
-     * @param array  $options
-     *   CLI options to use as a context for mode validation.
+     * @param array $options
+     *   Array of CLI options.
      */
     protected function setMode($mode, array $options)
     {
@@ -303,8 +303,8 @@ trait ArtefactTrait
                 break;
 
             case self::modeBranch():
-                if ($options['branch'] == $this->gitGetCurrentBranch($this->src)) {
-                    throw new \RuntimeException('Invalid branch name for "branch" mode. Try adding a suffix to make the branch unique.');
+                if (!$this->hasToken($options['branch'])) {
+                    $this->say('WARNING! Provided branch name does not have a token. Pushing of the artifact into this branch will fail on second and follow up pushes to remote. Consider adding tokens with unique values to the branch name.');
                 }
                 break;
 
@@ -475,17 +475,9 @@ trait ArtefactTrait
      *
      * @return false|string
      */
-    protected function getTokenTimestamp($format)
+    protected function getTokenTimestamp($format = 'Y-m-d_H-i-s')
     {
         return date($format, $this->now);
-    }
-
-    /**
-     * Returns default remote branch.
-     */
-    protected static function getDefaultBranch()
-    {
-        return '[branch]-[timestamp:Y-m-d_H-i-s]';
     }
 
     /**

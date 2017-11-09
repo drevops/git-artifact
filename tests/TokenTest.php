@@ -90,4 +90,27 @@ class TokenTest extends AbstractTest
             ],
         ];
     }
+
+    /**
+     * @dataProvider dataProviderHasToken
+     */
+    public function testHasToken($string, $hasToken)
+    {
+        $mock = $this->prepareMock('IntegratedExperts\Robo\TokenTrait');
+
+        $actual = $this->callProtectedMethod($mock, 'hasToken', [$string]);
+        $this->assertEquals($actual, $hasToken);
+    }
+
+    public function dataProviderHasToken()
+    {
+        return [
+            ['notoken', false],
+            ['[broken token', false],
+            ['broken token]', false],
+            ['[token]', true],
+            ['string with [token] and other string', true],
+            ['[token] and [otherttoken]', true],
+        ];
+    }
 }
