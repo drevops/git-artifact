@@ -44,4 +44,22 @@ class GeneralTest extends AbstractTest
 
         $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
     }
+
+    public function testReport()
+    {
+        $report = $this->src.DIRECTORY_SEPARATOR.'report.txt';
+
+        $this->gitCreateFixtureCommits(1);
+        $this->runBuild(sprintf('--report=%s', $report));
+
+        $this->assertFileExists($report);
+        $output = file_get_contents($report);
+
+        $this->assertContains('Artefact report', $output);
+        $this->assertContains(sprintf('Source repository: %s', $this->src), $output);
+        $this->assertContains(sprintf('Remote repository: %s', $this->dst), $output);
+        $this->assertContains(sprintf('Remote branch:     %s', $this->currentBranch), $output);
+        $this->assertContains('Gitignore file:    No', $output);
+        $this->assertContains('Push result:       Success', $output);
+    }
 }

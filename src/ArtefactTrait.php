@@ -93,7 +93,7 @@ trait ArtefactTrait
      *
      * @var bool
      */
-    protected $result;
+    protected $result = false;
 
     /**
      * Internal option to set current timestamp.
@@ -157,11 +157,12 @@ trait ArtefactTrait
             } else {
                 $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
             }
-
+            $this->result = true;
+        } finally {
             if ($this->report) {
                 $this->dumpReport();
             }
-        } finally {
+
             $this->cleanup();
         }
     }
@@ -290,7 +291,7 @@ trait ArtefactTrait
      *
      * @param string $mode
      *   Mode to set.
-     * @param array $options
+     * @param array  $options
      *   Array of CLI options.
      */
     protected function setMode($mode, array $options)
