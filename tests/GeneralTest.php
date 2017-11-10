@@ -39,9 +39,21 @@ class GeneralTest extends AbstractTest
         $this->assertContains('Remote branch:         '.$this->currentBranch, $output);
         $this->assertContains('Gitignore file:        No', $output);
         $this->assertContains('Will push:             No', $output);
+        $this->assertNotContains('Added changes:', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 
+        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+    }
+
+    public function testShowChanges()
+    {
+        $this->gitCreateFixtureCommits(1);
+        $output = $this->runBuild('--show-changes');
+
+        $this->assertContains('Added changes:', $output);
+
+        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
     }
 
