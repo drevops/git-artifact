@@ -82,6 +82,13 @@ trait ArtefactTrait
     protected $needsPush;
 
     /**
+     * Flag to specify if cleanup is required to run after the build.
+     *
+     * @var bool
+     */
+    protected $needCleanup;
+
+    /**
      * Path to report file.
      *
      * @var string
@@ -131,6 +138,7 @@ trait ArtefactTrait
      * @option $mode Mode of artefact build: branch, force-push or diff.
      *   Defaults to force-push.
      * @option $now Internal value used to set internal time.
+     * @option $no-cleanup Do not cleanup after run.
      * @option $push Push artefact to the remote repository. Defaults to FALSE.
      * @option $report Path to the report file.
      * @option $root Path to the root for file path resolution. If not
@@ -145,6 +153,7 @@ trait ArtefactTrait
         'gitignore' => InputOption::VALUE_REQUIRED,
         'message' => 'Deployment commit',
         'mode' => 'force-push',
+        'no-cleanup' => false,
         'now' => InputOption::VALUE_REQUIRED,
         'push' => false,
         'report' => InputOption::VALUE_REQUIRED,
@@ -173,7 +182,11 @@ trait ArtefactTrait
                 $this->dumpReport();
             }
 
-            $this->cleanup();
+            if ($this->needCleanup) {
+                $this->cleanup();
+            }
+
+            $this->say('Deployment finished');
         }
     }
 
@@ -254,6 +267,8 @@ trait ArtefactTrait
         }
 
         $this->showChanges = !empty($options['show-changes']);
+
+        $this->needCleanup = empty($options['no-cleanup']);
 
         $this->needsPush = !empty($options['push']);
 
