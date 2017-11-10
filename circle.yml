@@ -20,7 +20,7 @@ test:
 
 deployment:
   demo:
-    branch: feature/deployment
+    branch: master
     commands:
       # Planting test asset file.
       - touch test-file-$(date "+%Y%m%d-%H%M%S").txt
