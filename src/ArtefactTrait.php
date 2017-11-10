@@ -182,13 +182,13 @@ trait ArtefactTrait
      */
     protected function prepareArtefact()
     {
+        $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
+
         if (!empty($this->gitignoreFile)) {
             $this->replaceGitignore($this->gitignoreFile, $this->src);
         }
 
         $this->removeSubRepos($this->src);
-
-        $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
         $result = $this->gitCommit($this->src, $this->message);
 
