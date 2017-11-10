@@ -57,6 +57,17 @@ class GeneralTest extends AbstractTest
         $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
     }
 
+    public function testNoCleanup()
+    {
+        $this->gitCreateFixtureCommits(1);
+        $output = $this->runBuild('--no-cleanup');
+
+        $this->assertGitCurrentBranch($this->src, $this->artefactBranch);
+
+        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+    }
+
     public function testReport()
     {
         $report = $this->src.DIRECTORY_SEPARATOR.'report.txt';
