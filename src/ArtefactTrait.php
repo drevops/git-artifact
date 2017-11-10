@@ -89,6 +89,13 @@ trait ArtefactTrait
     protected $report;
 
     /**
+     * Flag to show changes made to the repo by the build in the output.
+     *
+     * @var bool
+     */
+    protected $showChanges;
+
+    /**
      * Artefact build result.
      *
      * @var bool
@@ -128,6 +135,8 @@ trait ArtefactTrait
      * @option $report Path to the report file.
      * @option $root Path to the root for file path resolution. If not
      *         specified, current directory is used.
+     * @option $show-changes Show changes made to the repo by the build in the
+     *         output.
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
      */
@@ -140,6 +149,7 @@ trait ArtefactTrait
         'push' => false,
         'report' => InputOption::VALUE_REQUIRED,
         'root' => InputOption::VALUE_REQUIRED,
+        'show-changes' => false,
         'src' => InputOption::VALUE_REQUIRED,
     ])
     {
@@ -181,7 +191,10 @@ trait ArtefactTrait
         $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
         $result = $this->gitCommit($this->src, $this->message);
-        $this->say(sprintf('Added changes: %s', $result->getMessage()));
+
+        if ($this->showChanges) {
+            $this->say(sprintf('Added changes: %s', $result->getMessage()));
+        }
     }
 
     /**
@@ -239,6 +252,8 @@ trait ArtefactTrait
         if (!empty($options['gitignore'])) {
             $this->setGitignoreFile($options['gitignore']);
         }
+
+        $this->showChanges = !empty($options['show-changes']);
 
         $this->needsPush = !empty($options['push']);
 

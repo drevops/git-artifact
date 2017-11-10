@@ -64,13 +64,16 @@ Arguments:
   remote                               Path to the remote git repository.
 
 Options:
-      --root=ROOT                      Path to the root for file path resolution. If not specified, current directory is used.
-      --src=SRC                        Directory where source repository is located. If not specified, root directory is used.
-      --branch=BRANCH                  Destination branch with optional tokens.
-      --message=MESSAGE                Commit message with optional tokens.
+      --branch[=BRANCH]                Destination branch with optional tokens. [default: "[branch]"]
       --gitignore=GITIGNORE            Path to gitignore file to replace current .gitignore.
+      --message[=MESSAGE]              Commit message with optional tokens. [default: "Deployment commit"]
+      --mode[=MODE]                    Mode of artefact build: branch, force-push or diff. Defaults to force-push. [default: "force-push"]
+      --now=NOW                        Internal value used to set internal time.
       --push                           Push artefact to the remote repository. Defaults to FALSE.
-      --now=NOW
+      --report=REPORT                  Path to the report file.
+      --root=ROOT                      Path to the root for file path resolution. If not specified, current directory is used.
+      --show-changes                   Show changes made to the repo by the build in the output.
+      --src=SRC                        Directory where source repository is located. If not specified, root directory is used.
   -h, --help                           Display this help message
   -q, --quiet                          Do not output any message
   -V, --version                        Display this application version
