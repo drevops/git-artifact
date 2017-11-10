@@ -19,11 +19,13 @@ test:
     - composer test
 
 deployment:
-  # Demonstration of deployment in 'force-push' mode.
-  mode_force_push:
+  demo:
     branch: feature/deployment
     commands:
+      # Planting test asset file.
       - touch test-file-$(date "+%Y%m%d-%H%M%S").txt
+
+      # Demonstration of deployment in 'force-push' mode.
       - |
           vendor/bin/robo artefact \
             git@github.com:integratedexperts/robo-git-artefact-destination.git \
@@ -35,11 +37,7 @@ deployment:
           DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-force-push.txt | sed 's/ //g')
           echo "Deployed to $DEPLOY_BRANCH"
 
-  # Demonstration of deployment in 'branch' mode.
-  mode_branch:
-    branch: feature/deployment
-    commands:
-      - touch test-file-$(date "+%Y%m%d-%H%M%S").txt
+      # Demonstration of deployment in 'branch' mode.
       - |
           vendor/bin/robo artefact \
             git@github.com:integratedexperts/robo-git-artefact-destination.git \
