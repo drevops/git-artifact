@@ -6,6 +6,8 @@ Robo task to push git artefact to remote repository
 [![Total Downloads](https://poser.pugx.org/integratedexperts/robo-git-artefact/downloads)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 [![License](https://poser.pugx.org/integratedexperts/robo-git-artefact/license)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 
+DEMO - [Artefact branches](https://github.com/integratedexperts/robo-git-artefact-destination/branches)
+
 ## Modes
 ### Force-push mode (default)
 Push packaged artefact to the same branch, preserving the history from the source repository, but overwriting history in destination repository on each push.
