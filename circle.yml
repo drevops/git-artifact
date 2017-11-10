@@ -23,6 +23,7 @@ deployment:
   mode_force_push:
     branch: feature/deployment
     commands:
+      - touch test-file-$(date "+%Y%m%d-%H%M%S").txt
       - |
           vendor/bin/robo artefact \
             git@github.com:integratedexperts/robo-git-artefact-destination.git \
@@ -38,6 +39,7 @@ deployment:
   mode_branch:
     branch: feature/deployment
     commands:
+      - touch test-file-$(date "+%Y%m%d-%H%M%S").txt
       - |
           vendor/bin/robo artefact \
             git@github.com:integratedexperts/robo-git-artefact-destination.git \
