@@ -16,7 +16,7 @@ Push packaged artefact to the same branch, preserving the history from the sourc
 --mode=force-push
 ```
 
-![diagram of force-push mode](https://user-images.githubusercontent.com/378794/32588463-ecebf37c-c562-11e7-9379-a570243e10e7.png)
+![diagram of force-push mode](https://user-images.githubusercontent.com/378794/33816665-a7b0e4a8-de8e-11e7-88f2-80baefb3d73f.png)
 
 ### Branch mode
 Push packaged artefact to the new branch on each deployment, preserving history from the source repository, but requiring to trigger a deployment of newly created branch after each deployment.
@@ -25,7 +25,7 @@ Push packaged artefact to the new branch on each deployment, preserving history 
 --mode=branch
 ```
 
-![diagram of branch mode](https://user-images.githubusercontent.com/378794/32588464-ee3a2b7c-c562-11e7-9e5d-2533683318f3.png)
+![diagram of branch mode](https://user-images.githubusercontent.com/378794/33816666-a87b3910-de8e-11e7-82cd-51e007ece063.png)
 
 
 ## Usage
