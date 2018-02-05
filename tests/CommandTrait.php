@@ -157,6 +157,21 @@ trait CommandTrait
     }
 
     /**
+     * Get all committed files.
+     *
+     * @param string $path
+     *   Optional path to the repository directory. If not provided, fixture
+     *   directory is used.
+     *
+     * @return array
+     *   Array of commit committed files.
+     */
+    protected function gitGetCommittedFiles($path = null)
+    {
+        return $this->runGitCommand('ls-tree --full-tree --name-only -r HEAD', $path);
+    }
+
+    /**
      * Create multiple fixture commits.
      *
      * @param int    $count
@@ -257,6 +272,10 @@ trait CommandTrait
     {
         $name = $name ? $name : 'tmp'.rand(1000, 100000).'.txt';
         $path = $path.DIRECTORY_SEPARATOR.$name;
+        $dir = dirname($path);
+        if (!empty($dir)) {
+            $this->fs->mkdir($dir);
+        }
         $this->fs->touch($path);
         if (!empty($content)) {
             $content = is_array($content) ? implode(PHP_EOL, $content) : $content;
@@ -347,7 +366,27 @@ trait CommandTrait
         }
     }
 
-    protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [])
+    protected function gitAssertFilesCommitted($path, $expectedFiles, $branch = null)
+    {
+        if ($branch) {
+            $this->gitCheckout($path, $branch);
+        }
+        $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
+        $committedFiles = $this->gitGetCommittedFiles($path);
+        $this->assertEquals(array_values(array_intersect($committedFiles, $expectedFiles)), array_values($expectedFiles));
+    }
+
+    protected function gitAssertNoFilesCommitted($path, $expectedFiles, $branch = null)
+    {
+        if ($branch) {
+            $this->gitCheckout($path, $branch);
+        }
+        $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
+        $committedFiles = $this->gitGetCommittedFiles($path);
+        $this->assertEquals(count(array_intersect($this->gitGetCommittedFiles($path), $expectedFiles)), 0, sprintf('Committed files: %s', implode(', ', $committedFiles)));
+    }
+
+    protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [], $assertFiles = true)
     {
         $this->gitCheckout($path, $branch);
         $this->gitReset($path);
@@ -363,7 +402,9 @@ trait CommandTrait
         $commits = $this->gitGetAllCommits($path);
         $this->assertEquals($expectedCommits, $commits, 'All fixture commits are present');
 
-        $this->gitAssertFilesExist($this->dst, $expectedFiles, $branch);
+        if ($assertFiles) {
+            $this->gitAssertFilesExist($this->dst, $expectedFiles, $branch);
+        }
     }
 
     /**

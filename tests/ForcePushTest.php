@@ -107,6 +107,29 @@ class ForcePushTest extends AbstractTest
         $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
+    public function testGitignoreCustomRemoveCommittedFiles()
+    {
+        $this->gitCreateFixtureFile($this->src, '.gitignore', ['3.txt']);
+        $this->gitCreateFixtureFile($this->src, '3.txt');
+        $this->gitCreateFixtureFile($this->src, 'subdir/4.txt');
+        $this->gitCreateFixtureFile($this->src, 'subdir/5.txt');
+        $this->gitCreateFixtureCommits(2);
+        $this->gitCommitAll($this->src, 'Custom third commit');
+
+        $this->gitAssertFilesCommitted($this->src, ['1.txt', '2.txt', 'subdir/4.txt', 'subdir/5.txt']);
+        $this->gitAssertNoFilesCommitted($this->src, ['3.txt']);
+
+        $this->gitCreateFixtureFile($this->src, 'mygitignore', ['1.txt', '3.txt', '5.txt']);
+
+        $this->assertBuildSuccess('--gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore');
+
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], false);
+        $this->gitAssertFilesCommitted($this->dst, ['2.txt', 'subdir/4.txt'], 'testbranch');
+        $this->gitAssertNoFilesCommitted($this->dst, ['1.txt', '3.txt', 'subdir/5.txt'], 'testbranch');
+        $this->gitAssertFilesExist($this->dst, ['2.txt', 'subdir/4.txt'], 'testbranch');
+        $this->gitAssertFilesNotExist($this->dst, ['1.txt', '3.txt', 'subdir/5.txt'], 'testbranch');
+    }
+
     public function testBuildTag()
     {
         $this->gitCreateFixtureCommits(2);
