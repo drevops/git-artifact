@@ -4,3 +4,4 @@ artefact
 Vagrantfile
 .beetbox
 composer.lock
+git_*
