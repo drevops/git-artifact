@@ -136,7 +136,7 @@ trait GitTrait
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('branch -D %s', $branch)
+            sprintf('branch -v -D %s', $branch)
         );
     }
 
@@ -273,6 +273,8 @@ trait GitTrait
         $git = $this->gitCommand($location);
         $git->rawArg($command);
         $result = $git->run();
+
+        $this->yell($result->getMessage());
 
         if (!$result->wasSuccessful()) {
             $message = $errorMessage ? sprintf('%s: %s', $errorMessage, $result->getMessage()) : $result->getMessage();
