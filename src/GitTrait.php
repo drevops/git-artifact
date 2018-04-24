@@ -136,7 +136,7 @@ trait GitTrait
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('branch -v -D %s', $branch)
+            sprintf('branch -D %s', $branch)
         );
     }
 
