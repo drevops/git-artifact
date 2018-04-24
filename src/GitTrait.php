@@ -274,8 +274,6 @@ trait GitTrait
         $git->rawArg($command);
         $result = $git->run();
 
-        $this->yell($result->getMessage());
-
         if (!$result->wasSuccessful()) {
             $message = $errorMessage ? sprintf('%s: %s', $errorMessage, $result->getMessage()) : $result->getMessage();
             throw new \Exception($message);
