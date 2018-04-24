@@ -257,7 +257,7 @@ trait ArtefactTrait
         $srcPath = !empty($options['src']) ? $this->fsGetAbsolutePath($options['src']) : $this->fsGetRootDir();
         $this->gitSetSrcRepo($srcPath);
 
-        $this->originalBranch = $this->gitGetCurrentBranch($this->src);
+        $this->originalBranch = $this->resolveOriginalBranch($this->src);
         $this->setDstBranch($options['branch']);
         $this->artefactBranch = $this->dstBranch.'-artefact';
 
@@ -386,6 +386,44 @@ trait ArtefactTrait
     public static function modeDiff()
     {
         return 'diff';
+    }
+
+    /**
+     * Resolve original branch to handle detached repositories.
+     *
+     * Usually, repository become detached when a tag is checked out.
+     *
+     * @param string $location
+     *   Path to repository.
+     *
+     * @return null|string
+     *   Branch or detachment source.
+     * @throws \Exception
+     *   If neither branch nor detachment source is not found.
+     */
+    protected function resolveOriginalBranch($location)
+    {
+        $branch = $this->gitGetCurrentBranch($location);
+
+        // Repository could be in detached state. If this the case - we need to
+        // capture the source of detachment, if exist.
+        if ($branch == 'HEAD') {
+            $branch = null;
+            $result = $this->gitCommandRun($location, 'branch');
+            $branchList = array_filter(preg_split('/\R/', $result->getMessage()));
+
+            foreach ($branchList as $branch) {
+                if (preg_match('/\* \(.*detached .* ([^\)]+)\)/', $branch, $matches)) {
+                    $branch = $matches[1];
+                    break;
+                }
+            }
+            if (empty($branch)) {
+                throw new \Exception('Unable to determine detachment source');
+            }
+        }
+
+        return $branch;
     }
 
     /**
