@@ -199,6 +199,7 @@ trait ArtefactTrait
 
         if (!empty($this->gitignoreFile)) {
             $this->replaceGitignore($this->gitignoreFile, $this->src);
+            $this->disableLocalExclude($this->src);
             $this->removeExcludedFiles($this->src);
         }
 
@@ -216,6 +217,7 @@ trait ArtefactTrait
      */
     protected function cleanup()
     {
+        $this->restoreLocalExclude($this->src);
         $this->gitSwitchToBranch($this->src, $this->originalBranch);
         $this->gitRemoveBranch($this->src, $this->artefactBranch);
         $this->gitRemoveRemote($this->src, $this->remoteName);
@@ -493,6 +495,38 @@ trait ArtefactTrait
     {
         $this->fsFileSystem->copy($filename, $path.DIRECTORY_SEPARATOR.'.gitignore', true);
         $this->fsFileSystem->remove($filename);
+    }
+
+    /**
+     * Disable local exclude file (.git/info/exclude).
+     *
+     * @param string $path
+     *   Path to repository.
+     */
+    protected function disableLocalExclude($path)
+    {
+        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        $filenameDisabled = $filename.'.bak';
+        if ($this->fsFileSystem->exists($filename)) {
+            $this->say('Disabling local exclude');
+            $this->fsFileSystem->rename($filename, $filenameDisabled);
+        }
+    }
+
+    /**
+     * Restore previously disabled local exclude file.
+     *
+     * @param string $path
+     *   Path to repository.
+     */
+    protected function restoreLocalExclude($path)
+    {
+        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        $filenameDisabled = $filename.'.bak';
+        if ($this->fsFileSystem->exists($filenameDisabled)) {
+            $this->say('Restoring local exclude');
+            $this->fsFileSystem->rename($filenameDisabled, $filename);
+        }
     }
 
     /**
