@@ -508,6 +508,7 @@ trait ArtefactTrait
         $filename = $path.DIRECTORY_SEPARATOR.'git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
         $filename_disabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filename)) {
+            $this->say('Disabling local exclude');
             $this->fsFileSystem->rename($filename, $filename_disabled);
         }
     }
@@ -523,6 +524,7 @@ trait ArtefactTrait
         $filename = $path.DIRECTORY_SEPARATOR.'git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
         $filename_disabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filename_disabled)) {
+            $this->say('Restoring local exclude');
             $this->fsFileSystem->rename($filename_disabled, $filename);
         }
     }
