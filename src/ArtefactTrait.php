@@ -505,11 +505,11 @@ trait ArtefactTrait
      */
     protected function disableLocalExclude($path)
     {
-        $filename = $path.DIRECTORY_SEPARATOR.'git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
-        $filename_disabled = $filename.'.bak';
+        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        $filenameDisabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filename)) {
             $this->say('Disabling local exclude');
-            $this->fsFileSystem->rename($filename, $filename_disabled);
+            $this->fsFileSystem->rename($filename, $filenameDisabled);
         }
     }
 
@@ -521,11 +521,11 @@ trait ArtefactTrait
      */
     protected function restoreLocalExclude($path)
     {
-        $filename = $path.DIRECTORY_SEPARATOR.'git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
-        $filename_disabled = $filename.'.bak';
-        if ($this->fsFileSystem->exists($filename_disabled)) {
+        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        $filenameDisabled = $filename.'.bak';
+        if ($this->fsFileSystem->exists($filenameDisabled)) {
             $this->say('Restoring local exclude');
-            $this->fsFileSystem->rename($filename_disabled, $filename);
+            $this->fsFileSystem->rename($filenameDisabled, $filename);
         }
     }
 
