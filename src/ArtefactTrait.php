@@ -212,7 +212,6 @@ trait ArtefactTrait
             $this->replaceGitignore($this->gitignoreFile, $this->src);
             $this->disableLocalExclude($this->src);
             $this->removeExcludedFiles($this->src);
-            $this->removeOtherFiles($this->src);
         }
 
         $this->removeSubRepos($this->src);
@@ -563,29 +562,6 @@ trait ArtefactTrait
         foreach ($excludedFiles as $excludedFile) {
             $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
             $this->printDebug('Removing excluded file %s', $fileName);
-            $this->fsFileSystem->remove($fileName);
-        }
-    }
-
-    /**
-     * Remove 'other' files.
-     *
-     * @param string $location
-     *   Path to repository.
-     * @param string $gitignore
-     *   Gitignore file name.
-     *
-     * @throws \Exception
-     *   If removal command finished with an error.
-     */
-    protected function removeOtherFiles($location, $gitignore = '.gitignore')
-    {
-        $command = sprintf('ls-files --directory -i --others --exclude-from=%s %s', $location.DIRECTORY_SEPARATOR.$gitignore, $location);
-        $result = $this->gitCommandRun($location, $command, 'Unable to remove "other" files');
-        $excludedFiles = array_filter(preg_split('/\R/', $result->getMessage()));
-        foreach ($excludedFiles as $excludedFile) {
-            $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
-            $this->printDebug('Removing "other" file %s', $fileName);
             $this->fsFileSystem->remove($fileName);
         }
     }
