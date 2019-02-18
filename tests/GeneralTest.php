@@ -85,4 +85,26 @@ class GeneralTest extends AbstractTest
         $this->assertContains('Gitignore file:    No', $output);
         $this->assertContains('Push result:       Success', $output);
     }
+
+    public function testDebug()
+    {
+        $this->gitCreateFixtureCommits(1);
+        $output = $this->runBuild('--debug');
+
+        $this->assertContains('Debug messages enabled', $output);
+
+        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+    }
+
+    public function testDebugDisabled()
+    {
+        $this->gitCreateFixtureCommits(1);
+        $output = $this->runBuild();
+
+        $this->assertNotContains('Debug messages enabled', $output);
+
+        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+    }
 }

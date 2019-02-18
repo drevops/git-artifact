@@ -110,6 +110,13 @@ trait ArtefactTrait
     protected $result = false;
 
     /**
+     * Flag to print debug information.
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
      * Internal option to set current timestamp.
      *
      * @var int
@@ -133,6 +140,7 @@ trait ArtefactTrait
      *   Options.
      *
      * @option $branch Destination branch with optional tokens.
+     * @option $debug Print debug information.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $message Commit message with optional tokens.
      * @option $mode Mode of artefact build: branch, force-push or diff.
@@ -150,6 +158,7 @@ trait ArtefactTrait
      */
     public function artefact($remote, array $opts = [
         'branch' => '[branch]',
+        'debug' => false,
         'gitignore' => InputOption::VALUE_REQUIRED,
         'message' => 'Deployment commit',
         'mode' => 'force-push',
@@ -164,6 +173,8 @@ trait ArtefactTrait
     {
         $this->checkRequirements();
         $this->resolveOptions($opts);
+
+        $this->printDebug('Debug messages enabled');
 
         try {
             $this->gitSetDst($remote);
@@ -250,6 +261,8 @@ trait ArtefactTrait
     protected function resolveOptions(array $options)
     {
         $this->now = !empty($options['now']) ? $options['now'] : time();
+
+        $this->debug = !empty($options['debug']);
 
         $this->remoteName = 'dst';
 
@@ -493,6 +506,7 @@ trait ArtefactTrait
      */
     protected function replaceGitignore($filename, $path)
     {
+        $this->printDebug('Replacing .gitignore: %s with %s', $filename, $path.DIRECTORY_SEPARATOR.'.gitignore');
         $this->fsFileSystem->copy($filename, $path.DIRECTORY_SEPARATOR.'.gitignore', true);
         $this->fsFileSystem->remove($filename);
     }
@@ -508,7 +522,7 @@ trait ArtefactTrait
         $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
         $filenameDisabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filename)) {
-            $this->say('Disabling local exclude');
+            $this->printDebug('Disabling local exclude');
             $this->fsFileSystem->rename($filename, $filenameDisabled);
         }
     }
@@ -524,7 +538,7 @@ trait ArtefactTrait
         $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
         $filenameDisabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filenameDisabled)) {
-            $this->say('Restoring local exclude');
+            $this->printDebug('Restoring local exclude');
             $this->fsFileSystem->rename($filenameDisabled, $filename);
         }
     }
@@ -546,7 +560,9 @@ trait ArtefactTrait
         $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
         $excludedFiles = array_filter(preg_split('/\R/', $result->getMessage()));
         foreach ($excludedFiles as $excludedFile) {
-            $this->fsFileSystem->remove($location.DIRECTORY_SEPARATOR.$excludedFile);
+            $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
+            $this->printDebug('Removing excluded file %s', $fileName);
+            $this->fsFileSystem->remove($fileName);
         }
     }
 
@@ -621,5 +637,22 @@ trait ArtefactTrait
         $char = $this->decorationCharacter('V', '✔');
         $format = "<fg=white;bg=$color;options=bold>%s %s</fg=white;bg=$color;options=bold>";
         $this->writeln(sprintf($format, $char, $text));
+    }
+
+    /**
+     * Print debug information.
+     *
+     * @param ...
+     *   Variable number of parameters suitable for sprintf().
+     */
+    protected function printDebug()
+    {
+        if (!$this->debug) {
+            return;
+        }
+
+        $args = func_get_args();
+        $message = array_shift($args);
+        $this->writeln(vsprintf($message, $args));
     }
 }
