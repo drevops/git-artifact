@@ -556,7 +556,12 @@ trait ArtefactTrait
      */
     protected function removeExcludedFiles($location, $gitignore = '.gitignore')
     {
-        $this->printDebug(file_get_contents($location.DIRECTORY_SEPARATOR.$gitignore));
+        $gitignoreContent = file_get_contents($location.DIRECTORY_SEPARATOR.$gitignore);
+        if (!$gitignoreContent) {
+            $this->printDebug('Unable to load '.$gitignoreContent);
+        } else {
+            $this->printDebug($gitignoreContent);
+        }
         $command = sprintf('ls-files --directory -i --exclude-from=%s %s', $location.DIRECTORY_SEPARATOR.$gitignore, $location);
         $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
         $excludedFiles = array_filter(preg_split('/\R/', $result->getMessage()));
