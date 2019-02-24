@@ -571,12 +571,13 @@ trait ArtefactTrait
         $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
         $excludedFiles2 = array_filter(preg_split('/\R/', $result->getMessage()));
 
-        $excludedFiles=array_merge($excludedFiles1, $excludedFiles2);
+        $excludedFiles = array_merge($excludedFiles1, $excludedFiles2);
+
+        $this->printDebug(print_r($excludedFiles, true));
 
         foreach ($excludedFiles as $excludedFile) {
             $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
             $this->printDebug('Removing2 excluded file %s', $fileName);
-            $this->gitCommandRun($location, sprintf('rm --cached %s', $fileName), 'Unable to remove excluded files');
             $this->fsFileSystem->remove($fileName);
         }
     }
