@@ -562,6 +562,7 @@ trait ArtefactTrait
         foreach ($excludedFiles as $excludedFile) {
             $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
             $this->printDebug('Removing excluded file %s', $fileName);
+            $this->gitCommandRun($location, sprintf('rm --cached %s', $fileName), 'Unable to remove excluded files');
             $this->fsFileSystem->remove($fileName);
         }
     }
