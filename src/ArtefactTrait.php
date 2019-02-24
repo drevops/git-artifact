@@ -210,7 +210,6 @@ trait ArtefactTrait
 
         if (!empty($this->gitignoreFile)) {
             $this->replaceGitignore($this->gitignoreFile, $this->src);
-            die ('testing');
             $this->disableLocalExclude($this->src);
             $this->removeExcludedFiles($this->src);
         }
@@ -563,9 +562,17 @@ trait ArtefactTrait
         } else {
             $this->printDebug($gitignoreContent);
         }
+
         $command = sprintf('ls-files --directory -i --exclude-from=%s %s', $location.DIRECTORY_SEPARATOR.$gitignore, $location);
         $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
-        $excludedFiles = array_filter(preg_split('/\R/', $result->getMessage()));
+        $excludedFiles1 = array_filter(preg_split('/\R/', $result->getMessage()));
+
+        $command = sprintf('ls-files --directory -i --exclude-standard %s', $location.DIRECTORY_SEPARATOR.$gitignore, $location);
+        $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
+        $excludedFiles2 = array_filter(preg_split('/\R/', $result->getMessage()));
+
+        $excludedFiles=array_merge($excludedFiles1, $excludedFiles2);
+
         foreach ($excludedFiles as $excludedFile) {
             $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
             $this->printDebug('Removing2 excluded file %s', $fileName);
