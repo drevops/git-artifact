@@ -210,6 +210,7 @@ trait ArtefactTrait
 
         if (!empty($this->gitignoreFile)) {
             $this->replaceGitignore($this->gitignoreFile, $this->src);
+            die ('testing');
             $this->disableLocalExclude($this->src);
             $this->removeExcludedFiles($this->src);
         }
