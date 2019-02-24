@@ -212,6 +212,7 @@ trait ArtefactTrait
             $this->replaceGitignore($this->gitignoreFile, $this->src);
             $this->disableLocalExclude($this->src);
             $this->removeExcludedFiles($this->src);
+            $this->removeExcludedFiles($this->src);
         }
 
         $this->removeSubRepos($this->src);
