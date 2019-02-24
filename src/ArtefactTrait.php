@@ -567,7 +567,7 @@ trait ArtefactTrait
         $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
         $excludedFiles1 = array_filter(preg_split('/\R/', $result->getMessage()));
 
-        $command = sprintf('ls-files --directory -i --exclude-standard %s', $location.DIRECTORY_SEPARATOR.$gitignore, $location);
+        $command = sprintf('ls-files --directory -i --exclude-standard %s', $location);
         $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
         $excludedFiles2 = array_filter(preg_split('/\R/', $result->getMessage()));
 
