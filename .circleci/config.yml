@@ -1,15 +1,97 @@
 version: 2
 
-jobs:
-  build:
+aliases:
+
+  - &deploy_ssh_fingerprint "e8:d7:da:b8:6a:fb:75:50:8d:5f:48:61:3c:46:49:50"
+
+  # Shared configuration applied to each job.
+  - &container_config
     working_directory: /app
+    environment:
+
+
+  - &container_config
+    working_directory: /workspace/code
     docker:
       - image: integratedexperts/ci-builder
         environment:
           COMPOSER_ALLOW_SUPERUSER: 1
+          DEPLOY_SSH_FINGERPRINT: *deploy_ssh_fingerprint
+
+  - &step_setup_git
+    run: |
+      mkdir -p "${HOME}/.ssh/"
+      echo -e "Host *\n\tStrictHostKeyChecking no\n" > "${HOME}/.ssh/config"
+      DEPLOY_SSH_FILE="${DEPLOY_SSH_FINGERPRINT//:}"
+      DEPLOY_SSH_FILE="${HOME}/.ssh/id_rsa_${DEPLOY_SSH_FILE//\"}"
+      if [ -f "${DEPLOY_SSH_FILE}" ]; then
+        echo "Found Deploy SSH key file ${DEPLOY_SSH_FILE}"
+        ssh-add -D > /dev/null
+        ssh-add "${DEPLOY_SSH_FILE}"
+      fi
+      git config --global user.name "$DEPLOY_USER_NAME"
+      git config --global user.email "$DEPLOY_USER_EMAIL"
+
+jobs:
+  build:
+    <<: *container_config
     steps:
+      - attach_workspace:
+          at: /workspace
+      - add_ssh_keys:
+          fingerprints:
+            - *deploy_ssh_fingerprint
+      - *step_setup_git
       - checkout
-      - run: git config --global user.name "Some User" && git config --global user.email "some.user@example.com"
       - run: composer validate --ansi --strict
       - run: composer install
       - run: composer test
+      - persist_to_workspace:
+          root: /workspace
+          paths:
+            - code
+
+  deploy:
+    <<: *container_config
+    steps:
+      - attach_workspace:
+          at: /workspace
+      - add_ssh_keys:
+          fingerprints:
+            - *deploy_ssh_fingerprint
+      - *step_setup_git
+      - checkout
+      # Planting test asset file.
+      - run: touch test-file-$(date "+%Y%m%d-%H%M%S").txt
+      # Demonstration of deployment in 'force-push' mode.
+      - run: |
+          vendor/bin/robo artefact \
+            git@github.com:integratedexperts/robo-git-artefact-destination.git \
+            --mode=force-push \
+            --branch=mode-force-push \
+            --report=$HOME/report-mode-force-push.txt \
+            --push
+          DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-force-push.txt | sed 's/ //g')
+          echo "Deployed to $DEPLOY_BRANCH"
+      # Demonstration of deployment in 'branch' mode.
+      - run: |
+          vendor/bin/robo artefact \
+            git@github.com:integratedexperts/robo-git-artefact-destination.git \
+            --mode=branch \
+            --branch=mode-branch-[timestamp:Y-m-d_H-i-s] \
+            --report=$HOME/report-mode-branch.txt \
+            --push
+          DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-branch.txt | sed 's/ //g')
+          echo "Deployed to $DEPLOY_BRANCH"
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
