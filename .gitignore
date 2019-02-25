@@ -1,7 +1,4 @@
 vendor
 artefact
-.vagrant
-Vagrantfile
-.beetbox
 composer.lock
 git_*

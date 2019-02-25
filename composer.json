@@ -2,7 +2,7 @@
   "name": "integratedexperts/robo-git-artefact",
   "description": "Robo task to push git artefact to remote repository",
   "type": "robo-tasks",
-  "license": "GPL-2.0+",
+  "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Alex Skrypnyk",
@@ -16,7 +16,6 @@
   "require-dev": {
     "squizlabs/php_codesniffer": "2.*",
     "escapestudios/symfony2-coding-standard": "~2.0",
-    "beet/box": "^0.7.2",
     "phpunit/phpunit": "^6.3"
   },
   "scripts": {

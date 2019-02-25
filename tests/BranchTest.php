@@ -135,6 +135,7 @@ class BranchTest extends AbstractTest
         $this->gitAssertFilesNotExist($this->dst, '3.txt');
 
         // Now, remove the .gitignore and push again.
+        $this->gitCreateFixtureFile($this->src, '3.txt');
         $this->gitRemoveFixtureFile($this->src, 'mygitignore');
         $this->gitCommitAll($this->src, 'Commit number 3');
         $this->now = time() - rand(1, 10 * 60);
