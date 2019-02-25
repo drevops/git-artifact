@@ -209,12 +209,12 @@ trait ArtefactTrait
         $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
         if (!empty($this->gitignoreFile)) {
-            $this->replaceGitignore($this->gitignoreFile, $this->src);
-            $this-> disableLocalExclude($this->src);
+            $this->disableLocalExclude($this->src);
             $this->gitCommandRun(
                 $this->src,
                 'add -A'
             );
+            $this->replaceGitignore($this->gitignoreFile, $this->src);
             $this->removeExcludedFiles($this->src);
         }
 
@@ -539,12 +539,12 @@ trait ArtefactTrait
      */
     protected function restoreLocalExclude($path)
     {
-//        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
-//        $filenameDisabled = $filename.'.bak';
-//        if ($this->fsFileSystem->exists($filenameDisabled)) {
-//            $this->printDebug('Restoring local exclude');
-//            $this->fsFileSystem->rename($filenameDisabled, $filename);
-//        }
+        //        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        //        $filenameDisabled = $filename.'.bak';
+        //        if ($this->fsFileSystem->exists($filenameDisabled)) {
+        //            $this->printDebug('Restoring local exclude');
+        //            $this->fsFileSystem->rename($filenameDisabled, $filename);
+        //        }
     }
 
     /**
