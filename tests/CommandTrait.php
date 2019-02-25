@@ -383,7 +383,10 @@ trait CommandTrait
         }
         $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
         $committedFiles = $this->gitGetCommittedFiles($path);
-        $this->assertEquals(count(array_intersect($this->gitGetCommittedFiles($path), $expectedFiles)), 0, sprintf('Committed files: %s', implode(', ', $committedFiles)));
+        sort($expectedFiles);
+        sort($committedFiles);
+        $intersectedFiles = array_intersect($committedFiles, $expectedFiles);
+        $this->assertEquals(count($intersectedFiles), 0, sprintf("Committed: %s\nExpected:  %s\nIntersected: %s", implode(', ', $committedFiles), implode(', ', $expectedFiles), implode(', ', $intersectedFiles)));
     }
 
     protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [], $assertFiles = true)
