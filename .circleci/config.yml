@@ -1,0 +1,15 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: /app
+    docker:
+      - image: integratedexperts/ci-builder
+        environment:
+          COMPOSER_ALLOW_SUPERUSER: 1
+    steps:
+      - checkout
+      - run: git config --global user.name "Some User" && git config --global user.email "some.user@example.com"
+      - run: composer validate --ansi --strict
+      - run: composer install
+      - run: composer test
