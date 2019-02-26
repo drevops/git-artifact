@@ -373,7 +373,11 @@ trait CommandTrait
         }
         $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
         $committedFiles = $this->gitGetCommittedFiles($path);
-        $this->assertEquals(array_values(array_intersect($committedFiles, $expectedFiles)), array_values($expectedFiles));
+        sort($expectedFiles);
+        sort($committedFiles);
+        $intersectedFiles = array_intersect($committedFiles, $expectedFiles);
+        sort($intersectedFiles);
+        $this->assertEquals(array_values($intersectedFiles), array_values($expectedFiles), sprintf("Committed: %s\nExpected:  %s\nIntersected: %s", implode(', ', $committedFiles), implode(', ', $expectedFiles), implode(', ', $intersectedFiles)));
     }
 
     protected function gitAssertNoFilesCommitted($path, $expectedFiles, $branch = null)
