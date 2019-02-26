@@ -161,6 +161,7 @@ class ForcePushTest extends AbstractTest
 
         $this->gitCreateFixtureFile($this->src, 'vendor/ve_ignored_ignored.txt');
         $this->gitCreateFixtureFile($this->src, 'vendor_com_com.txt');
+        $this->gitCreateFixtureFile($this->src, 'vendor_com with space com.txt');
         $this->gitCreateFixtureFile($this->src, 'dir_other/vendor/ve_com_com.txt');
 
         $this->gitCreateFixtureCommits(2);
@@ -177,7 +178,7 @@ class ForcePushTest extends AbstractTest
         $this->gitAssertFilesCommitted($this->src, [
             '1.txt', '2.txt', 'com_com.txt', 'com_ignored.txt',
             'dir_com_com/sub_com_com.txt', 'dir_com_ignored/sub_com_ignored.txt',
-            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt',
+            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt', 'vendor_com with space com.txt',
         ]);
         $this->gitAssertNoFilesCommitted($this->src, [
             'ignored_ignored.txt', 'ignored_com.txt', 'uncom_ignored.txt', 'uncom_com.txt', 'uncom_del.txt',
@@ -206,7 +207,7 @@ class ForcePushTest extends AbstractTest
         $this->gitAssertNoFilesCommitted($this->dst, [
             '1.txt', 'ignored_ignored.txt', 'com_ignored.txt', 'uncom_ignored.txt', 'uncom_del.txt',
             'dir_com_ignored/sub_com_ignored.txt', 'dir_ignored_ignored/sub_ignored_ignored.txt', 'dir_uncom_ignored/sub_uncom_ignored.txt', 'dir_uncom_del/sub_uncom_del.txt',
-            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt',
+            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt', 'vendor_com with space com.txt',
         ], 'testbranch');
 
         $this->gitAssertFilesExist($this->dst, [
@@ -218,7 +219,7 @@ class ForcePushTest extends AbstractTest
             '1.txt', 'ignored_ignored.txt', 'com_ignored.txt', 'uncom_ignored.txt', 'uncom_del.txt',
             'dir_com_ignored/sub_com_ignored.txt',
             'dir_ignored_ignored/sub_ignored_ignored.txt', 'dir_uncom_ignored/sub_uncom_ignored.txt', 'dir_uncom_del/sub_uncom_del.txt',
-            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt',
+            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt', 'vendor_com with space com.txt'
         ], 'testbranch');
     }
 

@@ -561,7 +561,7 @@ trait ArtefactTrait
         foreach ($files as $file) {
             $this->gitCommandRun(
                 $this->src,
-                'update-index --add '.$file
+                sprintf('update-index --add "%s"', $file)
             );
         }
     }
