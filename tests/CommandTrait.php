@@ -376,6 +376,7 @@ trait CommandTrait
         sort($expectedFiles);
         sort($committedFiles);
         $intersectedFiles = array_intersect($committedFiles, $expectedFiles);
+        sort($intersectedFiles);
         $this->assertEquals(array_values($intersectedFiles), array_values($expectedFiles), sprintf("Committed: %s\nExpected:  %s\nIntersected: %s", implode(', ', $committedFiles), implode(', ', $expectedFiles), implode(', ', $intersectedFiles)));
     }
 

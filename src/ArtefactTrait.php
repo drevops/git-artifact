@@ -556,7 +556,6 @@ trait ArtefactTrait
         $files = $this->fsFinder
             ->in($location)
             ->ignoreDotFiles(false)
-            ->notPath('vendor')
             ->files();
 
         foreach ($files as $file) {
