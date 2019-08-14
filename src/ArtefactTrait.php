@@ -212,7 +212,7 @@ trait ArtefactTrait
             $this->replaceGitignore($this->gitignoreFile, $this->src);
 
             // Use slow git update-index only when local exclude exists.
-            if ($this->localExcludeExists($this->src)) {
+            if ($this->localExcludeExists($this->src) && !$this->localExcludeEmpty($this->src)) {
                 // @todo: Refactor the local exclusion mechanism to avoid
                 // adding file to index just to have them remove later.
                 $this->disableLocalExclude($this->src);
@@ -514,9 +514,17 @@ trait ArtefactTrait
      */
     protected function replaceGitignore($filename, $path)
     {
-        $this->printDebug('Replacing .gitignore: %s with %s', $filename, $path.DIRECTORY_SEPARATOR.'.gitignore');
+        $this->printDebug('Replacing .gitignore: %s with %s', $path.DIRECTORY_SEPARATOR.'.gitignore', $filename);
         $this->fsFileSystem->copy($filename, $path.DIRECTORY_SEPARATOR.'.gitignore', true);
         $this->fsFileSystem->remove($filename);
+    }
+
+    /**
+     * Helper to get a file name of the local exclude file.
+     */
+    protected function getLocalExcludeFileName($path)
+    {
+        return $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
     }
 
     /**
@@ -524,14 +532,50 @@ trait ArtefactTrait
      *
      * @param string $path
      *   Path to repository.
+     *
+     * @return bool
+     *   True if exists, false otherwise.
      */
     protected function localExcludeExists($path)
     {
-        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
-
-        return $this->fsFileSystem->exists($filename);
+        return $this->fsFileSystem->exists($this->getLocalExcludeFileName($path));
     }
 
+    /**
+     * Check if local exclude (.git/info/exclude) file is empty.
+     *
+     * @param string $path
+     *   Path to repository.
+     * @param bool   $strict
+     *   Flag to check if the file is empty. If false, comments and empty lines
+     *   are considered as empty.
+     *
+     * @return bool
+     *   - true, if $strict is true and file has no records.
+     *   - false, if $strict is true and file has some records.
+     *   - true, if $strict is false and file has only empty lines and comments.
+     *   - false, if $strict is false and file lines other then empty lines or
+     *     comments.
+     */
+    protected function localExcludeEmpty($path, $strict = false)
+    {
+        if (!$this->localExcludeExists($path)) {
+            throw new \Exception(sprintf('File "%s" does not exist', $path));
+        }
+
+        $filename = $this->getLocalExcludeFileName($path);
+        if ($strict) {
+            return empty(file_get_contents($filename));
+        }
+
+        $lines = array_map('trim', file($filename));
+        $lines = array_filter($lines, 'strlen');
+        $lines = array_filter($lines, function ($line) {
+            return strpos(trim($line), '#') !== 0;
+        });
+
+        return empty($lines);
+    }
 
     /**
      * Disable local exclude file (.git/info/exclude).
@@ -541,7 +585,7 @@ trait ArtefactTrait
      */
     protected function disableLocalExclude($path)
     {
-        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        $filename = $this->getLocalExcludeFileName($path);
         $filenameDisabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filename)) {
             $this->printDebug('Disabling local exclude');
@@ -557,7 +601,7 @@ trait ArtefactTrait
      */
     protected function restoreLocalExclude($path)
     {
-        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+        $filename = $this->getLocalExcludeFileName($path);
         $filenameDisabled = $filename.'.bak';
         if ($this->fsFileSystem->exists($filenameDisabled)) {
             $this->printDebug('Restoring local exclude');

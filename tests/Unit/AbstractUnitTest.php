@@ -7,7 +7,7 @@ use IntegratedExperts\Robo\Tests\AbstractTest;
 /**
  * Class AbstractUnitTest.
  */
-class AbstractUnitTest extends AbstractTest
+abstract class AbstractUnitTest extends AbstractTest
 {
 
     /**
