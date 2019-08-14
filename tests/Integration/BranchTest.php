@@ -1,11 +1,13 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace IntegratedExperts\Robo\Tests\Integration;
 
 /**
  * Class BranchTest.
+ *
+ * @group integration
  */
-class BranchTest extends AbstractTest
+class BranchTest extends AbstractIntegrationTest
 {
 
     /**

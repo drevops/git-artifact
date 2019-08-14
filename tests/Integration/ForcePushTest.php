@@ -1,11 +1,13 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace IntegratedExperts\Robo\Tests\Integration;
 
 /**
  * Class ForcePushTest.
+ *
+ * @group integration
  */
-class ForcePushTest extends AbstractTest
+class ForcePushTest extends AbstractIntegrationTest
 {
 
     protected function setUp()

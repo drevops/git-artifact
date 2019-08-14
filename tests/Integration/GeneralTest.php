@@ -1,11 +1,13 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace IntegratedExperts\Robo\Tests\Integration;
 
 /**
  * Class GeneralTest.
+ *
+ * @group integration
  */
-class GeneralTest extends AbstractTest
+class GeneralTest extends AbstractIntegrationTest
 {
 
     public function testPresence()
