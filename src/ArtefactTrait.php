@@ -209,9 +209,16 @@ trait ArtefactTrait
         $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
         if (!empty($this->gitignoreFile)) {
-            $this->disableLocalExclude($this->src);
             $this->replaceGitignore($this->gitignoreFile, $this->src);
-            $this->gitUpdateIndex($this->src);
+
+            // Use slow git update-index only when local exclude exists.
+            if ($this->localExcludeExists($this->src)) {
+                // @todo: Refactor the local exclusion mechanism to avoid
+                // adding file to index just to have them remove later.
+                $this->disableLocalExclude($this->src);
+                $this->gitUpdateIndex($this->src);
+            }
+
             $this->removeExcludedFiles($this->src);
         }
 
@@ -513,6 +520,20 @@ trait ArtefactTrait
     }
 
     /**
+     * Check if local exclude (.git/info/exclude) file exists.
+     *
+     * @param string $path
+     *   Path to repository.
+     */
+    protected function localExcludeExists($path)
+    {
+        $filename = $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
+
+        return $this->fsFileSystem->exists($filename);
+    }
+
+
+    /**
      * Disable local exclude file (.git/info/exclude).
      *
      * @param string $path
@@ -543,7 +564,6 @@ trait ArtefactTrait
             $this->fsFileSystem->rename($filenameDisabled, $filename);
         }
     }
-
 
     /**
      * Update index for all files.
