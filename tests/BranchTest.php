@@ -96,16 +96,16 @@ class BranchTest extends AbstractTest
 
     public function testGitignore()
     {
-        $this->gitCreateFixtureFile($this->src, '.gitignore', '3.txt');
+        $this->gitCreateFixtureFile($this->src, '.gitignore', 'f3');
         $this->gitCreateFixtureCommits(2);
-        $this->gitCreateFixtureFile($this->src, '3.txt');
+        $this->gitCreateFixtureFile($this->src, 'f3');
 
         $this->now = time() - rand(1, 10 * 60);
         $branch1 = 'testbranch-'.date('Y-m-d_H-i-s', $this->now);
         $this->assertBuildSuccess('--branch=testbranch-[timestamp:Y-m-d_H-i-s]', $branch1);
 
         $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
-        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+        $this->gitAssertFilesNotExist($this->dst, 'f3');
 
         // Now, remove the .gitignore and push again.
         $this->gitRemoveFixtureFile($this->src, '.gitignore');
@@ -118,24 +118,24 @@ class BranchTest extends AbstractTest
 
         // Assert that branch from previous deployment was not affected.
         $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
-        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+        $this->gitAssertFilesNotExist($this->dst, 'f3');
     }
 
     public function testGitignoreCustom()
     {
-        $this->gitCreateFixtureFile($this->src, 'mygitignore', '3.txt');
+        $this->gitCreateFixtureFile($this->src, 'mygitignore', 'f3');
         $this->gitCreateFixtureCommits(2);
-        $this->gitCreateFixtureFile($this->src, '3.txt');
+        $this->gitCreateFixtureFile($this->src, 'f3');
 
         $this->now = time() - rand(1, 10 * 60);
         $branch1 = 'testbranch-'.date('Y-m-d_H-i-s', $this->now);
         $this->assertBuildSuccess('--branch=testbranch-[timestamp:Y-m-d_H-i-s] --gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore', $branch1);
 
         $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
-        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+        $this->gitAssertFilesNotExist($this->dst, 'f3');
 
         // Now, remove the .gitignore and push again.
-        $this->gitCreateFixtureFile($this->src, '3.txt');
+        $this->gitCreateFixtureFile($this->src, 'f3');
         $this->gitRemoveFixtureFile($this->src, 'mygitignore');
         $this->gitCommitAll($this->src, 'Commit number 3');
         $this->now = time() - rand(1, 10 * 60);
@@ -146,6 +146,6 @@ class BranchTest extends AbstractTest
 
         // Assert that branch from previous deployment was not affected.
         $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
-        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+        $this->gitAssertFilesNotExist($this->dst, 'f3');
     }
 }

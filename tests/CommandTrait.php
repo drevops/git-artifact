@@ -203,8 +203,8 @@ trait CommandTrait
     protected function gitCreateFixtureCommit($index, $path = null)
     {
         $path = $path ? $path : $this->src;
-        $this->gitCreateFixtureFile($path, $index.'.txt');
-        $this->runGitCommand(sprintf('add %s.txt', $index), $path);
+        $this->gitCreateFixtureFile($path, 'f'.$index);
+        $this->runGitCommand(sprintf('add f%s', $index), $path);
         $this->runGitCommand(sprintf('commit -am "Commit number %s"', $index), $path);
 
         $output = $this->runGitCommand('rev-parse HEAD', $path);
@@ -240,11 +240,11 @@ trait CommandTrait
             $this->runGitCommand(sprintf('checkout %s', $branch), $path);
         } catch (Error $error) {
             $allowedFails = [
-                "error: pathspec '$branch' did not match any file(s) known to git.",
+                "error: pathspec '$branch' did not match any file(s) known to git",
             ];
 
             $output = explode(PHP_EOL, $error->getPrevious()->getMessage());
-            // Re-throw exception in not one of the allowed ones.
+            // Re-throw exception if it is not one of the allowed ones.
             if (empty(array_intersect($output, $allowedFails))) {
                 throw $error;
             }
@@ -270,7 +270,7 @@ trait CommandTrait
      */
     protected function gitCreateFixtureFile($path, $name = null, $content = null)
     {
-        $name = $name ? $name : 'tmp'.rand(1000, 100000).'.txt';
+        $name = $name ? $name : 'tmp'.rand(1000, 100000);
         $path = $path.DIRECTORY_SEPARATOR.$name;
         $dir = dirname($path);
         if (!empty($dir)) {
@@ -402,7 +402,7 @@ trait CommandTrait
         $expectedFiles = [];
         for ($i = 1; $i <= $count; $i++) {
             $expectedCommits[] = sprintf('Commit number %s', $i);
-            $expectedFiles[] = sprintf('%s.txt', $i);
+            $expectedFiles[] = sprintf('f%s', $i);
         }
         $expectedCommits = array_merge($expectedCommits, $additionalCommits);
 

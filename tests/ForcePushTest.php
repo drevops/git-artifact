@@ -73,14 +73,14 @@ class ForcePushTest extends AbstractTest
 
     public function testGitignore()
     {
-        $this->gitCreateFixtureFile($this->src, '.gitignore', '3.txt');
+        $this->gitCreateFixtureFile($this->src, '.gitignore', 'f3');
         $this->gitCreateFixtureCommits(2);
-        $this->gitCreateFixtureFile($this->src, '3.txt');
+        $this->gitCreateFixtureFile($this->src, 'f3');
 
         $this->assertBuildSuccess();
 
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
-        $this->gitAssertFilesNotExist($this->dst, '3.txt');
+        $this->gitAssertFilesNotExist($this->dst, 'f3');
 
         // Now, remove the .gitignore and push again.
         $this->gitRemoveFixtureFile($this->src, '.gitignore');
@@ -92,104 +92,104 @@ class ForcePushTest extends AbstractTest
     public function testGitignoreCustom()
     {
         $this->gitCreateFixtureCommits(2);
-        $this->gitCreateFixtureFile($this->src, 'uncomignored_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'uncom_com.txt');
+        $this->gitCreateFixtureFile($this->src, 'uic');
+        $this->gitCreateFixtureFile($this->src, 'uc');
 
-        $this->gitCreateFixtureFile($this->src, 'mygitignore', 'uncomignored_com.txt');
+        $this->gitCreateFixtureFile($this->src, 'mygitignore', 'uic');
 
         $this->assertBuildSuccess('--gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore');
 
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
-        $this->gitAssertFilesNotExist($this->dst, 'uncomignored_com.txt');
-        $this->gitAssertFilesExist($this->dst, 'uncom_com.txt');
+        $this->gitAssertFilesNotExist($this->dst, 'uic');
+        $this->gitAssertFilesExist($this->dst, 'uc');
 
         // Now, remove the .gitignore and push again.
-        // We have to create 'uncomignored_com.txt' file since it was rightfully
+        // We have to create 'uic' file since it was rightfully
         // removed during previous build run and the source repo branch was not
         // reset (uncommitted files would be removed, unless they are excluded
         // in .gitignore).
-        $this->gitCreateFixtureFile($this->src, 'uncomignored_com.txt');
+        $this->gitCreateFixtureFile($this->src, 'uic');
         $this->gitRemoveFixtureFile($this->src, 'mygitignore');
         $this->gitCommitAll($this->src, 'Commit number 3');
         $this->assertBuildSuccess();
 
         $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit'], false);
-        $this->gitAssertFilesCommitted($this->dst, ['1.txt', '2.txt', 'uncomignored_com.txt'], 'testbranch');
-        $this->gitAssertFilesExist($this->dst, ['1.txt', '2.txt', 'uncomignored_com.txt'], 'testbranch');
-        $this->gitAssertNoFilesCommitted($this->dst, ['uncom_com.txt'], 'testbranch');
+        $this->gitAssertFilesCommitted($this->dst, ['f1', 'f2', 'uic'], 'testbranch');
+        $this->gitAssertFilesExist($this->dst, ['f1', 'f2', 'uic'], 'testbranch');
+        $this->gitAssertNoFilesCommitted($this->dst, ['uc'], 'testbranch');
     }
 
     public function testGitignoreCustomRemoveCommittedFiles()
     {
-        $this->gitCreateFixtureFile($this->src, '.gitignore', ['ignored_ignored.txt', 'ignored_com.txt']);
+        $this->gitCreateFixtureFile($this->src, '.gitignore', ['ii', 'ic']);
 
-        $this->gitCreateFixtureFile($this->src, 'ignored_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'ignored_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'subdir/com_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'subdir/com_ignored.txt');
+        $this->gitCreateFixtureFile($this->src, 'ii');
+        $this->gitCreateFixtureFile($this->src, 'ic');
+        $this->gitCreateFixtureFile($this->src, 'd/cc');
+        $this->gitCreateFixtureFile($this->src, 'd/ci');
         $this->gitCreateFixtureCommits(2);
         $this->gitCommitAll($this->src, 'Custom third commit');
-        $this->gitCreateFixtureFile($this->src, 'uncom_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'uncom_com.txt');
-        $this->gitAssertFilesCommitted($this->src, ['1.txt', '2.txt', 'subdir/com_com.txt', 'subdir/com_ignored.txt']);
-        $this->gitAssertNoFilesCommitted($this->src, ['ignored_ignored.txt', 'ignored_com.txt', 'uncom_ignored.txt', 'uncom_com.txt']);
+        $this->gitCreateFixtureFile($this->src, 'ui');
+        $this->gitCreateFixtureFile($this->src, 'uc');
+        $this->gitAssertFilesCommitted($this->src, ['f1', 'f2', 'd/cc', 'd/ci']);
+        $this->gitAssertNoFilesCommitted($this->src, ['ii', 'ic', 'ui', 'uc']);
 
-        $this->gitCreateFixtureFile($this->src, 'mygitignore', ['1.txt', 'ignored_ignored.txt', 'com_ignored.txt', 'uncom_ignored.txt']);
+        $this->gitCreateFixtureFile($this->src, 'mygitignore', ['f1', 'ii', 'ci', 'ui']);
 
         $this->assertBuildSuccess('--gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore');
 
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], false);
-        $this->gitAssertFilesCommitted($this->dst, ['2.txt', 'ignored_com.txt', 'subdir/com_com.txt', 'uncom_com.txt'], 'testbranch');
-        $this->gitAssertNoFilesCommitted($this->dst, ['1.txt', 'ignored_ignored.txt', 'subdir/com_ignored.txt', 'uncom_ignored.txt'], 'testbranch');
-        $this->gitAssertFilesExist($this->dst, ['2.txt', 'ignored_com.txt', 'subdir/com_com.txt', 'uncom_com.txt'], 'testbranch');
-        $this->gitAssertFilesNotExist($this->dst, ['1.txt', 'ignored_ignored.txt', 'subdir/com_ignored.txt', 'uncom_ignored.txt'], 'testbranch');
+        $this->gitAssertFilesCommitted($this->dst, ['f2', 'ic', 'd/cc', 'uc'], 'testbranch');
+        $this->gitAssertNoFilesCommitted($this->dst, ['f1', 'ii', 'd/ci', 'ui'], 'testbranch');
+        $this->gitAssertFilesExist($this->dst, ['f2', 'ic', 'd/cc', 'uc'], 'testbranch');
+        $this->gitAssertFilesNotExist($this->dst, ['f1', 'ii', 'd/ci', 'ui'], 'testbranch');
     }
 
     public function testGitignoreCustomWhitelisting()
     {
-        $this->gitCreateFixtureFile($this->src, '.gitignore', ['ignored_ignored.txt', 'ignored_com.txt', 'dir_ignored_com', 'dir_ignored_ignored', '/vendor']);
+        $this->gitCreateFixtureFile($this->src, '.gitignore', ['ii', 'ic', 'd_ic', 'd_ii', '/vendor']);
 
-        $this->gitCreateFixtureFile($this->src, 'ignored_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'ignored_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'com_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'com_ignored.txt');
+        $this->gitCreateFixtureFile($this->src, 'ii');
+        $this->gitCreateFixtureFile($this->src, 'ic');
+        $this->gitCreateFixtureFile($this->src, 'cc');
+        $this->gitCreateFixtureFile($this->src, 'ci');
 
-        $this->gitCreateFixtureFile($this->src, 'dir_com_com/sub_com_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_com_ignored/sub_com_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_ignored_com/sub_ignored_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_ignored_ignored/sub_ignored_ignored.txt');
+        $this->gitCreateFixtureFile($this->src, 'd_cc/sub_cc');
+        $this->gitCreateFixtureFile($this->src, 'd_ci/sub_ci');
+        $this->gitCreateFixtureFile($this->src, 'd_ic/sub_ic');
+        $this->gitCreateFixtureFile($this->src, 'd_ii/sub_ii');
 
-        $this->gitCreateFixtureFile($this->src, 'vendor/ve_ignored_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'vendor_com_com.txt');
+        $this->gitCreateFixtureFile($this->src, 'vendor/ve_ii');
+        $this->gitCreateFixtureFile($this->src, 'vendor_cc');
         $this->gitCreateFixtureFile($this->src, 'vendor_com with space com.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_other/vendor/ve_com_com.txt');
+        $this->gitCreateFixtureFile($this->src, 'dir_other/vendor/ve_cc');
 
         $this->gitCreateFixtureCommits(2);
 
         $this->gitCommitAll($this->src, 'Custom third commit');
 
-        $this->gitCreateFixtureFile($this->src, 'uncom_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'uncom_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'uncom_del.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_uncom_ignored/sub_uncom_ignored.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_uncom_com/sub_uncom_com.txt');
-        $this->gitCreateFixtureFile($this->src, 'dir_uncom_del/sub_uncom_del.txt');
+        $this->gitCreateFixtureFile($this->src, 'ui');
+        $this->gitCreateFixtureFile($this->src, 'uc');
+        $this->gitCreateFixtureFile($this->src, 'ud');
+        $this->gitCreateFixtureFile($this->src, 'd_ui/sub_ui');
+        $this->gitCreateFixtureFile($this->src, 'dir_uc/sub_uc');
+        $this->gitCreateFixtureFile($this->src, 'd_ud/sub_ud');
 
         $this->gitAssertFilesCommitted($this->src, [
-            '1.txt', '2.txt', 'com_com.txt', 'com_ignored.txt',
-            'dir_com_com/sub_com_com.txt', 'dir_com_ignored/sub_com_ignored.txt',
-            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt', 'vendor_com with space com.txt',
+            'f1', 'f2', 'cc', 'ci',
+            'd_cc/sub_cc', 'd_ci/sub_ci',
+            'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
         ]);
         $this->gitAssertNoFilesCommitted($this->src, [
-            'ignored_ignored.txt', 'ignored_com.txt', 'uncom_ignored.txt', 'uncom_com.txt', 'uncom_del.txt',
-            'dir_ignored_com/sub_ignored_com.txt', 'dir_ignored_ignored/sub_ignored_ignored.txt', 'dir_uncom_ignored/sub_uncom_ignored.txt', 'dir_uncom_com/sub_uncom_com.txt', 'dir_uncom_del/sub_uncom_del.txt',
-            'vendor/ve_ignored_ignored.txt',
+            'ii', 'ic', 'ui', 'uc', 'ud',
+            'd_ic/sub_ic', 'd_ii/sub_ii', 'd_ui/sub_ui', 'dir_uc/sub_uc', 'd_ud/sub_ud',
+            'vendor/ve_ii',
         ]);
 
         // Now, add non-ignored files (whitelisting).
         $this->gitCreateFixtureFile($this->src, 'mygitignore', [
-            '/*', '!2.txt', '!ignored_com.txt', '!com_com.txt', '!uncom_com.txt',
-            '!dir_com_com', '!dir_ignored_com', '!dir_uncom_com',
+            '/*', '!f2', '!ic', '!cc', '!uc',
+            '!d_cc', '!d_ic', '!dir_uc',
             '!vendor',
         ]);
 
@@ -199,27 +199,27 @@ class ForcePushTest extends AbstractTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], false);
 
         $this->gitAssertFilesCommitted($this->dst, [
-            '2.txt', 'com_com.txt', 'ignored_com.txt', 'uncom_com.txt',
-            'dir_com_com/sub_com_com.txt', 'dir_ignored_com/sub_ignored_com.txt', 'dir_uncom_com/sub_uncom_com.txt',
-            'vendor/ve_ignored_ignored.txt',
+            'f2', 'cc', 'ic', 'uc',
+            'd_cc/sub_cc', 'd_ic/sub_ic', 'dir_uc/sub_uc',
+            'vendor/ve_ii',
         ], 'testbranch');
 
         $this->gitAssertNoFilesCommitted($this->dst, [
-            '1.txt', 'ignored_ignored.txt', 'com_ignored.txt', 'uncom_ignored.txt', 'uncom_del.txt',
-            'dir_com_ignored/sub_com_ignored.txt', 'dir_ignored_ignored/sub_ignored_ignored.txt', 'dir_uncom_ignored/sub_uncom_ignored.txt', 'dir_uncom_del/sub_uncom_del.txt',
-            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt', 'vendor_com with space com.txt',
+            'f1', 'ii', 'ci', 'ui', 'ud',
+            'd_ci/sub_ci', 'd_ii/sub_ii', 'd_ui/sub_ui', 'd_ud/sub_ud',
+            'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
         ], 'testbranch');
 
         $this->gitAssertFilesExist($this->dst, [
-            '2.txt', 'ignored_com.txt', 'com_com.txt', 'uncom_com.txt',
-            'dir_com_com/sub_com_com.txt', 'dir_ignored_com/sub_ignored_com.txt', 'dir_uncom_com/sub_uncom_com.txt',
-            'vendor/ve_ignored_ignored.txt',
+            'f2', 'ic', 'cc', 'uc',
+            'd_cc/sub_cc', 'd_ic/sub_ic', 'dir_uc/sub_uc',
+            'vendor/ve_ii',
         ], 'testbranch');
         $this->gitAssertFilesNotExist($this->dst, [
-            '1.txt', 'ignored_ignored.txt', 'com_ignored.txt', 'uncom_ignored.txt', 'uncom_del.txt',
-            'dir_com_ignored/sub_com_ignored.txt',
-            'dir_ignored_ignored/sub_ignored_ignored.txt', 'dir_uncom_ignored/sub_uncom_ignored.txt', 'dir_uncom_del/sub_uncom_del.txt',
-            'vendor_com_com.txt', 'dir_other/vendor/ve_com_com.txt', 'vendor_com with space com.txt'
+            'f1', 'ii', 'ci', 'ui', 'ud',
+            'd_ci/sub_ci',
+            'd_ii/sub_ii', 'd_ui/sub_ui', 'd_ud/sub_ud',
+            'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
         ], 'testbranch');
     }
 
