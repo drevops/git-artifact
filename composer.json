@@ -6,7 +6,7 @@
   "authors": [
     {
       "name": "Alex Skrypnyk",
-      "email": "alex.designworks@gmail.com"
+      "email": "alex@integratedexperts.com"
     }
   ],
   "require": {
@@ -16,13 +16,13 @@
   "require-dev": {
     "squizlabs/php_codesniffer": "2.*",
     "escapestudios/symfony2-coding-standard": "~2.0",
-    "phpunit/phpunit": "^6.3"
+    "phpunit/phpunit": "^6.3",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0"
   },
   "scripts": {
-    "cs": "./vendor/bin/phpcs --runtime-set installed_paths $(pwd)/vendor/escapestudios/symfony2-coding-standard --colors -s -p",
-    "cbf": "./vendor/bin/phpcbf --runtime-set installed_paths $(pwd)/vendor/escapestudios/symfony2-coding-standard --colors",
+    "lint": "./vendor/bin/phpcs",
     "test": "./vendor/bin/phpunit --colors=always --fail-on-warning",
-    "cleanup": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;"
+    "clean": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;"
   },
   "autoload": {
     "psr-4": {

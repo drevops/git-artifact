@@ -4,6 +4,7 @@
 - `i` - ignored
 - `c` - committed
 - `u` - uncommitted
+- `d` - deleted
 - `d_` - directory
 - `sub_` - sub directory or file; used for testing wildcard name matching (i.e. `d_1/f1` vs `d_1/sub_f1`)
 
