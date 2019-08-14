@@ -133,7 +133,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->gitCommitAll($this->src, 'Custom third commit');
         $this->gitCreateFixtureFile($this->src, 'ui');
         $this->gitCreateFixtureFile($this->src, 'uc');
-        $this->gitAssertFilesCommitted($this->src, ['f1', 'f2', 'd/cc', 'd/ci']);
+        $this->gitAssertFilesCommitted($this->src, ['.gitignore', 'f1', 'f2', 'd/cc', 'd/ci']);
         $this->gitAssertNoFilesCommitted($this->src, ['ii', 'ic', 'ui', 'uc']);
 
         $this->gitCreateFixtureFile($this->src, 'mygitignore', ['f1', 'ii', 'ci', 'ui']);
@@ -141,7 +141,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertBuildSuccess('--gitignore='.$this->src.DIRECTORY_SEPARATOR.'mygitignore');
 
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], false);
-        $this->gitAssertFilesCommitted($this->dst, ['f2', 'ic', 'd/cc', 'uc'], 'testbranch');
+        $this->gitAssertFilesCommitted($this->dst, ['.gitignore', 'f2', 'ic', 'd/cc', 'uc'], 'testbranch');
         $this->gitAssertNoFilesCommitted($this->dst, ['f1', 'ii', 'd/ci', 'ui'], 'testbranch');
         $this->gitAssertFilesExist($this->dst, ['f2', 'ic', 'd/cc', 'uc'], 'testbranch');
         $this->gitAssertFilesNotExist($this->dst, ['f1', 'ii', 'd/ci', 'ui'], 'testbranch');
@@ -170,28 +170,31 @@ class ForcePushTest extends AbstractIntegrationTest
 
         $this->gitCommitAll($this->src, 'Custom third commit');
 
+        $this->gitAssertFilesCommitted($this->src, [
+            '.gitignore', 'f1', 'f2',
+            'cc', 'ci',
+            'd_cc/sub_cc', 'd_ci/sub_ci',
+            'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
+        ]);
+
+        $this->gitAssertNoFilesCommitted($this->src, [
+            'ii', 'ic', 'ui', 'uc', 'ud',
+            'd_ic/sub_ic', 'd_ii/sub_ii',
+            'vendor/ve_ii',
+        ]);
+
         $this->gitCreateFixtureFile($this->src, 'ui');
         $this->gitCreateFixtureFile($this->src, 'uc');
         $this->gitCreateFixtureFile($this->src, 'ud');
         $this->gitCreateFixtureFile($this->src, 'd_ui/sub_ui');
-        $this->gitCreateFixtureFile($this->src, 'dir_uc/sub_uc');
+        $this->gitCreateFixtureFile($this->src, 'd_uc/sub_uc');
         $this->gitCreateFixtureFile($this->src, 'd_ud/sub_ud');
 
-        $this->gitAssertFilesCommitted($this->src, [
-            'f1', 'f2', 'cc', 'ci',
-            'd_cc/sub_cc', 'd_ci/sub_ci',
-            'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
-        ]);
-        $this->gitAssertNoFilesCommitted($this->src, [
-            'ii', 'ic', 'ui', 'uc', 'ud',
-            'd_ic/sub_ic', 'd_ii/sub_ii', 'd_ui/sub_ui', 'dir_uc/sub_uc', 'd_ud/sub_ud',
-            'vendor/ve_ii',
-        ]);
-
-        // Now, add non-ignored files (whitelisting).
+        // Now, create a custom .gitignore and add non-ignored files
+        // (whitelisting).
         $this->gitCreateFixtureFile($this->src, 'mygitignore', [
             '/*', '!f2', '!ic', '!cc', '!uc',
-            '!d_cc', '!d_ic', '!dir_uc',
+            '!d_cc', '!d_ic', '!d_uc',
             '!vendor',
         ]);
 
@@ -201,8 +204,8 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], false);
 
         $this->gitAssertFilesCommitted($this->dst, [
-            'f2', 'cc', 'ic', 'uc',
-            'd_cc/sub_cc', 'd_ic/sub_ic', 'dir_uc/sub_uc',
+            'f2', 'ic', 'cc', 'uc',
+            'd_cc/sub_cc', 'd_ic/sub_ic', 'd_uc/sub_uc',
             'vendor/ve_ii',
         ], 'testbranch');
 
@@ -214,7 +217,7 @@ class ForcePushTest extends AbstractIntegrationTest
 
         $this->gitAssertFilesExist($this->dst, [
             'f2', 'ic', 'cc', 'uc',
-            'd_cc/sub_cc', 'd_ic/sub_ic', 'dir_uc/sub_uc',
+            'd_cc/sub_cc', 'd_ic/sub_ic', 'd_uc/sub_uc',
             'vendor/ve_ii',
         ], 'testbranch');
         $this->gitAssertFilesNotExist($this->dst, [

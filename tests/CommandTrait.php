@@ -373,11 +373,7 @@ trait CommandTrait
         }
         $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
         $committedFiles = $this->gitGetCommittedFiles($path);
-        sort($expectedFiles);
-        sort($committedFiles);
-        $intersectedFiles = array_intersect($committedFiles, $expectedFiles);
-        sort($intersectedFiles);
-        $this->assertEquals(array_values($intersectedFiles), array_values($expectedFiles), sprintf("Committed: %s\nExpected:  %s\nIntersected: %s", implode(', ', $committedFiles), implode(', ', $expectedFiles), implode(', ', $intersectedFiles)));
+        $this->assertArraySimilar($expectedFiles, $committedFiles);
     }
 
     protected function gitAssertNoFilesCommitted($path, $expectedFiles, $branch = null)
@@ -387,10 +383,8 @@ trait CommandTrait
         }
         $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
         $committedFiles = $this->gitGetCommittedFiles($path);
-        sort($expectedFiles);
-        sort($committedFiles);
         $intersectedFiles = array_intersect($committedFiles, $expectedFiles);
-        $this->assertEquals(count($intersectedFiles), 0, sprintf("Committed: %s\nExpected:  %s\nIntersected: %s", implode(', ', $committedFiles), implode(', ', $expectedFiles), implode(', ', $intersectedFiles)));
+        $this->assertArraySimilar([], $intersectedFiles);
     }
 
     protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [], $assertFiles = true)
@@ -488,7 +482,7 @@ trait CommandTrait
     protected function runCliCommand($command)
     {
         if ($this->printDebug) {
-            print '==> '.$command.PHP_EOL;
+            print '++ '.$command.PHP_EOL;
         }
         exec($command.' 2>&1', $output, $code);
 
@@ -496,9 +490,31 @@ trait CommandTrait
             throw new Error(sprintf('Command "%s" exited with non-zero status', $command), $code, null, null, new Error(implode(PHP_EOL, $output), $code, null, null));
         }
         if ($this->printDebug) {
-            print '====> '.implode($output, PHP_EOL);
+            print '++++ '.implode($output, PHP_EOL).PHP_EOL;
         }
 
         return $output;
+    }
+
+    /**
+     * Asserts that two associative arrays are similar.
+     *
+     * Both arrays must have the same indexes with identical values
+     * without respect to key ordering
+     *
+     * @param array $expected
+     * @param array $array
+     */
+    protected function assertArraySimilar(array $expected, array $array)
+    {
+        $this->assertEquals([], array_diff($array, $expected));
+        $this->assertEquals([], array_diff_key($array, $expected));
+        foreach ($expected as $key => $value) {
+            if (is_array($value)) {
+                $this->assertArraySimilar($value, $array[$key]);
+            } else {
+                $this->assertContains($value, $array);
+            }
+        }
     }
 }

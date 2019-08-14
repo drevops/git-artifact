@@ -18,7 +18,7 @@ abstract class AbstractTest extends TestCase
     use CommandTrait {
         CommandTrait::setUp as protected commandTraitSetUp;
         CommandTrait::tearDown as protected commandTraitTearDown;
-        CommandTrait::runRoboCommand as public runRoboCommand;
+        CommandTrait::runRoboCommand as public commandRunRoboCommand;
     }
 
     /**

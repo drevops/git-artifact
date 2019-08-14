@@ -210,15 +210,8 @@ trait ArtefactTrait
 
         if (!empty($this->gitignoreFile)) {
             $this->replaceGitignore($this->gitignoreFile, $this->src);
-
-            // Use slow git update-index only when local exclude exists.
-            if ($this->localExcludeExists($this->src) && !$this->localExcludeEmpty($this->src)) {
-                // @todo: Refactor the local exclusion mechanism to avoid
-                // adding file to index just to have them remove later.
-                $this->disableLocalExclude($this->src);
-                $this->gitUpdateIndex($this->src);
-            }
-
+            $this->disableLocalExclude($this->src);
+            $this->gitUpdateIndex($this->src);
             $this->removeExcludedFiles($this->src);
         }
 
@@ -625,7 +618,7 @@ trait ArtefactTrait
         foreach ($files as $file) {
             $this->gitCommandRun(
                 $this->src,
-                sprintf('update-index --add "%s"', $file)
+                sprintf('update-index --info-only --add "%s"', $file)
             );
         }
     }

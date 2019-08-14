@@ -144,7 +144,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
             $command .= ' --now='.$this->now;
         }
 
-        return $this->runRoboCommand($command, $expectFail);
+        return $this->commandRunRoboCommand($command, $expectFail);
     }
 
     /**
