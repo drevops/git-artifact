@@ -3,7 +3,6 @@
 .gitattributes            export-ignore
 .gitignore                export-ignore
 tests                     export-ignore
-circle.yml                export-ignore
-phpcs.xml.dist            export-ignore
-phpunit.xml.dist          export-ignore
-xdebug-cli.sh             export-ignore
+.circle                   export-ignore
+phpcs.xml                 export-ignore
+phpunit.xml               export-ignore

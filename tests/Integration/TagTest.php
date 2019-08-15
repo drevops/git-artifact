@@ -1,11 +1,13 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace IntegratedExperts\Robo\Tests\Integration;
 
 /**
  * Class TagTest.
+ *
+ * @group integration
  */
-class TagTest extends AbstractTest
+class TagTest extends AbstractIntegrationTest
 {
 
     /**

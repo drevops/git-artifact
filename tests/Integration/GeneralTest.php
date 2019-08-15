@@ -1,11 +1,13 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace IntegratedExperts\Robo\Tests\Integration;
 
 /**
  * Class GeneralTest.
+ *
+ * @group integration
  */
-class GeneralTest extends AbstractTest
+class GeneralTest extends AbstractIntegrationTest
 {
 
     public function testPresence()
@@ -43,7 +45,7 @@ class GeneralTest extends AbstractTest
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 
-        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
     public function testShowChanges()
@@ -54,7 +56,7 @@ class GeneralTest extends AbstractTest
         $this->assertContains('Added changes:', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
-        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
     public function testNoCleanup()
@@ -65,7 +67,7 @@ class GeneralTest extends AbstractTest
         $this->assertGitCurrentBranch($this->src, $this->artefactBranch);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
-        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
     public function testReport()
@@ -92,9 +94,10 @@ class GeneralTest extends AbstractTest
         $output = $this->runBuild('--debug');
 
         $this->assertContains('Debug messages enabled', $output);
+        $this->assertContains('[Exec]', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
-        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
     public function testDebugDisabled()
@@ -103,8 +106,9 @@ class GeneralTest extends AbstractTest
         $output = $this->runBuild();
 
         $this->assertNotContains('Debug messages enabled', $output);
+        $this->assertNotContains('[Exec]', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
-        $this->gitAssertFilesNotExist($this->dst, '1.txt', $this->currentBranch);
+        $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 }

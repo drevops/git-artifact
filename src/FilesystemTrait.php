@@ -32,13 +32,6 @@ trait FilesystemTrait
     protected $fsFileSystem;
 
     /**
-     * Finder to perform command lookup.
-     *
-     * @var \Symfony\Component\Finder\Finder
-     */
-    protected $fsFinder;
-
-    /**
      * Stack of original current working directories.
      *
      * This is used throughout commands to track working directories.
@@ -55,7 +48,6 @@ trait FilesystemTrait
     public function __construct()
     {
         $this->fsFileSystem = new Filesystem();
-        $this->fsFinder = new Finder();
     }
 
     /**
