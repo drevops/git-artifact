@@ -28,9 +28,14 @@ Push packaged artefact to the new branch on each deployment, preserving history 
 ![diagram of branch mode](https://user-images.githubusercontent.com/378794/33816666-a87b3910-de8e-11e7-82cd-51e007ece063.png)
 
 
-## Usage
+## Installation
+```
+composer require --dev -n --ansi --prefer-source --ignore-platform-reqs integratedexperts/robo-git-artefact
+```
 
-In your `RoboFile.php`:
+## Usage
+Use provided [`RoboFile.php`](RoboFile.php) or crearte a custom `RoboFile.php` in your repository with the following content:
+
 ```php
 <?php
 use IntegratedExperts\Robo\ArtefactTrait;
@@ -53,7 +58,45 @@ class RoboFile extends \Robo\Tasks
 ```
 
 ### Run
-`robo artefact git@myserver.com/repository.git` - this will create an artefact from current directory and will send it to the specified remote repository into the same branch as a current one.
+```
+vendor/bin/robo artefact git@myserver.com/repository.git
+```
+This will create an artefact from current directory and will send it to the specified remote repository into the same branch as a current one.
+
+### Run in CI
+
+Fill-in these variables trough UI or in deployment script.
+```
+# Remote repository to push artefact to.
+DEPLOY_REMOTE="${DEPLOY_REMOTE:-}"
+# Remote repository branch. Can be a specific branch or a token.
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-[branch]}"
+# Source of the code to be used for artefact building.
+DEPLOY_SRC="${DEPLOY_SRC:-}"
+# The root directory where the deployment script should run from. Defaults to
+# the current directory.
+DEPLOY_ROOT="${DEPLOY_ROOT:-$(pwd)}"
+# Deployment report file name.
+DEPLOY_REPORT="${DEPLOY_REPORT:-${DEPLOY_ROOT}/deployment_report.txt}"
+# Email address of the user who will be committing to a remote repository.
+DEPLOY_USER_NAME="${DEPLOY_USER_NAME:-"Deployer Robot"}"
+# Name of the user who will be committing to a remote repository.
+DEPLOY_USER_EMAIL="${DEPLOY_USER_EMAIL:-deployer@example.com}"
+```
+
+Call from CI configuration or deployment script:
+```
+"${HOME}/.composer/vendor/bin/robo" --ansi \
+  --load-from "${HOME}/.composer/vendor/integratedexperts/robo-git-artefact/RoboFile.php" artefact "${DEPLOY_REMOTE}" \
+  --root="${DEPLOY_ROOT}" \
+  --src="${DEPLOY_SRC}" \
+  --branch="${DEPLOY_BRANCH}" \
+  --gitignore="${DEPLOY_SRC}"/.gitignore.deployment \
+  --report="${DEPLOY_REPORT}" \
+  --push
+```  
+
+See extended and fully-configured example in Drupal-Dev project https://github.com/integratedexperts/drupal-dev/blob/8.x/scripts/deploy.sh
 
 ## Options
 ```
