@@ -94,6 +94,7 @@ class GeneralTest extends AbstractIntegrationTest
         $output = $this->runBuild('--debug');
 
         $this->assertContains('Debug messages enabled', $output);
+        $this->assertContains('[Exec]', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
@@ -105,6 +106,7 @@ class GeneralTest extends AbstractIntegrationTest
         $output = $this->runBuild();
 
         $this->assertNotContains('Debug messages enabled', $output);
+        $this->assertNotContains('[Exec]', $output);
 
         $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);

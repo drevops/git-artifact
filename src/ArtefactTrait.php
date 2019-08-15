@@ -2,7 +2,9 @@
 
 namespace IntegratedExperts\Robo;
 
+use Robo\Exception\AbortTasksException;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Class Artefact.
@@ -171,12 +173,14 @@ trait ArtefactTrait
         'src' => InputOption::VALUE_REQUIRED,
     ])
     {
-        $this->checkRequirements();
-        $this->resolveOptions($opts);
-
-        $this->printDebug('Debug messages enabled');
-
         try {
+            $error = null;
+
+            $this->checkRequirements();
+            $this->resolveOptions($opts);
+
+            $this->printDebug('Debug messages enabled');
+
             $this->gitSetDst($remote);
 
             $this->showInfo();
@@ -188,16 +192,24 @@ trait ArtefactTrait
                 $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
             }
             $this->result = true;
-        } finally {
-            if ($this->report) {
-                $this->dumpReport();
-            }
+        } catch (\Exception $exception) {
+            // Capture message and allow to rollback.
+            $error = $exception->getMessage();
+        }
 
-            if ($this->needCleanup) {
-                $this->cleanup();
-            }
+        if ($this->report) {
+            $this->dumpReport();
+        }
 
-            $this->say('Deployment finished');
+        if ($this->needCleanup) {
+            $this->cleanup();
+        }
+
+        if ($this->result) {
+            $this->say('Deployment finished successfully.');
+        } else {
+            $this->say('Deployment failed.');
+            throw new AbortTasksException($error);
         }
     }
 
@@ -208,14 +220,18 @@ trait ArtefactTrait
     {
         $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
+        $this->removeSubRepos($this->src);
+        $this->disableLocalExclude($this->src);
+
         if (!empty($this->gitignoreFile)) {
             $this->replaceGitignore($this->gitignoreFile, $this->src);
-            $this->disableLocalExclude($this->src);
-            $this->gitUpdateIndex($this->src);
-            $this->removeExcludedFiles($this->src);
+            $this->gitAddAll($this->src);
+            $this->removeIgnoredFiles($this->src);
+        } else {
+            $this->gitAddAll($this->src);
         }
 
-        $this->removeSubRepos($this->src);
+        $this->removeOtherFiles($this->src);
 
         $result = $this->gitCommit($this->src, $this->message);
 
@@ -608,35 +624,55 @@ trait ArtefactTrait
      * @param $location
      *   Path to repository.
      */
+    protected function gitAddAll($location)
+    {
+        $result = $this->gitCommandRun(
+            $location,
+            'add -A'
+        );
+
+        $this->printDebug(sprintf("Added all files:\n%s", $result->getMessage()));
+    }
+
+    /**
+     * Update index for all files.
+     *
+     * @param $location
+     *   Path to repository.
+     */
     protected function gitUpdateIndex($location)
     {
-        $files = $this->fsFinder
+        $finder = new Finder();
+        $files = $finder
             ->in($location)
             ->ignoreDotFiles(false)
             ->files();
 
         foreach ($files as $file) {
             $this->gitCommandRun(
-                $this->src,
+                $location,
                 sprintf('update-index --info-only --add "%s"', $file)
             );
+            $this->printDebug(sprintf('Updated index for file "%s"', $file));
         }
     }
 
     /**
-     * Remove excluded files.
+     * Remove ignored files.
      *
      * @param string $location
      *   Path to repository.
-     * @param string $gitignore
+     * @param string $gitignorePath
      *   Gitignore file name.
      *
      * @throws \Exception
      *   If removal command finished with an error.
      */
-    protected function removeExcludedFiles($location, $gitignore = '.gitignore')
+    protected function removeIgnoredFiles($location, $gitignorePath = null)
     {
-        $gitignoreContent = file_get_contents($location.DIRECTORY_SEPARATOR.$gitignore);
+        $gitignorePath = $gitignorePath ? $gitignorePath : $location.DIRECTORY_SEPARATOR.'.gitignore';
+
+        $gitignoreContent = file_get_contents($gitignorePath);
         if (!$gitignoreContent) {
             $this->printDebug('Unable to load '.$gitignoreContent);
         } else {
@@ -645,12 +681,37 @@ trait ArtefactTrait
             $this->printDebug('-----.gitignore---------');
         }
 
-        $command = sprintf('ls-files --directory -i --exclude-from=%s %s', $location.DIRECTORY_SEPARATOR.$gitignore, $location);
-        $result = $this->gitCommandRun($location, $command, 'Unable to remove excluded files');
-        $excludedFiles = array_filter(preg_split('/\R/', $result->getMessage()));
-        foreach ($excludedFiles as $excludedFile) {
-            $fileName = $location.DIRECTORY_SEPARATOR.$excludedFile;
+        $command = sprintf('ls-files --directory -i --exclude-from=%s %s', $gitignorePath, $location);
+        $result = $this->gitCommandRun($location, $command, 'Unable to remove ignored files');
+        $files = array_filter(preg_split('/\R/', $result->getMessage()));
+        foreach ($files as $file) {
+            $fileName = $location.DIRECTORY_SEPARATOR.$file;
             $this->printDebug('Removing excluded file %s', $fileName);
+            if ($this->fsFileSystem->exists($fileName)) {
+                $this->fsFileSystem->remove($fileName);
+            }
+        }
+    }
+
+    /**
+     * Remove 'other' files.
+     *
+     * 'Other' files are files that are neither staged nor tracked in git.
+     *
+     * @param string $location
+     *   Path to repository.
+     *
+     * @throws \Exception
+     *   If removal command finished with an error.
+     */
+    protected function removeOtherFiles($location)
+    {
+        $command = sprintf('ls-files --others --exclude-standard');
+        $result = $this->gitCommandRun($location, $command, 'Unable to remove other files');
+        $files = array_filter(preg_split('/\R/', $result->getMessage()));
+        foreach ($files as $file) {
+            $fileName = $location.DIRECTORY_SEPARATOR.$file;
+            $this->printDebug('Removing other file %s', $fileName);
             $this->fsFileSystem->remove($fileName);
         }
     }
@@ -663,15 +724,21 @@ trait ArtefactTrait
      */
     protected function removeSubRepos($path)
     {
-        $dirs = $this->fsFinder
-            ->in($path)
-            ->name('/\.git$/')
+        $finder = new Finder();
+        $dirs = $finder
+            ->directories()
+            ->name('.git')
             ->ignoreDotFiles(false)
             ->ignoreVCS(false)
-            ->notPath('vendor')
-            ->depth('>1');
+            ->depth('>0')
+            ->in($path);
 
-        $this->fsFileSystem->remove($dirs);
+        $dirs = iterator_to_array($dirs->directories());
+
+        foreach ($dirs as $dir) {
+            $this->fsFileSystem->remove($dir);
+            $this->printDebug('Removing sub-repository "%s"', (string) $dir);
+        }
     }
 
     /**

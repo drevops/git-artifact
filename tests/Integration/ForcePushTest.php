@@ -52,6 +52,48 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
+    public function testSubRepos()
+    {
+        $this->gitCreateFixtureCommits(2);
+
+        $this->gitCreateFixtureFile($this->src, 'c');
+
+        $this->gitInitRepo($this->src.DIRECTORY_SEPARATOR.'r1/');
+        $this->gitCreateFixtureFile($this->src, 'r1/c');
+
+        $this->gitInitRepo($this->src.DIRECTORY_SEPARATOR.'r1/');
+        $this->gitCreateFixtureFile($this->src, 'r1/c');
+
+        $this->gitInitRepo($this->src.DIRECTORY_SEPARATOR.'r2/r21');
+        $this->gitCreateFixtureFile($this->src, 'r2/r21/c');
+
+        $this->gitInitRepo($this->src.DIRECTORY_SEPARATOR.'r3/r31/r311');
+        $this->gitCreateFixtureFile($this->src, 'r3/r31/r311/c');
+
+        $this->gitCommitAll($this->src, 'Commit number 3');
+
+        $this->gitAssertFilesExist($this->src, ['r1/c']);
+        $this->gitAssertFilesNotExist($this->src, ['r1/.git/index']);
+        $this->gitAssertFilesNotExist($this->src, ['r2/r21.git/index']);
+        $this->gitAssertFilesNotExist($this->src, ['r3/r31/r311/.git/index']);
+
+        $output = $this->assertBuildSuccess('--debug');
+        $this->assertContains(sprintf('Removing sub-repository "%s"', $this->src.DIRECTORY_SEPARATOR.'r1/.git'), $output);
+        $this->assertContains(sprintf('Removing sub-repository "%s"', $this->src.DIRECTORY_SEPARATOR.'r2/r21/.git'), $output);
+        $this->assertContains(sprintf('Removing sub-repository "%s"', $this->src.DIRECTORY_SEPARATOR.'r3/r31/r311/.git'), $output);
+        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Commit number 3', 'Deployment commit']);
+
+        $this->gitAssertFilesExist($this->dst, ['r1/c']);
+        $this->gitAssertFilesExist($this->dst, ['r2/r21/c']);
+        $this->gitAssertFilesExist($this->dst, ['r3/r31/r311/c']);
+        $this->gitAssertFilesNotExist($this->dst, ['r1/.git/index']);
+        $this->gitAssertFilesNotExist($this->dst, ['r1/.git']);
+        $this->gitAssertFilesNotExist($this->dst, ['r2/r21/.git/index']);
+        $this->gitAssertFilesNotExist($this->dst, ['r2/r21/.git']);
+        $this->gitAssertFilesNotExist($this->dst, ['r3/r31/311/.git/index']);
+        $this->gitAssertFilesNotExist($this->dst, ['r3/r31/311/.git']);
+    }
+
     public function testCleanupAfterSuccess()
     {
         $this->gitCreateFixtureCommits(2);
@@ -67,8 +109,9 @@ class ForcePushTest extends AbstractIntegrationTest
     {
         $this->gitCreateFixtureCommits(1);
 
-        $this->assertBuildFailure('--branch=*invalid');
+        $output = $this->assertBuildFailure('--branch=*invalid');
 
+        $this->assertContains('Incorrect value "*invalid" specified for git remote branch', $output);
         $this->assertGitCurrentBranch($this->src, $this->currentBranch);
         $this->assertGitNoRemote($this->src, $this->remote);
     }

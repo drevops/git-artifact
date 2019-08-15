@@ -80,7 +80,10 @@ abstract class AbstractIntegrationTest extends AbstractTest
     protected function assertBuildSuccess($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
+        $this->assertNotContains('[error]', $output);
         $this->assertContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+        $this->assertContains('Deployment finished successfully.', $output);
+        $this->assertNotContains('Deployment failed.', $output);
 
         return $output;
     }
@@ -101,7 +104,10 @@ abstract class AbstractIntegrationTest extends AbstractTest
     protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
+        $this->assertContains('[error]', $output);
         $this->assertNotContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+        $this->assertNotContains('Deployment finished successfully.', $output);
+        $this->assertContains('Deployment failed.', $output);
 
         return $output;
     }
@@ -122,6 +128,12 @@ abstract class AbstractIntegrationTest extends AbstractTest
         }
 
         $output = $this->runRoboCommandTimestamped(sprintf('artefact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
+
+        if ($this->isDebug()) {
+            print str_pad('', 80, '+').PHP_EOL;
+            print implode(PHP_EOL, $output).PHP_EOL;
+            print str_pad('', 80, '+').PHP_EOL;
+        }
 
         return implode(PHP_EOL, $output);
     }
