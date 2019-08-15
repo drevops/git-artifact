@@ -7,11 +7,11 @@ Robo task to push git artefact to remote repository
 [![License](https://poser.pugx.org/integratedexperts/robo-git-artefact/license)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 
 ## Why?
-Some hosting providers, like Acquia, have limitation on the languages or frameworks required to build applications (for example, running `composer install` is not available). This means that a website has to be developed in a different (source) repository, built as artefact locally or in CI, and sent to the hosting provider's version control system (destination repository).
+Some hosting providers, like Acquia, have limitation on the languages or frameworks required to build applications (for example, running `composer install` is not possible due to read-only file system). This means that a website has to be developed in a different (source) repository, built as artefact locally or in CI, and sent to the hosting provider's version control system (destination repository).
 
-This package allows to do so in a transaparent way: files that needs to be pushed to the destination repository are controlled by a `.gitignore.deployment` file; any files that are ignored by this file will not be sent to the destination repository.
+This package allows to do so in a transaparent way: files that needs to be presqent in the destination repository are controlled by a `.gitignore.deployment` file; any files that are ignored by this file will not be present in the destination repository.
 
-Since destination repository requires a commit with artefact files, there is a support for 2 modes: "force-push" and "branch".
+Since destination repository requires a commit to add changes introduced by the artefact files (CSS, JS, etc.), there are 2 modes to make this commit: "force-push" and "branch".
 
 See example of deployed artefact in [Artefact branches](https://github.com/integratedexperts/robo-git-artefact-destination/branches).
 
