@@ -6,14 +6,14 @@ Robo task to push git artefact to remote repository
 [![Total Downloads](https://poser.pugx.org/integratedexperts/robo-git-artefact/downloads)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 [![License](https://poser.pugx.org/integratedexperts/robo-git-artefact/license)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
 
-See deployed artefact - [Artefact branches](https://github.com/integratedexperts/robo-git-artefact-destination/branches)
-
 ## Why?
-Some hosting providers, like Acquia, have limitation on the languages or frameworks required to build applications (for example, `composer install` is not available). This means that a website has to be developed in a different (source) repository, built as artefact locally or in CI, and sent to the hosting provider's version control system (destination repository).
+Some hosting providers, like Acquia, have limitation on the languages or frameworks required to build applications (for example, running `composer install` is not available). This means that a website has to be developed in a different (source) repository, built as artefact locally or in CI, and sent to the hosting provider's version control system (destination repository).
 
 This package allows to do so in a transaparent way: files that needs to be pushed to the destination repository are controlled by a `.gitignore.deployment` file; any files that are ignored by this file will not be sent to the destination repository.
 
 Since destination repository requires a commit with artefact files, there is a support for 2 modes: "force-push" and "branch".
+
+See example of deployed artefact in [Artefact branches](https://github.com/integratedexperts/robo-git-artefact-destination/branches).
 
 ## Modes
 ### Force-push mode (default)
@@ -165,7 +165,6 @@ robo artefact git@myserver.com/repository.git --mode=branch --branch=release/[ta
 In this example, if the latest commit was tagged with tag `1.2.0`, the artefact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`. 
 
 ## Contributing
-
 1. Fork this repo.
 2. Check it out locally and create a feature branch.
 3. `composer install` to install all required dependencies.
