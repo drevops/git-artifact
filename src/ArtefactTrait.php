@@ -449,7 +449,7 @@ trait ArtefactTrait
         // capture the source of detachment, if exist.
         if ($branch == 'HEAD') {
             $branch = null;
-            $result = $this->gitCommandRun($location, 'branch');
+            $result = $this->gitCommandRun($location, 'branch', true);
             $branchList = array_filter(preg_split('/\R/', $result->getMessage()));
 
             foreach ($branchList as $branch) {
@@ -690,7 +690,7 @@ trait ArtefactTrait
         }
 
         $command = sprintf('ls-files --directory -i --exclude-from=%s %s', $gitignorePath, $location);
-        $result = $this->gitCommandRun($location, $command, 'Unable to remove ignored files');
+        $result = $this->gitCommandRun($location, $command, 'Unable to remove ignored files', true);
         $files = array_filter(preg_split('/\R/', $result->getMessage()));
         foreach ($files as $file) {
             $fileName = $location.DIRECTORY_SEPARATOR.$file;
@@ -715,7 +715,7 @@ trait ArtefactTrait
     protected function removeOtherFiles($location)
     {
         $command = sprintf('ls-files --others --exclude-standard');
-        $result = $this->gitCommandRun($location, $command, 'Unable to remove other files');
+        $result = $this->gitCommandRun($location, $command, 'Unable to remove other files', true);
         $files = array_filter(preg_split('/\R/', $result->getMessage()));
         foreach ($files as $file) {
             $fileName = $location.DIRECTORY_SEPARATOR.$file;
