@@ -298,6 +298,7 @@ trait GitTrait
             ->arg('--no-pager');
 
         if ($this->debug) {
+            $this->env('GIT_SSH_COMMAND', 'ssh -vvv');
             $git->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_NORMAL);
         } else {
             $git->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG);
