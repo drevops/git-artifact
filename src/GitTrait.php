@@ -91,7 +91,8 @@ trait GitTrait
         $result = $this->gitCommandRun(
             $location,
             sprintf('remote'),
-            'Unable to list remotes'
+            'Unable to list remotes',
+            true
         );
 
         $lines = preg_split('/\R/', $result->getMessage());
@@ -222,7 +223,8 @@ trait GitTrait
         $result = $this->gitCommandRun(
             $location,
             'rev-parse --abbrev-ref HEAD',
-            'Unable to get current repository branch'
+            'Unable to get current repository branch',
+            true
         );
 
         return trim($result->getMessage());
@@ -244,7 +246,8 @@ trait GitTrait
         $result = $this->gitCommandRun(
             $location,
             'tag -l --points-at HEAD',
-            'Unable to retrieve tags'
+            'Unable to retrieve tags',
+            true
         );
 
         return array_filter(preg_split('/\R/', $result->getMessage()));
@@ -263,14 +266,17 @@ trait GitTrait
      *   Command to run.
      * @param null   $errorMessage
      *   Optional error message.
+     * @param bool   $noDebug
+     *   Flag to enforce no-debug mode. Used by commands that use output for
+     *   values.
      *
      * @return \Robo\Result
      *   Result object.
      * @throws \Exception If command did not finish successfully.
      */
-    protected function gitCommandRun($location, $command, $errorMessage = null)
+    protected function gitCommandRun($location, $command, $errorMessage = null, $noDebug = false)
     {
-        $git = $this->gitCommand($location);
+        $git = $this->gitCommand($location, $noDebug);
         $git->rawArg($command);
         $result = $git->run();
 
@@ -287,11 +293,14 @@ trait GitTrait
      *
      * @param string $location
      *   Optional repository location.
+     * @param bool   $noDebug
+     *   Flag to enforce no-debug mode. Used by commands that use output for
+     *   values.
      *
      * @return \Robo\Task\Base\Exec
-     *   Exect task.
+     *   Exec task.
      */
-    protected function gitCommand($location = null)
+    protected function gitCommand($location = null, $noDebug = false)
     {
         $git = $this->taskExec('git')
             ->printOutput(false)
@@ -299,7 +308,9 @@ trait GitTrait
 
         if ($this->debug) {
             $git->env('GIT_SSH_COMMAND', 'ssh -vvv');
-            $git->printOutput(true);
+            if (!$noDebug) {
+                $git->printOutput(true);
+            }
             $git->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_NORMAL);
         } else {
             $git->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG);
