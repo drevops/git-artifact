@@ -209,7 +209,7 @@ trait FilesystemTrait
         // Attempt to detect if path is relative in which case, add cwd.
         if (strpos($path, ':') === false && $unipath && !$unc) {
             $path = getcwd().DIRECTORY_SEPARATOR.$path;
-            if ($path{0} == '/') {
+            if ($path[0] == '/') {
                 $unipath = false;
             }
         }
