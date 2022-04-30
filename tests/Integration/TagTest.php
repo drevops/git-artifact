@@ -13,7 +13,7 @@ class TagTest extends AbstractIntegrationTest
     /**
      * {@inheritdoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->mode = 'force-push';
         parent::setUp();
@@ -27,8 +27,8 @@ class TagTest extends AbstractIntegrationTest
         $srcBranches = $this->runGitCommand('branch');
 
         $output = $this->assertBuildSuccess();
-        $this->assertContains('Mode:                  force-push', $output);
-        $this->assertContains('Will push:             Yes', $output);
+        $this->assertStringContainsString('Mode:                  force-push', $output);
+        $this->assertStringContainsString('Will push:             Yes', $output);
 
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
         $this->assertEquals($srcBranches, $this->runGitCommand('branch'), 'Cleanup has correctly returned to the previous branch.');

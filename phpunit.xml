@@ -5,10 +5,4 @@
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
-    <!-- Filter for coverage reports. -->
-    <filter>
-        <blacklist>
-            <directory>./vendor</directory>
-        </blacklist>
-    </filter>
 </phpunit>

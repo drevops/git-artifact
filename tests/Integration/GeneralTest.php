@@ -13,20 +13,20 @@ class GeneralTest extends AbstractIntegrationTest
     public function testPresence()
     {
         $output = $this->runRoboCommand('list');
-        $this->assertContains('artefact', implode(PHP_EOL, $output));
+        $this->assertStringContainsString('artefact', implode(PHP_EOL, $output));
     }
 
     public function testHelp()
     {
         $output = $this->runRoboCommand('--help artefact');
-        $this->assertContains('artefact [options] [--] <remote>', implode(PHP_EOL, $output));
+        $this->assertStringContainsString('artefact [options] [--] <remote>', implode(PHP_EOL, $output));
     }
 
     public function testCompulsoryParameter()
     {
         $output = $this->runRoboCommand('artefact', true);
 
-        $this->assertContains('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
+        $this->assertStringContainsString('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
     }
 
     public function testInfo()
@@ -34,16 +34,16 @@ class GeneralTest extends AbstractIntegrationTest
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild();
 
-        $this->assertContains('Artefact information', $output);
-        $this->assertContains('Mode:                  force-push', $output);
-        $this->assertContains('Source repository:     '.$this->src, $output);
-        $this->assertContains('Remote repository:     '.$this->dst, $output);
-        $this->assertContains('Remote branch:         '.$this->currentBranch, $output);
-        $this->assertContains('Gitignore file:        No', $output);
-        $this->assertContains('Will push:             No', $output);
-        $this->assertNotContains('Added changes:', $output);
+        $this->assertStringContainsString('Artefact information', $output);
+        $this->assertStringContainsString('Mode:                  force-push', $output);
+        $this->assertStringContainsString('Source repository:     '.$this->src, $output);
+        $this->assertStringContainsString('Remote repository:     '.$this->dst, $output);
+        $this->assertStringContainsString('Remote branch:         '.$this->currentBranch, $output);
+        $this->assertStringContainsString('Gitignore file:        No', $output);
+        $this->assertStringContainsString('Will push:             No', $output);
+        $this->assertStringNotContainsString('Added changes:', $output);
 
-        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
 
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
@@ -53,9 +53,9 @@ class GeneralTest extends AbstractIntegrationTest
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild('--show-changes');
 
-        $this->assertContains('Added changes:', $output);
+        $this->assertStringContainsString('Added changes:', $output);
 
-        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
@@ -66,7 +66,7 @@ class GeneralTest extends AbstractIntegrationTest
 
         $this->assertGitCurrentBranch($this->src, $this->artefactBranch);
 
-        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
@@ -80,12 +80,12 @@ class GeneralTest extends AbstractIntegrationTest
         $this->assertFileExists($report);
         $output = file_get_contents($report);
 
-        $this->assertContains('Artefact report', $output);
-        $this->assertContains(sprintf('Source repository: %s', $this->src), $output);
-        $this->assertContains(sprintf('Remote repository: %s', $this->dst), $output);
-        $this->assertContains(sprintf('Remote branch:     %s', $this->currentBranch), $output);
-        $this->assertContains('Gitignore file:    No', $output);
-        $this->assertContains('Push result:       Success', $output);
+        $this->assertStringContainsString('Artefact report', $output);
+        $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), $output);
+        $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), $output);
+        $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $output);
+        $this->assertStringContainsString('Gitignore file:    No', $output);
+        $this->assertStringContainsString('Push result:       Success', $output);
     }
 
     public function testDebug()
@@ -93,10 +93,10 @@ class GeneralTest extends AbstractIntegrationTest
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild('--debug');
 
-        $this->assertContains('Debug messages enabled', $output);
-        $this->assertContains('[Exec]', $output);
+        $this->assertStringContainsString('Debug messages enabled', $output);
+        $this->assertStringContainsString('[Exec]', $output);
 
-        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
@@ -105,10 +105,10 @@ class GeneralTest extends AbstractIntegrationTest
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild();
 
-        $this->assertNotContains('Debug messages enabled', $output);
-        $this->assertNotContains('[Exec]', $output);
+        $this->assertStringNotContainsString('Debug messages enabled', $output);
+        $this->assertStringNotContainsString('[Exec]', $output);
 
-        $this->assertContains('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+        $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 }

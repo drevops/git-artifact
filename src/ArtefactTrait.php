@@ -11,8 +11,6 @@ use Symfony\Component\Finder\Finder;
  *
  * Robo task to package current repository with all dependencies and send it
  * to the remote repository.
- *
- * @package IntegratedExperts\Robo
  */
 trait ArtefactTrait
 {
@@ -171,7 +169,7 @@ trait ArtefactTrait
         'root' => InputOption::VALUE_REQUIRED,
         'show-changes' => false,
         'src' => InputOption::VALUE_REQUIRED,
-    ])
+    ]): void
     {
         try {
             $error = null;
@@ -216,7 +214,7 @@ trait ArtefactTrait
     /**
      * Prepare artefact to be then deployed.
      */
-    protected function prepareArtefact()
+    protected function prepareArtefact(): void
     {
         $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
 
@@ -243,7 +241,7 @@ trait ArtefactTrait
     /**
      * Cleanup after build.
      */
-    protected function cleanup()
+    protected function cleanup(): void
     {
         $this->restoreLocalExclude($this->src);
         $this->gitSwitchToBranch($this->src, $this->originalBranch);
@@ -254,14 +252,14 @@ trait ArtefactTrait
     /**
      * Perform actual push to remote.
      */
-    protected function doPush()
+    protected function doPush(): void
     {
         if (!$this->gitRemoteExists($this->src, $this->remoteName)) {
             $this->gitAddRemote($this->src, $this->remoteName, $this->dst);
         }
 
         try {
-            $result = $this->gitPush($this->src, $this->artefactBranch, $this->remoteName, $this->dstBranch, $this->mode == self::modeForcePush());
+            $result = $this->gitPush($this->src, $this->artefactBranch, $this->remoteName, $this->dstBranch, $this->mode === self::modeForcePush());
             $this->result = $result->wasSuccessful();
         } catch (\Exception $exception) {
             // Re-throw the message with additional context.
@@ -283,7 +281,7 @@ trait ArtefactTrait
      * @param array $options
      *   Array of CLI options.
      */
-    protected function resolveOptions(array $options)
+    protected function resolveOptions(array $options): void
     {
         $this->now = !empty($options['now']) ? $options['now'] : time();
 
@@ -321,7 +319,7 @@ trait ArtefactTrait
     /**
      * Show artefact build information.
      */
-    protected function showInfo()
+    protected function showInfo(): void
     {
         $this->writeln('----------------------------------------------------------------------');
         $this->writeln(' Artefact information');
@@ -339,7 +337,7 @@ trait ArtefactTrait
     /**
      * Dump artefact report to a file.
      */
-    protected function dumpReport()
+    protected function dumpReport(): void
     {
         $lines[] = '----------------------------------------------------------------------';
         $lines[] = ' Artefact report';
@@ -365,7 +363,7 @@ trait ArtefactTrait
      * @param array  $options
      *   Array of CLI options.
      */
-    protected function setMode($mode, array $options)
+    protected function setMode($mode, array $options): void
     {
         $this->say(sprintf('Running in "%s" mode', $mode));
 
@@ -382,7 +380,6 @@ trait ArtefactTrait
 
             case self::modeDiff():
                 throw new \RuntimeException('Diff mode is not yet implemented.');
-                break;
 
             default:
                 throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: %s'), implode(', ', [
@@ -401,7 +398,7 @@ trait ArtefactTrait
      * @return string
      *   Branch mode name.
      */
-    public static function modeBranch()
+    public static function modeBranch(): string
     {
         return 'branch';
     }
@@ -412,7 +409,7 @@ trait ArtefactTrait
      * @return string
      *   Force-push mode name.
      */
-    public static function modeForcePush()
+    public static function modeForcePush(): string
     {
         return 'force-push';
     }
@@ -423,7 +420,7 @@ trait ArtefactTrait
      * @return string
      *   Diff mode name.
      */
-    public static function modeDiff()
+    public static function modeDiff(): string
     {
         return 'diff';
     }
@@ -441,13 +438,13 @@ trait ArtefactTrait
      * @throws \Exception
      *   If neither branch nor detachment source is not found.
      */
-    protected function resolveOriginalBranch($location)
+    protected function resolveOriginalBranch($location): string
     {
         $branch = $this->gitGetCurrentBranch($location);
 
         // Repository could be in detached state. If this the case - we need to
         // capture the source of detachment, if exist.
-        if ($branch == 'HEAD') {
+        if ($branch === 'HEAD') {
             $branch = null;
             $result = $this->gitCommandRun($location, 'branch', true);
             $branchList = array_filter(preg_split('/\R/', $result->getMessage()));
@@ -472,7 +469,7 @@ trait ArtefactTrait
      * @param string $branch
      *   Branch in the remote repository.
      */
-    protected function setDstBranch($branch)
+    protected function setDstBranch($branch): void
     {
         $branch = $this->tokenProcess($branch);
 
@@ -488,7 +485,7 @@ trait ArtefactTrait
      * @param string $message
      *   Commit message to set on the deployment commit.
      */
-    protected function setMessage($message)
+    protected function setMessage($message): void
     {
         $message = $this->tokenProcess($message);
         $this->message = $message;
@@ -500,7 +497,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to the replacement .gitignore file.
      */
-    protected function setGitignoreFile($path)
+    protected function setGitignoreFile($path): void
     {
         $path = $this->fsGetAbsolutePath($path);
         $this->fsPathsExist($path);
@@ -511,7 +508,7 @@ trait ArtefactTrait
      * Check that there all requirements are met in order to to run this
      * command.
      */
-    protected function checkRequirements()
+    protected function checkRequirements(): void
     {
         // @todo: Refactor this into more generic implementation.
         $this->say('Checking requirements');
@@ -529,7 +526,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to repository.
      */
-    protected function replaceGitignore($filename, $path)
+    protected function replaceGitignore($filename, $path): void
     {
         $this->printDebug('Replacing .gitignore: %s with %s', $path.DIRECTORY_SEPARATOR.'.gitignore', $filename);
         $this->fsFileSystem->copy($filename, $path.DIRECTORY_SEPARATOR.'.gitignore', true);
@@ -538,8 +535,14 @@ trait ArtefactTrait
 
     /**
      * Helper to get a file name of the local exclude file.
+     *
+     * @param string $path
+     *   Path to directory.
+     *
+     * @return string
+     *   Exclude file name path.
      */
-    protected function getLocalExcludeFileName($path)
+    protected function getLocalExcludeFileName($path): string
     {
         return $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
     }
@@ -553,7 +556,7 @@ trait ArtefactTrait
      * @return bool
      *   True if exists, false otherwise.
      */
-    protected function localExcludeExists($path)
+    protected function localExcludeExists($path): bool
     {
         return $this->fsFileSystem->exists($this->getLocalExcludeFileName($path));
     }
@@ -574,7 +577,7 @@ trait ArtefactTrait
      *   - false, if $strict is false and file lines other then empty lines or
      *     comments.
      */
-    protected function localExcludeEmpty($path, $strict = false)
+    protected function localExcludeEmpty($path, $strict = false): bool
     {
         if (!$this->localExcludeExists($path)) {
             throw new \Exception(sprintf('File "%s" does not exist', $path));
@@ -600,7 +603,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to repository.
      */
-    protected function disableLocalExclude($path)
+    protected function disableLocalExclude($path): void
     {
         $filename = $this->getLocalExcludeFileName($path);
         $filenameDisabled = $filename.'.bak';
@@ -616,7 +619,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to repository.
      */
-    protected function restoreLocalExclude($path)
+    protected function restoreLocalExclude($path): void
     {
         $filename = $this->getLocalExcludeFileName($path);
         $filenameDisabled = $filename.'.bak';
@@ -632,7 +635,7 @@ trait ArtefactTrait
      * @param $location
      *   Path to repository.
      */
-    protected function gitAddAll($location)
+    protected function gitAddAll($location): void
     {
         $result = $this->gitCommandRun(
             $location,
@@ -648,7 +651,7 @@ trait ArtefactTrait
      * @param $location
      *   Path to repository.
      */
-    protected function gitUpdateIndex($location)
+    protected function gitUpdateIndex($location): void
     {
         $finder = new Finder();
         $files = $finder
@@ -676,7 +679,7 @@ trait ArtefactTrait
      * @throws \Exception
      *   If removal command finished with an error.
      */
-    protected function removeIgnoredFiles($location, $gitignorePath = null)
+    protected function removeIgnoredFiles($location, $gitignorePath = null): void
     {
         $gitignorePath = $gitignorePath ? $gitignorePath : $location.DIRECTORY_SEPARATOR.'.gitignore';
 
@@ -689,7 +692,7 @@ trait ArtefactTrait
             $this->printDebug('-----.gitignore---------');
         }
 
-        $command = sprintf('ls-files --directory -i --exclude-from=%s %s', $gitignorePath, $location);
+        $command = sprintf('ls-files --directory -i -c --exclude-from=%s %s', $gitignorePath, $location);
         $result = $this->gitCommandRun($location, $command, 'Unable to remove ignored files', true);
         $files = array_filter(preg_split('/\R/', $result->getMessage()));
         foreach ($files as $file) {
@@ -712,7 +715,7 @@ trait ArtefactTrait
      * @throws \Exception
      *   If removal command finished with an error.
      */
-    protected function removeOtherFiles($location)
+    protected function removeOtherFiles($location): void
     {
         $command = sprintf('ls-files --others --exclude-standard');
         $result = $this->gitCommandRun($location, $command, 'Unable to remove other files', true);
@@ -730,7 +733,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to current repository.
      */
-    protected function removeSubRepos($path)
+    protected function removeSubRepos($path): void
     {
         $finder = new Finder();
         $dirs = $finder
@@ -751,8 +754,11 @@ trait ArtefactTrait
 
     /**
      * Token callback to get current branch.
+     *
+     * @return string
+     *   Branch name.
      */
-    protected function getTokenBranch()
+    protected function getTokenBranch(): string
     {
         return $this->gitGetCurrentBranch($this->src);
     }
@@ -764,8 +770,9 @@ trait ArtefactTrait
      *   Token delimiter. Defaults to ', '.
      *
      * @return string
+     *   String of tags.
      */
-    protected function getTokenTags($delimiter)
+    protected function getTokenTags($delimiter): string
     {
         $delimiter = $delimiter ? $delimiter : '-';
         $tags = $this->gitGetTags($this->src);
@@ -779,9 +786,10 @@ trait ArtefactTrait
      * @param string $format
      *   Date format suitable for date() function.
      *
-     * @return false|string
+     * @return string
+     *   Date string.
      */
-    protected function getTokenTimestamp($format = 'Y-m-d_H-i-s')
+    protected function getTokenTimestamp($format = 'Y-m-d_H-i-s'): string
     {
         return date($format, $this->now);
     }
@@ -795,7 +803,7 @@ trait ArtefactTrait
      * @param string $text
      *   Message text.
      */
-    protected function sayOkay($text)
+    protected function sayOkay($text): void
     {
         $color = 'green';
         $char = $this->decorationCharacter('V', '✔');
@@ -805,11 +813,8 @@ trait ArtefactTrait
 
     /**
      * Print debug information.
-     *
-     * @param ...
-     *   Variable number of parameters suitable for sprintf().
      */
-    protected function printDebug()
+    protected function printDebug(): void
     {
         if (!$this->debug) {
             return;

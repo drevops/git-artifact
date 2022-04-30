@@ -1,41 +1,44 @@
 {
-  "name": "integratedexperts/robo-git-artefact",
-  "description": "Robo task to push git artefact to remote repository",
-  "type": "robo-tasks",
-  "license": "GPL-2.0-or-later",
-  "authors": [
-    {
-      "name": "Alex Skrypnyk",
-      "email": "alex@integratedexperts.com"
+    "name": "integratedexperts/robo-git-artefact",
+    "description": "Robo task to push git artefact to remote repository",
+    "type": "robo-tasks",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Alex Skrypnyk",
+            "email": "alex@integratedexperts.com"
+        }
+    ],
+    "require": {
+        "consolidation/robo": "^3"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.6",
+        "phpunit/phpunit": "^9.5",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+        "escapestudios/symfony2-coding-standard": "^3"
+    },
+    "scripts": {
+        "lint": "./vendor/bin/phpcs -s",
+        "test": "./vendor/bin/phpunit --colors=always --fail-on-warning",
+        "clean": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;",
+        "install-codestandards": [
+            "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+        ]
+    },
+    "autoload": {
+        "psr-4": {
+            "IntegratedExperts\\Robo\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "IntegratedExperts\\Robo\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
-  ],
-  "require": {
-    "consolidation/robo": "^3"
-  },
-  "require-dev": {
-    "squizlabs/php_codesniffer": "^3.6",
-    "escapestudios/symfony2-coding-standard": "^3",
-    "phpunit/phpunit": "^9.5",
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7"
-  },
-  "scripts": {
-    "lint": "./vendor/bin/phpcs",
-    "test": "./vendor/bin/phpunit --colors=always --fail-on-warning",
-    "clean": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;"
-  },
-  "autoload": {
-    "psr-4": {
-      "IntegratedExperts\\Robo\\": "src"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "IntegratedExperts\\Robo\\Tests\\": "tests"
-    }
-  },
-  "config": {
-    "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true
-    }
-  }
 }

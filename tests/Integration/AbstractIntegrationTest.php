@@ -6,8 +6,6 @@ use IntegratedExperts\Robo\Tests\AbstractTest;
 
 /**
  * Class AbstractTest
- *
- * @package IntegratedExperts\Robo\Tests
  */
 abstract class AbstractIntegrationTest extends AbstractTest
 {
@@ -54,7 +52,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -80,10 +78,10 @@ abstract class AbstractIntegrationTest extends AbstractTest
     protected function assertBuildSuccess($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
-        $this->assertNotContains('[error]', $output);
-        $this->assertContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
-        $this->assertContains('Deployment finished successfully.', $output);
-        $this->assertNotContains('Deployment failed.', $output);
+        $this->assertStringNotContainsString('[error]', $output);
+        $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+        $this->assertStringContainsString('Deployment finished successfully.', $output);
+        $this->assertStringNotContainsString('Deployment failed.', $output);
 
         return $output;
     }
@@ -104,10 +102,10 @@ abstract class AbstractIntegrationTest extends AbstractTest
     protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
-        $this->assertContains('[error]', $output);
-        $this->assertNotContains(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
-        $this->assertNotContains('Deployment finished successfully.', $output);
-        $this->assertContains('Deployment failed.', $output);
+        $this->assertStringContainsString('[error]', $output);
+        $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+        $this->assertStringNotContainsString('Deployment finished successfully.', $output);
+        $this->assertStringContainsString('Deployment failed.', $output);
 
         return $output;
     }
@@ -172,7 +170,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
     {
         $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
 
-        $this->assertContains($branch, $currentBranch, sprintf('Current branch is "%s"', $branch));
+        $this->assertStringContainsString($branch, implode('', $currentBranch), sprintf('Current branch is "%s"', $branch));
     }
 
     /**
@@ -188,6 +186,6 @@ abstract class AbstractIntegrationTest extends AbstractTest
     {
         $remotes = $this->runGitCommand('remote', $path);
 
-        $this->assertNotContains($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
+        $this->assertStringNotContainsString($remote, implode('', $remotes), sprintf('Remote "%s" is not present"', $remote));
     }
 }

@@ -4,8 +4,6 @@ namespace IntegratedExperts\Robo;
 
 /**
  * Trait TokenTrait.
- *
- * @package IntegratedExperts\Robo
  */
 trait TokenTrait
 {
@@ -20,7 +18,7 @@ trait TokenTrait
      *   String with replaced tokens if replacements are available or
      *   original string.
      */
-    protected function tokenProcess($string)
+    protected function tokenProcess($string): string
     {
         $string = preg_replace_callback('/(?:\[([^\]]+)\])/', function ($match) {
             if (count($match) > 1) {
@@ -50,8 +48,8 @@ trait TokenTrait
      * @return bool
      *   True if there is at least one token present, false otherwise.
      */
-    protected function hasToken($string)
+    protected function hasToken($string): bool
     {
-        return (bool) preg_match('/\[[^\]]+\]/', $string);
+        return (bool) preg_match('/\[[^]]+]/', $string);
     }
 }
