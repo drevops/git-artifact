@@ -11,18 +11,20 @@ aliases:
           DEPLOY_SSH_FINGERPRINT: *deploy_ssh_fingerprint
 
   - &step_setup_git
-    run: |
-      mkdir -p "${HOME}/.ssh/"
-      echo -e "Host *\n\tStrictHostKeyChecking no\n" > "${HOME}/.ssh/config"
-      DEPLOY_SSH_FILE="${DEPLOY_SSH_FINGERPRINT//:}"
-      DEPLOY_SSH_FILE="${HOME}/.ssh/id_rsa_${DEPLOY_SSH_FILE//\"}"
-      if [ -f "${DEPLOY_SSH_FILE}" ]; then
+    run:
+      name: Setup git
+      command: |
+        mkdir -p "${HOME}/.ssh/"
+        echo -e "Host *\n\tStrictHostKeyChecking no\n" > "${HOME}/.ssh/config"
+        DEPLOY_SSH_FILE="${DEPLOY_SSH_FINGERPRINT//:}"
+        DEPLOY_SSH_FILE="${HOME}/.ssh/id_rsa_${DEPLOY_SSH_FILE//\"}"
+        if [ -f "${DEPLOY_SSH_FILE}" ]; then
         echo "Found Deploy SSH key file ${DEPLOY_SSH_FILE}"
         ssh-add -D > /dev/null
         ssh-add "${DEPLOY_SSH_FILE}"
-      fi
-      git config --global user.name "$DEPLOY_USER_NAME"
-      git config --global user.email "$DEPLOY_USER_EMAIL"
+        fi
+        git config --global user.name "$DEPLOY_USER_NAME"
+        git config --global user.email "$DEPLOY_USER_EMAIL"
 
 jobs:
   build:
@@ -55,7 +57,7 @@ jobs:
       - *step_setup_git
       - checkout
       - run:
-          name: Planting test asset file.
+          name: Create test asset file.
           command: touch test-file-$(date "+%Y%m%d-%H%M%S").txt
       - run:
           name: Demonstration of deployment in 'force-push' mode.
@@ -88,6 +90,3 @@ workflows:
       - deploy:
           requires:
             - build
-          filters:
-            branches:
-              only: master
