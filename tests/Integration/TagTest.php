@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Integration;
 
 /**
  * Class TagTest.

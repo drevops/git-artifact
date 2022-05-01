@@ -1,8 +1,8 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Integration;
 
-use IntegratedExperts\Robo\Tests\AbstractTest;
+use DrevOps\Robo\Tests\AbstractTest;
 
 /**
  * Class AbstractTest

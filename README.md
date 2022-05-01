@@ -1,10 +1,10 @@
 # Package and push files to remote repositories
 Robo task to push git artefact to remote repository
 
-[![CircleCI](https://circleci.com/gh/integratedexperts/robo-git-artefact.svg?style=shield&circle-token=04cc2cab69b05f60a48e474f966a5bce8a71b1aa)](https://circleci.com/gh/integratedexperts/robo-git-artefact)
-[![Latest Stable Version](https://poser.pugx.org/integratedexperts/robo-git-artefact/version)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
-[![Total Downloads](https://poser.pugx.org/integratedexperts/robo-git-artefact/downloads)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
-[![License](https://poser.pugx.org/integratedexperts/robo-git-artefact/license)](https://packagist.org/packages/integratedexperts/robo-git-artefact)
+[![CircleCI](https://circleci.com/gh/drevops/robo-git-artefact.svg?style=shield&circle-token=04cc2cab69b05f60a48e474f966a5bce8a71b1aa)](https://circleci.com/gh/drevops/robo-git-artefact)
+[![Latest Stable Version](https://poser.pugx.org/drevops/robo-git-artefact/version)](https://packagist.org/packages/drevops/robo-git-artefact)
+[![Total Downloads](https://poser.pugx.org/drevops/robo-git-artefact/downloads)](https://packagist.org/packages/drevops/robo-git-artefact)
+[![License](https://poser.pugx.org/drevops/robo-git-artefact/license)](https://packagist.org/packages/drevops/robo-git-artefact)
 
 ## What is it?
 Build artifact from your codebase in CI and push it to a separate git repo.
@@ -16,7 +16,7 @@ This package allows to do so in a transaparent way: files that needs to be prese
 
 Since destination repository requires a commit to add changes introduced by the artefact files (CSS, JS, etc.), there are 2 modes to make this commit: "force-push" and "branch".
 
-See example of deployed artefact in [Artefact branches](https://github.com/integratedexperts/robo-git-artefact-destination/branches).
+See example of deployed artefact in [Artefact branches](https://github.com/drevops/robo-git-artefact-destination/branches).
 
 ## Modes
 ### Force-push mode (default)
@@ -40,7 +40,7 @@ Push packaged artefact to the new branch on each deployment, preserving history 
 
 ## Installation
 ```
-composer require --dev -n --ansi --prefer-source --ignore-platform-reqs integratedexperts/robo-git-artefact
+composer require --dev -n --ansi --prefer-source --ignore-platform-reqs drevops/robo-git-artefact
 ```
 
 ## Usage
@@ -48,7 +48,7 @@ Use provided [`RoboFile.php`](RoboFile.php) or crearte a custom `RoboFile.php` i
 
 ```php
 <?php
-use IntegratedExperts\Robo\ArtefactTrait;
+use DrevOps\Robo\ArtefactTrait;
 
 /**
  * Class RoboFile.
@@ -97,16 +97,16 @@ DEPLOY_USER_EMAIL="${DEPLOY_USER_EMAIL:-deployer@example.com}"
 Call from CI configuration or deployment script:
 ```
 "${HOME}/.composer/vendor/bin/robo" --ansi \
-  --load-from "${HOME}/.composer/vendor/integratedexperts/robo-git-artefact/RoboFile.php" artefact "${DEPLOY_REMOTE}" \
+  --load-from "${HOME}/.composer/vendor/drevops/robo-git-artefact/RoboFile.php" artefact "${DEPLOY_REMOTE}" \
   --root="${DEPLOY_ROOT}" \
   --src="${DEPLOY_SRC}" \
   --branch="${DEPLOY_BRANCH}" \
   --gitignore="${DEPLOY_SRC}"/.gitignore.deployment \
   --report="${DEPLOY_REPORT}" \
   --push
-```  
+```
 
-See extended and fully-configured example in Drupal-Dev project https://github.com/integratedexperts/drupal-dev/blob/8.x/scripts/deploy.sh
+See extended and fully-configured example in Drupal-Dev project https://github.com/drevops/drupal-dev/blob/8.x/scripts/deploy.sh
 
 ## Options
 ```
@@ -165,7 +165,7 @@ In this example, all commits in the repository will be pushed to the same branch
 ```
 robo artefact git@myserver.com/repository.git --mode=branch --branch=release/[tags:-] --push
 ```
-In this example, if the latest commit was tagged with tag `1.2.0`, the artefact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`. 
+In this example, if the latest commit was tagged with tag `1.2.0`, the artefact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`.
 
 ## Contributing
 1. Fork this repo.

@@ -5,7 +5,7 @@
  * @see http://robo.li/
  */
 
-use IntegratedExperts\Robo\ArtefactTrait;
+use DrevOps\Robo\ArtefactTrait;
 
 /**
  * Class RoboFile.

@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace DrevOps\Robo\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;

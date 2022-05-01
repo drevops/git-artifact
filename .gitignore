@@ -2,3 +2,4 @@ vendor
 artefact
 composer.lock
 git_*
+.phpunit.result.cache

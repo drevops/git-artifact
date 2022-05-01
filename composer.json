@@ -1,12 +1,12 @@
 {
-    "name": "integratedexperts/robo-git-artefact",
+    "name": "drevops/robo-git-artefact",
     "description": "Robo task to push git artefact to remote repository",
     "type": "robo-tasks",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "Alex Skrypnyk",
-            "email": "alex@integratedexperts.com"
+            "email": "alex@drevops.com"
         }
     ],
     "require": {
@@ -28,12 +28,12 @@
     },
     "autoload": {
         "psr-4": {
-            "IntegratedExperts\\Robo\\": "src"
+            "DrevOps\\Robo\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "IntegratedExperts\\Robo\\Tests\\": "tests"
+            "DrevOps\\Robo\\Tests\\": "tests"
         }
     },
     "config": {

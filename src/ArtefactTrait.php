@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo;
+namespace DrevOps\Robo;
 
 use Robo\Exception\AbortTasksException;
 use Symfony\Component\Console\Input\InputOption;
