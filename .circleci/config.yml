@@ -62,8 +62,8 @@ jobs:
       - run:
           name: Demonstration of deployment in 'force-push' mode.
           command: |
-            vendor/bin/robo artefact \
-            git@github.com:integratedexperts/robo-git-artefact-destination.git \
+            vendor/bin/robo artifact \
+            git@github.com:drevops/git-artifact-destination.git \
             --mode=force-push \
             --branch=mode-force-push \
             --report=$HOME/report-mode-force-push.txt \
@@ -73,8 +73,8 @@ jobs:
       - run:
           name: Demonstration of deployment in 'branch' mode.
           command: |
-            vendor/bin/robo artefact \
-            git@github.com:integratedexperts/robo-git-artefact-destination.git \
+            vendor/bin/robo artifact \
+            git@github.com:drevops/git-artifact-destination.git \
             --mode=branch \
             --branch=mode-branch-[timestamp:Y-m-d_H-i-s] \
             --report=$HOME/report-mode-branch.txt \

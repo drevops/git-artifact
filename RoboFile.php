@@ -5,7 +5,7 @@
  * @see http://robo.li/
  */
 
-use IntegratedExperts\Robo\ArtefactTrait;
+use DrevOps\Robo\ArtefactTrait;
 
 /**
  * Class RoboFile.
@@ -14,11 +14,11 @@ class RoboFile extends \Robo\Tasks
 {
 
     use ArtefactTrait {
-        ArtefactTrait::__construct as private __artefactConstruct;
+        ArtefactTrait::__construct as private __artifactConstruct;
     }
 
     public function __construct()
     {
-        $this->__artefactConstruct();
+        $this->__artifactConstruct();
     }
 }

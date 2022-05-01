@@ -1,8 +1,8 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests\Unit;
+namespace DrevOps\Robo\Tests\Unit;
 
-use IntegratedExperts\Robo\Tests\AbstractTest;
+use DrevOps\Robo\Tests\AbstractTest;
 
 /**
  * Class AbstractUnitTest.
@@ -21,7 +21,7 @@ abstract class AbstractUnitTest extends AbstractTest
     {
         parent::setUp();
 
-        $this->mock = $this->getMockForTrait('IntegratedExperts\Robo\ArtefactTrait');
+        $this->mock = $this->getMockForTrait('DrevOps\Robo\ArtefactTrait');
         $this->callProtectedMethod($this->mock, 'fsSetRootDir', [$this->fixtureDir]);
     }
 }

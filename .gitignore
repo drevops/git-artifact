@@ -1,4 +1,5 @@
 vendor
-artefact
+artifact
 composer.lock
 git_*
+.phpunit.result.cache

@@ -1,6 +1,6 @@
 {
-    "name": "integratedexperts/robo-git-artefact",
-    "description": "Robo task to push git artefact to remote repository",
+    "name": "drevops/git-artifact",
+    "description": "Build artifact from your codebase in CI and push it to a separate git repo.",
     "type": "robo-tasks",
     "license": "GPL-2.0-or-later",
     "authors": [
@@ -28,12 +28,12 @@
     },
     "autoload": {
         "psr-4": {
-            "IntegratedExperts\\Robo\\": "src"
+            "DrevOps\\Robo\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "IntegratedExperts\\Robo\\Tests\\": "tests"
+            "DrevOps\\Robo\\Tests\\": "tests"
         }
     },
     "config": {

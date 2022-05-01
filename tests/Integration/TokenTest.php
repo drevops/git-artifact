@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Integration;
 
 /**
  * Class ForcePushTest.
@@ -15,7 +15,7 @@ class TokenTest extends AbstractIntegrationTest
      */
     public function testTokenProcess($string, $name, $replacement, $expectedString)
     {
-        $mock = $this->prepareMock('IntegratedExperts\Robo\TokenTrait', [
+        $mock = $this->prepareMock('DrevOps\Robo\TokenTrait', [
             'getToken'.ucfirst($name) => function ($prop) use ($replacement) {
                 return !empty($prop) ? $replacement.' with property '.$prop : $replacement;
             },
@@ -98,7 +98,7 @@ class TokenTest extends AbstractIntegrationTest
      */
     public function testHasToken($string, $hasToken)
     {
-        $mock = $this->prepareMock('IntegratedExperts\Robo\TokenTrait');
+        $mock = $this->prepareMock('DrevOps\Robo\TokenTrait');
 
         $actual = $this->callProtectedMethod($mock, 'hasToken', [$string]);
         $this->assertEquals($hasToken, $actual);

@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo;
+namespace DrevOps\Robo;
 
 use Robo\Collection\CollectionBuilder;
 use Robo\Contract\VerbosityThresholdInterface;

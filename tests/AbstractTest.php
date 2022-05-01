@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests;
+namespace DrevOps\Robo\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -42,7 +42,7 @@ abstract class AbstractTest extends TestCase
 
         $this->fs = new Filesystem();
 
-        $this->fixtureDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'robo_git_artefact';
+        $this->fixtureDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'robo_git_artifact';
         $this->fs->mkdir($this->fixtureDir);
 
         $this->commandTraitSetUp(

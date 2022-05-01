@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="robo-git-artefact">
-    <description>The coding standard for behat-relativity.</description>
+<ruleset name="git-artifact">
+    <description>Custom coding standard.</description>
 
     <rule ref="Symfony"/>
 

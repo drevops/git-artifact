@@ -1,6 +1,6 @@
 <?php
 
-namespace IntegratedExperts\Robo\Tests\Unit;
+namespace DrevOps\Robo\Tests\Unit;
 
 /**
  * Class ExcludeTest.
