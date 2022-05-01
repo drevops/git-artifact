@@ -13,18 +13,18 @@ class GeneralTest extends AbstractIntegrationTest
     public function testPresence()
     {
         $output = $this->runRoboCommand('list');
-        $this->assertStringContainsString('artefact', implode(PHP_EOL, $output));
+        $this->assertStringContainsString('artifact', implode(PHP_EOL, $output));
     }
 
     public function testHelp()
     {
-        $output = $this->runRoboCommand('--help artefact');
-        $this->assertStringContainsString('artefact [options] [--] <remote>', implode(PHP_EOL, $output));
+        $output = $this->runRoboCommand('--help artifact');
+        $this->assertStringContainsString('artifact [options] [--] <remote>', implode(PHP_EOL, $output));
     }
 
     public function testCompulsoryParameter()
     {
-        $output = $this->runRoboCommand('artefact', true);
+        $output = $this->runRoboCommand('artifact', true);
 
         $this->assertStringContainsString('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
     }
@@ -64,7 +64,7 @@ class GeneralTest extends AbstractIntegrationTest
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild('--no-cleanup');
 
-        $this->assertGitCurrentBranch($this->src, $this->artefactBranch);
+        $this->assertGitCurrentBranch($this->src, $this->artifactBranch);
 
         $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);

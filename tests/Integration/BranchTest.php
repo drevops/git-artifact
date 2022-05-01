@@ -42,7 +42,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->gitCreateFixtureCommits(3, 2);
         $this->assertBuildFailure();
 
-        // Make sure that broken artefact was not pushed.
+        // Make sure that broken artifact was not pushed.
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 

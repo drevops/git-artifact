@@ -16,7 +16,7 @@ trait ArtefactTrait
 {
 
     use FilesystemTrait {
-        FilesystemTrait::__construct as private __artefactFsConstruct;
+        FilesystemTrait::__construct as private __artifactFsConstruct;
     }
     use GitTrait;
     use TokenTrait;
@@ -45,11 +45,11 @@ trait ArtefactTrait
     protected $dstBranch;
 
     /**
-     * Local branch where artefact will be built.
+     * Local branch where artifact will be built.
      *
      * @var string
      */
-    protected $artefactBranch;
+    protected $artifactBranch;
 
     /**
      * Remote name.
@@ -59,7 +59,7 @@ trait ArtefactTrait
     protected $remoteName;
 
     /**
-     * Gitignore file to be used during artefact creation.
+     * Gitignore file to be used during artifact creation.
      *
      * If not set, the current `.gitignore` will be used, if any.
      *
@@ -128,11 +128,11 @@ trait ArtefactTrait
      */
     public function __construct()
     {
-        $this->__artefactFsConstruct();
+        $this->__artifactFsConstruct();
     }
 
     /**
-     * Push artefact of current repository to remote git repository.
+     * Push artifact of current repository to remote git repository.
      *
      * @param string $remote
      *   Path to the remote git repository.
@@ -143,11 +143,11 @@ trait ArtefactTrait
      * @option $debug Print debug information.
      * @option $gitignore Path to gitignore file to replace current .gitignore.
      * @option $message Commit message with optional tokens.
-     * @option $mode Mode of artefact build: branch, force-push or diff.
+     * @option $mode Mode of artifact build: branch, force-push or diff.
      *   Defaults to force-push.
      * @option $now Internal value used to set internal time.
      * @option $no-cleanup Do not cleanup after run.
-     * @option $push Push artefact to the remote repository. Defaults to FALSE.
+     * @option $push Push artifact to the remote repository. Defaults to FALSE.
      * @option $report Path to the report file.
      * @option $root Path to the root for file path resolution. If not
      *         specified, current directory is used.
@@ -156,7 +156,7 @@ trait ArtefactTrait
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
      */
-    public function artefact($remote, array $opts = [
+    public function artifact($remote, array $opts = [
         'branch' => '[branch]',
         'debug' => false,
         'gitignore' => InputOption::VALUE_REQUIRED,
@@ -212,11 +212,11 @@ trait ArtefactTrait
     }
 
     /**
-     * Prepare artefact to be then deployed.
+     * Prepare artifact to be then deployed.
      */
     protected function prepareArtefact(): void
     {
-        $this->gitSwitchToBranch($this->src, $this->artefactBranch, true);
+        $this->gitSwitchToBranch($this->src, $this->artifactBranch, true);
 
         $this->removeSubRepos($this->src);
         $this->disableLocalExclude($this->src);
@@ -245,7 +245,7 @@ trait ArtefactTrait
     {
         $this->restoreLocalExclude($this->src);
         $this->gitSwitchToBranch($this->src, $this->originalBranch);
-        $this->gitRemoveBranch($this->src, $this->artefactBranch);
+        $this->gitRemoveBranch($this->src, $this->artifactBranch);
         $this->gitRemoveRemote($this->src, $this->remoteName);
     }
 
@@ -259,7 +259,7 @@ trait ArtefactTrait
         }
 
         try {
-            $result = $this->gitPush($this->src, $this->artefactBranch, $this->remoteName, $this->dstBranch, $this->mode === self::modeForcePush());
+            $result = $this->gitPush($this->src, $this->artifactBranch, $this->remoteName, $this->dstBranch, $this->mode === self::modeForcePush());
             $this->result = $result->wasSuccessful();
         } catch (\Exception $exception) {
             // Re-throw the message with additional context.
@@ -297,7 +297,7 @@ trait ArtefactTrait
 
         $this->originalBranch = $this->resolveOriginalBranch($this->src);
         $this->setDstBranch($options['branch']);
-        $this->artefactBranch = $this->dstBranch.'-artefact';
+        $this->artifactBranch = $this->dstBranch.'-artifact';
 
         $this->setMessage($options['message']);
 
@@ -317,7 +317,7 @@ trait ArtefactTrait
     }
 
     /**
-     * Show artefact build information.
+     * Show artifact build information.
      */
     protected function showInfo(): void
     {
@@ -335,7 +335,7 @@ trait ArtefactTrait
     }
 
     /**
-     * Dump artefact report to a file.
+     * Dump artifact report to a file.
      */
     protected function dumpReport(): void
     {

@@ -22,7 +22,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
      *
      * @var string
      */
-    protected $artefactBranch;
+    protected $artifactBranch;
 
     /**
      * Remote name.
@@ -58,12 +58,12 @@ abstract class AbstractIntegrationTest extends AbstractTest
 
         $this->now = time();
         $this->currentBranch = 'master';
-        $this->artefactBranch = 'master-artefact';
+        $this->artifactBranch = 'master-artifact';
         $this->remote = 'dst';
     }
 
     /**
-     * Build the artefact and assert success.
+     * Build the artifact and assert success.
      *
      * @param string $args
      *   Optional string of arguments to pass to the build.
@@ -87,7 +87,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
     }
 
     /**
-     * Build the artefact and assert failure.
+     * Build the artifact and assert failure.
      *
      * @param string $args
      *   Optional string of arguments to pass to the build.
@@ -111,7 +111,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
     }
 
     /**
-     * Run artefact build.
+     * Run artifact build.
      *
      * @param string $args
      *   Additional arguments or options as a string.
@@ -125,7 +125,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
             $args .= ' --mode='.$this->mode;
         }
 
-        $output = $this->runRoboCommandTimestamped(sprintf('artefact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
+        $output = $this->runRoboCommandTimestamped(sprintf('artifact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
 
         if ($this->isDebug()) {
             print str_pad('', 80, '+').PHP_EOL;
@@ -137,7 +137,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
     }
 
     /**
-     * Run Robo command with current timestamp attached to artefact commands.
+     * Run Robo command with current timestamp attached to artifact commands.
      *
      * @param string $command
      *   Command string to run.
@@ -149,8 +149,8 @@ abstract class AbstractIntegrationTest extends AbstractTest
      */
     protected function runRoboCommandTimestamped($command, $expectFail = false)
     {
-        // Add --now option to all 'artefact' commands.
-        if (strpos($command, 'artefact') === 0) {
+        // Add --now option to all 'artifact' commands.
+        if (strpos($command, 'artifact') === 0) {
             $command .= ' --now='.$this->now;
         }
 
