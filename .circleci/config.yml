@@ -30,11 +30,11 @@ jobs:
     steps:
       - attach_workspace:
           at: /workspace
+      - checkout
       - add_ssh_keys:
           fingerprints:
             - *deploy_ssh_fingerprint
       - *step_setup_git
-      - checkout
       - run: composer validate --ansi --strict
       - run: composer install
       - run: composer lint
