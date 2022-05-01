@@ -19,9 +19,9 @@ aliases:
         DEPLOY_SSH_FILE="${DEPLOY_SSH_FINGERPRINT//:}"
         DEPLOY_SSH_FILE="${HOME}/.ssh/id_rsa_${DEPLOY_SSH_FILE//\"}"
         if [ -f "${DEPLOY_SSH_FILE}" ]; then
-        echo "Found Deploy SSH key file ${DEPLOY_SSH_FILE}"
-        ssh-add -D > /dev/null
-        ssh-add "${DEPLOY_SSH_FILE}"
+          echo "Found Deploy SSH key file ${DEPLOY_SSH_FILE}"
+          ssh-add -D > /dev/null
+          ssh-add "${DEPLOY_SSH_FILE}"
         fi
         git config --global user.name "$DEPLOY_USER_NAME"
         git config --global user.email "$DEPLOY_USER_EMAIL"
