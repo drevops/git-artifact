@@ -9,8 +9,6 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Trait FilesystemTrait.
- *
- * @package IntegratedExperts\Robo
  */
 trait FilesystemTrait
 {
@@ -52,8 +50,13 @@ trait FilesystemTrait
 
     /**
      * Set root directory path.
+     *
+     * @param string $path
+     *   The path of the root directory.
+     *
+     * @throws \Exception
      */
-    protected function fsSetRootDir($path)
+    protected function fsSetRootDir($path): void
     {
         $path = !empty($path) ? $this->fsGetAbsolutePath($path) : $this->fsGetRootDir();
         $this->fsPathsExist($path);
@@ -67,11 +70,13 @@ trait FilesystemTrait
      *   Get value of the root directory, the directory where the
      *   script was started from or current working directory.
      */
-    protected function fsGetRootDir()
+    protected function fsGetRootDir(): string
     {
         if ($this->fsRootDir) {
             return $this->fsRootDir;
-        } elseif (isset($_SERVER['PWD'])) {
+        }
+
+        if (isset($_SERVER['PWD'])) {
             return $_SERVER['PWD'];
         }
 
@@ -83,8 +88,11 @@ trait FilesystemTrait
      *
      * It is important to note that this should be called in pair with
      * cwdRestore().
+     *
+     * @param string $dir
+     *   Path to the current directory.
      */
-    protected function fsCwdSet($dir)
+    protected function fsCwdSet($dir): void
     {
         chdir($dir);
         $this->fsOriginalCwdStack[] = $dir;
@@ -95,7 +103,7 @@ trait FilesystemTrait
      *
      * It is important to note that this should be called in pair with cwdSet().
      */
-    protected function fsCwdRestore()
+    protected function fsCwdRestore(): void
     {
         $dir = array_shift($this->fsOriginalCwdStack);
         if ($dir) {
@@ -109,7 +117,7 @@ trait FilesystemTrait
      * @return string
      *   Full path of current working directory.
      */
-    protected function fsCwdGet()
+    protected function fsCwdGet(): string
     {
         return getcwd();
     }
@@ -123,7 +131,7 @@ trait FilesystemTrait
      * @return bool
      *   TRUE if command is available, FALSE otherwise.
      */
-    protected function fsIsCommandAvailable($command)
+    protected function fsIsCommandAvailable($command): bool
     {
         $result = $this->taskExecStack()
             ->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG)
@@ -145,7 +153,7 @@ trait FilesystemTrait
      * @return string
      *   Absolute path for provided file.
      */
-    protected function fsGetAbsolutePath($file, $root = null)
+    protected function fsGetAbsolutePath($file, $root = null): string
     {
         if ($this->fsFileSystem->isAbsolutePath($file)) {
             return $this->realpath($file);
@@ -173,15 +181,15 @@ trait FilesystemTrait
      * @throws \Exception
      *   If at least one file does not exist.
      */
-    protected function fsPathsExist($paths, $strict = true)
+    protected function fsPathsExist($paths, $strict = true): bool
     {
         $paths = is_array($paths) ? $paths : [$paths];
         if (!$this->fsFileSystem->exists($paths)) {
             if ($strict) {
                 throw new \Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
-            } else {
-                return false;
             }
+
+            return false;
         }
 
         return true;
@@ -201,15 +209,15 @@ trait FilesystemTrait
      *
      * @see https://stackoverflow.com/a/29372360/712666
      */
-    protected function realpath($path)
+    protected function realpath($path): string
     {
         // Whether $path is unix or not.
-        $unipath = strlen($path) == 0 || $path[0] != '/';
-        $unc = substr($path, 0, 2) == '\\\\' ? true : false;
+        $unipath = strlen($path) === 0 || $path[0] !== '/';
+        $unc = substr($path, 0, 2) === '\\\\' ? true : false;
         // Attempt to detect if path is relative in which case, add cwd.
         if (strpos($path, ':') === false && $unipath && !$unc) {
             $path = getcwd().DIRECTORY_SEPARATOR.$path;
-            if ($path[0] == '/') {
+            if ($path[0] === '/') {
                 $unipath = false;
             }
         }
@@ -219,10 +227,10 @@ trait FilesystemTrait
         $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
         $absolutes = [];
         foreach ($parts as $part) {
-            if ('.' == $part) {
+            if ('.' === $part) {
                 continue;
             }
-            if ('..' == $part) {
+            if ('..' === $part) {
                 array_pop($absolutes);
             } else {
                 $absolutes[] = $part;

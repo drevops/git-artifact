@@ -9,8 +9,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Trait CommandTrait
- *
- * @package IntegratedExperts\Robo\Tests
  */
 trait CommandTrait
 {
@@ -48,13 +46,15 @@ trait CommandTrait
      *
      * To be called by test's setUp() method.
      *
-     * @param string $dir
-     *   Fixture repository directory.
+     * @param string $src
+     *   Source path.
+     * @param string $remote
+     *   Remote path.
      * @param bool   $printDebug
      *   Optional flag to print debug information when running commands.
      *   Defaults to FALSE.
      */
-    protected function setUp($src, $remote, $printDebug = false)
+    protected function setUp($src, $remote, $printDebug = false): void
     {
         $this->printDebug = $printDebug;
         $this->fs = new Filesystem();
@@ -101,12 +101,15 @@ trait CommandTrait
     /**
      * Get all commit hashes in the repository.
      *
-     * @param string $path
+     * @param null   $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
+     * @param string $format
+     *   Format of commits.
      *
      * @return array
      *   Array of commit hashes, sorted from the earliest to the latest commit.
+     * @throws \Exception
      */
     protected function gitGetAllCommits($path = null, $format = '%s')
     {
@@ -174,9 +177,11 @@ trait CommandTrait
     /**
      * Create multiple fixture commits.
      *
-     * @param int    $count
+     * @param int  $count
      *   Number of commits to create.
-     * @param string $path
+     * @param int  $offset
+     *   Number of commit indices to offset.
+     * @param null $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      */
@@ -251,7 +256,13 @@ trait CommandTrait
         }
     }
 
-    protected function gitReset($path)
+    /**
+     * Reset git repo at path.
+     *
+     * @param string $path
+     *   Path to the repo.
+     */
+    protected function gitReset($path): void
     {
         $this->runGitCommand('reset --hard', $path);
         $this->runGitCommand('clean -dfx', $path);
@@ -264,11 +275,13 @@ trait CommandTrait
      *    File path.
      * @param string $name
      *    Optional file name.
+     * @param string $content
+     *    Optional file content.
      *
      * @return string
      *   Created file name.
      */
-    protected function gitCreateFixtureFile($path, $name = null, $content = null)
+    protected function gitCreateFixtureFile($path, $name = '', $content = '')
     {
         $name = $name ? $name : 'tmp'.rand(1000, 100000);
         $path = $path.DIRECTORY_SEPARATOR.$name;
@@ -325,7 +338,7 @@ trait CommandTrait
     /**
      * Assert that files exist in repository in specified branch.
      *
-     * @param  string      $path
+     * @param string       $path
      *   Repository location.
      * @param array|string $files
      *   File or array of files.
@@ -348,7 +361,7 @@ trait CommandTrait
     /**
      * Assert that files do not exist in repository in specified branch.
      *
-     * @param  string      $path
+     * @param string       $path
      *   Repository location.
      * @param array|string $files
      *   File or array of files.
@@ -362,11 +375,21 @@ trait CommandTrait
             $this->gitCheckout($path, $branch);
         }
         foreach ($files as $file) {
-            $this->assertFileNotExists($path.DIRECTORY_SEPARATOR.$file);
+            $this->assertFileDoesNotExist($path.DIRECTORY_SEPARATOR.$file);
         }
     }
 
-    protected function gitAssertFilesCommitted($path, $expectedFiles, $branch = null)
+    /**
+     * Assert git files are present and were committed.
+     *
+     * @param string        $path
+     *   Path to repo.
+     * @param array| string $expectedFiles
+     *   Array of files or a single file.
+     * @param string        $branch
+     *   Optional branch name.
+     */
+    protected function gitAssertFilesCommitted($path, $expectedFiles, $branch = ''): void
     {
         if ($branch) {
             $this->gitCheckout($path, $branch);
@@ -376,7 +399,17 @@ trait CommandTrait
         $this->assertArraySimilar($expectedFiles, $committedFiles);
     }
 
-    protected function gitAssertNoFilesCommitted($path, $expectedFiles, $branch = null)
+    /**
+     * Assert git files were not committed.
+     *
+     * @param string        $path
+     *   Path to repo.
+     * @param array| string $expectedFiles
+     *   Array of files or a single file.
+     * @param string        $branch
+     *   Optional branch name.
+     */
+    protected function gitAssertNoFilesCommitted($path, $expectedFiles, $branch = '')
     {
         if ($branch) {
             $this->gitCheckout($path, $branch);
@@ -387,7 +420,21 @@ trait CommandTrait
         $this->assertArraySimilar([], $intersectedFiles);
     }
 
-    protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [], $assertFiles = true)
+    /**
+     * Assert which git commits are present.
+     *
+     * @param int    $count
+     *   Number of commits.
+     * @param string $path
+     *   Path to the repo.
+     * @param string $branch
+     *   Branch name.
+     * @param array  $additionalCommits
+     *   Array of additional commits.
+     * @param array  $assertFiles
+     *   Array of files.
+     */
+    protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [], $assertFiles = true): void
     {
         $this->gitCheckout($path, $branch);
         $this->gitReset($path);
@@ -486,8 +533,8 @@ trait CommandTrait
         }
         exec($command.' 2>&1', $output, $code);
 
-        if ($code != 0) {
-            throw new Error(sprintf('Command "%s" exited with non-zero status', $command), $code, null, null, new Error(implode(PHP_EOL, $output), $code, null, null));
+        if ($code !== 0) {
+            throw new Error(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new Error(implode(PHP_EOL, $output), $code, '', -1));
         }
         if ($this->printDebug) {
             print '++++ '.implode($output, PHP_EOL).PHP_EOL;

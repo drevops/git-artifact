@@ -9,8 +9,6 @@ use Symfony\Component\Filesystem\Filesystem;
  * Class AbstractTest.
  *
  * Abstract test class used by all types of tests.
- *
- * @package IntegratedExperts\Robo\Tests
  */
 abstract class AbstractTest extends TestCase
 {
@@ -38,7 +36,7 @@ abstract class AbstractTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -57,7 +55,7 @@ abstract class AbstractTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->commandTraitTearDown();
 
@@ -66,14 +64,14 @@ abstract class AbstractTest extends TestCase
         }
     }
 
-    /*
+    /**
      * Call protected methods on the class.
      *
      * @param object|string $object
      *   Object or class name to use for a method call.
-     * @param string $method
+     * @param string        $method
      *   Method name. Method can be static.
-     * @param array $args
+     * @param array         $args
      *   Array of arguments to pass to the method. To pass arguments by
      *   reference, pass them by reference as an element of this array.
      *
@@ -189,8 +187,11 @@ abstract class AbstractTest extends TestCase
 
     /**
      * Check if testing framework was ran with --debug option.
+     *
+     * @return bool
+     *   TRUE if is in debug mode, FALSE otherwise.
      */
-    protected function isDebug()
+    protected function isDebug(): bool
     {
         return in_array('--debug', $_SERVER['argv'], true);
     }

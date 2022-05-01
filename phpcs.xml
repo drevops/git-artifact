@@ -2,7 +2,7 @@
 <ruleset name="robo-git-artefact">
     <description>The coding standard for behat-relativity.</description>
 
-    <rule ref="Symfony2"/>
+    <rule ref="Symfony"/>
 
     <file>src</file>
     <file>tests</file>
@@ -10,13 +10,23 @@
     <arg name="colors"/>
     <arg value="sp"/>
 
+    <rule ref="Symfony.Commenting.License.Warning">
+        <exclude-pattern>*.*</exclude-pattern>
+    </rule>
+    <rule ref="Symfony.Functions.Arguments.Invalid">
+        <exclude-pattern>*.*</exclude-pattern>
+    </rule>
+    <rule ref="Symfony.ControlStructure.YodaConditions.Invalid">
+        <exclude-pattern>*.*</exclude-pattern>
+    </rule>
+
     <!--Allow uncommented functions in tests as they usually provide enough
     information from their names.-->
-    <rule ref="Symfony2.Commenting.FunctionComment.Missing">
+    <rule ref="Symfony.Commenting.FunctionComment.Missing">
         <exclude-pattern>tests/*.Test\.php</exclude-pattern>
         <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
     </rule>
-    <rule ref="Symfony2.Commenting.FunctionComment.MissingParamTag">
+    <rule ref="Symfony.Commenting.FunctionComment.MissingParamTag">
         <exclude-pattern>tests/*.Test\.php</exclude-pattern>
         <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
     </rule>

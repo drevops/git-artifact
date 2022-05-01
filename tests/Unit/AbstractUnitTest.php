@@ -17,7 +17,7 @@ abstract class AbstractUnitTest extends AbstractTest
      */
     protected $mock;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
