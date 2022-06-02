@@ -1,5 +1,11 @@
 {
-    "extends": [
-        "config:base"
-    ]
+    "extends": ["config:base"],
+    "branchPrefix": "deps/",
+    "labels": ["dependencies", "Dependencies"],
+    "assignees": [
+        "AlexSkrypnyk"
+    ],
+    "ignorePresets": [":prHourlyLimit2"],
+    "rangeStrategy": "update-lockfile",
+    "enabledManagers": ["composer"]
 }
