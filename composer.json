@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "consolidation/robo": "^3"
+        "consolidation/robo": "^4"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.6",
