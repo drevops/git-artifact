@@ -1,7 +1,7 @@
 # Package and push files to remote repositories
 Robo task to push git artifact to remote repository
 
-[![CircleCI](https://circleci.com/gh/drevops/git-artifact.svg?style=shield&circle-token=04cc2cab69b05f60a48e474f966a5bce8a71b1aa)](https://circleci.com/gh/drevops/git-artifact)
+[![CircleCI](https://circleci.com/gh/drevops/git-artifact.svg?style=shield)](https://circleci.com/gh/drevops/git-artifact)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/git-artifact)
 [![Total Downloads](https://poser.pugx.org/drevops/behat-screenshot/downloads)](https://packagist.org/packages/drevops/git-artifact)
 ![LICENSE](https://img.shields.io/github/license/drevops/git-artifact)
