@@ -116,7 +116,7 @@ Call from CI configuration or deployment script:
       --report="${DEPLOY_REPORT}" \
       --push
 
-See extended and fully-configured [example in the DrevOps project](https://github.com/drevops/drevops/blob/9.x/scripts/drevops/deploy-code.sh).
+See extended and fully-configured [example in the DrevOps project](https://github.com/drevops/drevops/blob/develop/scripts/drevops/deploy-artifact.sh).
 
 ## Options
 
