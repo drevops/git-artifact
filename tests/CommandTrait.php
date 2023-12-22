@@ -2,8 +2,8 @@
 
 namespace DrevOps\Robo\Tests;
 
+use DrevOps\Robo\Tests\Exception\ErrorException;
 use PHPUnit\Framework\AssertionFailedError;
-use PHPUnit\Framework\Error\Error;
 use SebastianBergmann\GlobalState\RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -243,7 +243,7 @@ trait CommandTrait
     {
         try {
             $this->runGitCommand(sprintf('checkout %s', $branch), $path);
-        } catch (Error $error) {
+        } catch (ErrorException $error) {
             $allowedFails = [
                 "error: pathspec '$branch' did not match any file(s) known to git",
             ];
@@ -504,7 +504,7 @@ trait CommandTrait
             if ($expectFail) {
                 throw new AssertionFailedError('Command exited successfully but should not');
             }
-        } catch (Error $error) {
+        } catch (ErrorException $error) {
             if (!$expectFail) {
                 throw $error;
             }
@@ -523,7 +523,7 @@ trait CommandTrait
      * @return array
      *   Array of output lines.
      *
-     * @throws \PHPUnit\Framework\Error\Error
+     * @throws \DrevOps\Robo\Tests\Exception\ErrorException
      *   If commands exists with non-zero status.
      */
     protected function runCliCommand($command)
@@ -534,7 +534,7 @@ trait CommandTrait
         exec($command.' 2>&1', $output, $code);
 
         if ($code !== 0) {
-            throw new Error(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new Error(implode(PHP_EOL, $output), $code, '', -1));
+            throw new ErrorException(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new ErrorException(implode(PHP_EOL, $output), $code, '', -1));
         }
         if ($this->printDebug) {
             print '++++ '.implode($output, PHP_EOL).PHP_EOL;

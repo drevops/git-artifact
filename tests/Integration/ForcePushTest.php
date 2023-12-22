@@ -7,7 +7,7 @@ namespace DrevOps\Robo\Tests\Integration;
  *
  * @group integration
  */
-class ForcePushTest extends AbstractIntegrationTest
+class ForcePushTest extends AbstractIntegrationTestCase
 {
 
     protected function setUp(): void

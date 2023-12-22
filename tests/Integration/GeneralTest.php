@@ -7,7 +7,7 @@ namespace DrevOps\Robo\Tests\Integration;
  *
  * @group integration
  */
-class GeneralTest extends AbstractIntegrationTest
+class GeneralTest extends AbstractIntegrationTestCase
 {
 
     public function testPresence()

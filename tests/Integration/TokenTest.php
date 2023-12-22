@@ -7,7 +7,7 @@ namespace DrevOps\Robo\Tests\Integration;
  *
  * @group integration
  */
-class TokenTest extends AbstractIntegrationTest
+class TokenTest extends AbstractIntegrationTestCase
 {
 
     /**
@@ -25,7 +25,7 @@ class TokenTest extends AbstractIntegrationTest
         $this->assertEquals($expectedString, $actual);
     }
 
-    public function dataProviderTokenProcess()
+    public static function dataProviderTokenProcess()
     {
         return [
             [
@@ -104,7 +104,7 @@ class TokenTest extends AbstractIntegrationTest
         $this->assertEquals($hasToken, $actual);
     }
 
-    public function dataProviderHasToken()
+    public static function dataProviderHasToken()
     {
         return [
             ['notoken', false],

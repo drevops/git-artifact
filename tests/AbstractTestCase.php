@@ -6,11 +6,11 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Class AbstractTest.
+ * Class AbstractTestCase.
  *
  * Abstract test class used by all types of tests.
  */
-abstract class AbstractTest extends TestCase
+abstract class AbstractTestCase extends TestCase
 {
 
     use CommandTrait {

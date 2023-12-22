@@ -2,12 +2,12 @@
 
 namespace DrevOps\Robo\Tests\Integration;
 
-use DrevOps\Robo\Tests\AbstractTest;
+use DrevOps\Robo\Tests\AbstractTestCase;
 
 /**
- * Class AbstractTest
+ * Class AbstractTestCase
  */
-abstract class AbstractIntegrationTest extends AbstractTest
+abstract class AbstractIntegrationTestCase extends AbstractTestCase
 {
 
     /**

@@ -7,7 +7,7 @@ namespace DrevOps\Robo\Tests\Unit;
  *
  * @group unit
  */
-class ExcludeTest extends AbstractUnitTest
+class ExcludeTest extends AbstractUnitTestCase
 {
 
     public function testExcludeExists()
@@ -32,7 +32,7 @@ class ExcludeTest extends AbstractUnitTest
         $this->assertEquals($expected, $actual);
     }
 
-    public function dataProviderExcludeEmpty()
+    public static function dataProviderExcludeEmpty()
     {
         return [
             // Empty file.

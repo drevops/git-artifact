@@ -7,7 +7,7 @@ namespace DrevOps\Robo\Tests\Integration;
  *
  * @group integration
  */
-class BranchTest extends AbstractIntegrationTest
+class BranchTest extends AbstractIntegrationTestCase
 {
 
     /**
