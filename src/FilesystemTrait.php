@@ -208,6 +208,9 @@ trait FilesystemTrait
      *   Resolved path.
      *
      * @see https://stackoverflow.com/a/29372360/712666
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function realpath($path): string
     {

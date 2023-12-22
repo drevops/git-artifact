@@ -6,6 +6,8 @@ namespace DrevOps\Robo\Tests\Integration;
  * Class ForcePushTest.
  *
  * @group integration
+ *
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class ForcePushTest extends AbstractIntegrationTestCase
 {

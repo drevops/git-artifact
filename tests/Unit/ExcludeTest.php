@@ -32,6 +32,12 @@ class ExcludeTest extends AbstractUnitTestCase
         $this->assertEquals($expected, $actual);
     }
 
+    /**
+     * @return array[]
+     *   Data provider.
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public static function dataProviderExcludeEmpty()
     {
         return [
