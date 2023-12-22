@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo;
 
 use Robo\Exception\AbortTasksException;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class Artefact.
@@ -33,9 +36,9 @@ trait ArtefactTrait
     /**
      * Original branch in current repository.
      *
-     * @var string
+     * @var string|null
      */
-    protected $originalBranch;
+    protected $originalBranch = null;
 
     /**
      * Destination branch with optional tokens.
@@ -77,7 +80,7 @@ trait ArtefactTrait
     /**
      * Flag to specify if push is required or should be using dry run.
      *
-     * @var string
+     * @var bool
      */
     protected $needsPush;
 
@@ -136,7 +139,7 @@ trait ArtefactTrait
      *
      * @param string $remote
      *   Path to the remote git repository.
-     * @param array  $opts
+     * @param array $opts
      *   Options.
      *
      * @option $branch Destination branch with optional tokens.
@@ -155,8 +158,12 @@ trait ArtefactTrait
      *         output.
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
+     *
+     * @throws AbortTasksException
+     *
+     * @phpstan-ignore-next-line
      */
-    public function artifact($remote, array $opts = [
+    public function artifact(string $remote, array $opts = [
         'branch' => '[branch]',
         'debug' => false,
         'gitignore' => InputOption::VALUE_REQUIRED,
@@ -207,7 +214,7 @@ trait ArtefactTrait
             $this->say('Deployment finished successfully.');
         } else {
             $this->say('Deployment failed.');
-            throw new AbortTasksException($error);
+            throw new AbortTasksException((string) $error);
         }
     }
 
@@ -240,11 +247,13 @@ trait ArtefactTrait
 
     /**
      * Cleanup after build.
+     *
+     * @throws \Exception
      */
     protected function cleanup(): void
     {
         $this->restoreLocalExclude($this->src);
-        $this->gitSwitchToBranch($this->src, $this->originalBranch);
+        $this->gitSwitchToBranch($this->src, (string) $this->originalBranch);
         $this->gitRemoveBranch($this->src, $this->artifactBranch);
         $this->gitRemoveRemote($this->src, $this->remoteName);
     }
@@ -280,10 +289,14 @@ trait ArtefactTrait
      *
      * @param array $options
      *   Array of CLI options.
+     *
+     * @throws \Exception
+     *
+     * @phpstan-ignore-next-line
      */
     protected function resolveOptions(array $options): void
     {
-        $this->now = !empty($options['now']) ? $options['now'] : time();
+        $this->now = !empty($options['now']) ? (int) $options['now'] : time();
 
         $this->debug = !empty($options['debug']);
 
@@ -362,8 +375,10 @@ trait ArtefactTrait
      *   Mode to set.
      * @param array  $options
      *   Array of CLI options.
+     *
+     * @phpstan-ignore-next-line
      */
-    protected function setMode($mode, array $options): void
+    protected function setMode(string $mode, array $options): void
     {
         $this->say(sprintf('Running in "%s" mode', $mode));
 
@@ -382,11 +397,11 @@ trait ArtefactTrait
                 throw new \RuntimeException('Diff mode is not yet implemented.');
 
             default:
-                throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: %s'), implode(', ', [
+                throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: %s', implode(', ', [
                     self::modeForcePush(),
                     self::modeBranch(),
                     self::modeDiff(),
-                ]));
+                ])));
         }
 
         $this->mode = $mode;
@@ -435,10 +450,11 @@ trait ArtefactTrait
      *
      * @return null|string
      *   Branch or detachment source.
+     *
      * @throws \Exception
      *   If neither branch nor detachment source is not found.
      */
-    protected function resolveOriginalBranch($location): string
+    protected function resolveOriginalBranch(string $location): ?string
     {
         $branch = $this->gitGetCurrentBranch($location);
 
@@ -446,13 +462,15 @@ trait ArtefactTrait
         // capture the source of detachment, if exist.
         if ($branch === 'HEAD') {
             $branch = null;
-            $result = $this->gitCommandRun($location, 'branch', true);
-            $branchList = array_filter(preg_split('/\R/', $result->getMessage()));
-
-            foreach ($branchList as $branch) {
-                if (preg_match('/\* \(.*detached .* ([^\)]+)\)/', $branch, $matches)) {
-                    $branch = $matches[1];
-                    break;
+            $result = $this->gitCommandRun($location, 'branch');
+            $branchList = preg_split('/\R/', $result->getMessage());
+            if ($branchList) {
+                $branchList = array_filter($branchList);
+                foreach ($branchList as $branch) {
+                    if (preg_match('/\* \(.*detached .* ([^\)]+)\)/', $branch, $matches)) {
+                        $branch = $matches[1];
+                        break;
+                    }
                 }
             }
             if (empty($branch)) {
@@ -469,9 +487,9 @@ trait ArtefactTrait
      * @param string $branch
      *   Branch in the remote repository.
      */
-    protected function setDstBranch($branch): void
+    protected function setDstBranch(string $branch): void
     {
-        $branch = $this->tokenProcess($branch);
+        $branch = (string) $this->tokenProcess($branch);
 
         if (!self::gitIsValidBranch($branch)) {
             throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch', $branch));
@@ -485,9 +503,9 @@ trait ArtefactTrait
      * @param string $message
      *   Commit message to set on the deployment commit.
      */
-    protected function setMessage($message): void
+    protected function setMessage(string $message): void
     {
-        $message = $this->tokenProcess($message);
+        $message = (string) $this->tokenProcess($message);
         $this->message = $message;
     }
 
@@ -496,8 +514,10 @@ trait ArtefactTrait
      *
      * @param string $path
      *   Path to the replacement .gitignore file.
+     *
+     * @throws \Exception
      */
-    protected function setGitignoreFile($path): void
+    protected function setGitignoreFile(string $path): void
     {
         $path = $this->fsGetAbsolutePath($path);
         $this->fsPathsExist($path);
@@ -526,7 +546,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to repository.
      */
-    protected function replaceGitignore($filename, $path): void
+    protected function replaceGitignore(string $filename, string $path): void
     {
         $this->printDebug('Replacing .gitignore: %s with %s', $path.DIRECTORY_SEPARATOR.'.gitignore', $filename);
         $this->fsFileSystem->copy($filename, $path.DIRECTORY_SEPARATOR.'.gitignore', true);
@@ -542,7 +562,7 @@ trait ArtefactTrait
      * @return string
      *   Exclude file name path.
      */
-    protected function getLocalExcludeFileName($path): string
+    protected function getLocalExcludeFileName(string $path): string
     {
         return $path.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info'.DIRECTORY_SEPARATOR.'exclude';
     }
@@ -556,7 +576,7 @@ trait ArtefactTrait
      * @return bool
      *   True if exists, false otherwise.
      */
-    protected function localExcludeExists($path): bool
+    protected function localExcludeExists(string $path): bool
     {
         return $this->fsFileSystem->exists($this->getLocalExcludeFileName($path));
     }
@@ -566,7 +586,7 @@ trait ArtefactTrait
      *
      * @param string $path
      *   Path to repository.
-     * @param bool   $strict
+     * @param bool $strict
      *   Flag to check if the file is empty. If false, comments and empty lines
      *   are considered as empty.
      *
@@ -574,10 +594,12 @@ trait ArtefactTrait
      *   - true, if $strict is true and file has no records.
      *   - false, if $strict is true and file has some records.
      *   - true, if $strict is false and file has only empty lines and comments.
-     *   - false, if $strict is false and file lines other then empty lines or
+     *   - false, if $strict is false and file lines other than empty lines or
      *     comments.
+     *
+     * @throws \Exception
      */
-    protected function localExcludeEmpty($path, $strict = false): bool
+    protected function localExcludeEmpty(string $path, bool $strict = false): bool
     {
         if (!$this->localExcludeExists($path)) {
             throw new \Exception(sprintf('File "%s" does not exist', $path));
@@ -587,12 +609,15 @@ trait ArtefactTrait
         if ($strict) {
             return empty(file_get_contents($filename));
         }
+        $lines = file($filename);
+        if ($lines) {
+            $lines = array_map('trim', $lines);
+            $lines = array_filter($lines, 'strlen');
+            $lines = array_filter($lines, function ($line) {
+                return strpos(trim($line), '#') !== 0;
+            });
+        }
 
-        $lines = array_map('trim', file($filename));
-        $lines = array_filter($lines, 'strlen');
-        $lines = array_filter($lines, function ($line) {
-            return strpos(trim($line), '#') !== 0;
-        });
 
         return empty($lines);
     }
@@ -603,7 +628,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to repository.
      */
-    protected function disableLocalExclude($path): void
+    protected function disableLocalExclude(string $path): void
     {
         $filename = $this->getLocalExcludeFileName($path);
         $filenameDisabled = $filename.'.bak';
@@ -619,7 +644,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to repository.
      */
-    protected function restoreLocalExclude($path): void
+    protected function restoreLocalExclude(string $path): void
     {
         $filename = $this->getLocalExcludeFileName($path);
         $filenameDisabled = $filename.'.bak';
@@ -632,10 +657,12 @@ trait ArtefactTrait
     /**
      * Update index for all files.
      *
-     * @param $location
+     * @param string $location
      *   Path to repository.
+     *
+     * @throws \Exception
      */
-    protected function gitAddAll($location): void
+    protected function gitAddAll(string  $location): void
     {
         $result = $this->gitCommandRun(
             $location,
@@ -648,10 +675,12 @@ trait ArtefactTrait
     /**
      * Update index for all files.
      *
-     * @param $location
+     * @param string $location
      *   Path to repository.
+     *
+     * @throws \Exception
      */
-    protected function gitUpdateIndex($location): void
+    protected function gitUpdateIndex(string $location): void
     {
         $finder = new Finder();
         $files = $finder
@@ -673,13 +702,13 @@ trait ArtefactTrait
      *
      * @param string $location
      *   Path to repository.
-     * @param string $gitignorePath
+     * @param string|null $gitignorePath
      *   Gitignore file name.
      *
      * @throws \Exception
      *   If removal command finished with an error.
      */
-    protected function removeIgnoredFiles($location, $gitignorePath = null): void
+    protected function removeIgnoredFiles(string $location, string $gitignorePath = null): void
     {
         $gitignorePath = $gitignorePath ? $gitignorePath : $location.DIRECTORY_SEPARATOR.'.gitignore';
 
@@ -694,12 +723,15 @@ trait ArtefactTrait
 
         $command = sprintf('ls-files --directory -i -c --exclude-from=%s %s', $gitignorePath, $location);
         $result = $this->gitCommandRun($location, $command, 'Unable to remove ignored files', true);
-        $files = array_filter(preg_split('/\R/', $result->getMessage()));
-        foreach ($files as $file) {
-            $fileName = $location.DIRECTORY_SEPARATOR.$file;
-            $this->printDebug('Removing excluded file %s', $fileName);
-            if ($this->fsFileSystem->exists($fileName)) {
-                $this->fsFileSystem->remove($fileName);
+        $files = preg_split('/\R/', $result->getMessage());
+        if (!empty($files)) {
+            $files = array_filter($files);
+            foreach ($files as $file) {
+                $fileName = $location.DIRECTORY_SEPARATOR.$file;
+                $this->printDebug('Removing excluded file %s', $fileName);
+                if ($this->fsFileSystem->exists($fileName)) {
+                    $this->fsFileSystem->remove($fileName);
+                }
             }
         }
     }
@@ -715,15 +747,18 @@ trait ArtefactTrait
      * @throws \Exception
      *   If removal command finished with an error.
      */
-    protected function removeOtherFiles($location): void
+    protected function removeOtherFiles(string $location): void
     {
-        $command = sprintf('ls-files --others --exclude-standard');
+        $command = 'ls-files --others --exclude-standard';
         $result = $this->gitCommandRun($location, $command, 'Unable to remove other files', true);
-        $files = array_filter(preg_split('/\R/', $result->getMessage()));
-        foreach ($files as $file) {
-            $fileName = $location.DIRECTORY_SEPARATOR.$file;
-            $this->printDebug('Removing other file %s', $fileName);
-            $this->fsFileSystem->remove($fileName);
+        $files = preg_split('/\R/', $result->getMessage());
+        if (!empty($files)) {
+            $files = array_filter($files);
+            foreach ($files as $file) {
+                $fileName = $location.DIRECTORY_SEPARATOR.$file;
+                $this->printDebug('Removing other file %s', $fileName);
+                $this->fsFileSystem->remove($fileName);
+            }
         }
     }
 
@@ -733,7 +768,7 @@ trait ArtefactTrait
      * @param string $path
      *   Path to current repository.
      */
-    protected function removeSubRepos($path): void
+    protected function removeSubRepos(string $path): void
     {
         $finder = new Finder();
         $dirs = $finder
@@ -747,6 +782,9 @@ trait ArtefactTrait
         $dirs = iterator_to_array($dirs->directories());
 
         foreach ($dirs as $dir) {
+            if ($dir instanceof SplFileInfo) {
+                $dir = $dir->getPathname();
+            }
             $this->fsFileSystem->remove($dir);
             $this->printDebug('Removing sub-repository "%s"', (string) $dir);
         }
@@ -757,6 +795,8 @@ trait ArtefactTrait
      *
      * @return string
      *   Branch name.
+     *
+     * @throws \Exception
      */
     protected function getTokenBranch(): string
     {
@@ -766,13 +806,15 @@ trait ArtefactTrait
     /**
      * Token callback to get tags.
      *
-     * @param string $delimiter
+     * @param string|null $delimiter
      *   Token delimiter. Defaults to ', '.
      *
      * @return string
      *   String of tags.
+     *
+     * @throws \Exception
      */
-    protected function getTokenTags($delimiter): string
+    protected function getTokenTags(string $delimiter = null): string
     {
         $delimiter = $delimiter ? $delimiter : '-';
         $tags = $this->gitGetTags($this->src);
@@ -789,7 +831,7 @@ trait ArtefactTrait
      * @return string
      *   Date string.
      */
-    protected function getTokenTimestamp($format = 'Y-m-d_H-i-s'): string
+    protected function getTokenTimestamp(string $format = 'Y-m-d_H-i-s'): string
     {
         return date($format, $this->now);
     }
@@ -803,7 +845,7 @@ trait ArtefactTrait
      * @param string $text
      *   Message text.
      */
-    protected function sayOkay($text): void
+    protected function sayOkay(string $text): void
     {
         $color = 'green';
         $char = $this->decorationCharacter('V', '✔');
@@ -822,6 +864,7 @@ trait ArtefactTrait
 
         $args = func_get_args();
         $message = array_shift($args);
+        /* @phpstan-ignore-next-line */
         $this->writeln(vsprintf($message, $args));
     }
 }

@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo;
 
 use Robo\Contract\VerbosityThresholdInterface;
+use Robo\Exception\TaskException;
 use Robo\LoadAllTasks;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -36,7 +39,7 @@ trait FilesystemTrait
      * Usually, each command would call setCwd() in the beginning and
      * restoreCwd() at the end of the run.
      *
-     * @var array
+     * @var array<string>
      */
     protected $fsOriginalCwdStack = [];
 
@@ -51,12 +54,12 @@ trait FilesystemTrait
     /**
      * Set root directory path.
      *
-     * @param string $path
+     * @param string|null $path
      *   The path of the root directory.
      *
      * @throws \Exception
      */
-    protected function fsSetRootDir($path): void
+    protected function fsSetRootDir(string $path = null): void
     {
         $path = !empty($path) ? $this->fsGetAbsolutePath($path) : $this->fsGetRootDir();
         $this->fsPathsExist($path);
@@ -80,7 +83,7 @@ trait FilesystemTrait
             return $_SERVER['PWD'];
         }
 
-        return getcwd();
+        return (string) getcwd();
     }
 
     /**
@@ -92,7 +95,7 @@ trait FilesystemTrait
      * @param string $dir
      *   Path to the current directory.
      */
-    protected function fsCwdSet($dir): void
+    protected function fsCwdSet(string $dir): void
     {
         chdir($dir);
         $this->fsOriginalCwdStack[] = $dir;
@@ -119,7 +122,7 @@ trait FilesystemTrait
      */
     protected function fsCwdGet(): string
     {
-        return getcwd();
+        return (string) getcwd();
     }
 
     /**
@@ -130,9 +133,12 @@ trait FilesystemTrait
      *
      * @return bool
      *   TRUE if command is available, FALSE otherwise.
+     *
+     * @throws TaskException
      */
-    protected function fsIsCommandAvailable($command): bool
+    protected function fsIsCommandAvailable(string $command): bool
     {
+        /* @phpstan-ignore-next-line */
         $result = $this->taskExecStack()
             ->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG)
             ->printOutput(false)
@@ -169,9 +175,9 @@ trait FilesystemTrait
     /**
      * Check that path exists.
      *
-     * @param string|array $paths
+     * @param string|array<string> $paths
      *   File name or array of file names to check.
-     * @param bool         $strict
+     * @param bool $strict
      *   If TRUE and the file does not exist, an exception will be thrown.
      *   Defaults to TRUE.
      *
@@ -181,7 +187,7 @@ trait FilesystemTrait
      * @throws \Exception
      *   If at least one file does not exist.
      */
-    protected function fsPathsExist($paths, $strict = true): bool
+    protected function fsPathsExist($paths, bool $strict = true): bool
     {
         $paths = is_array($paths) ? $paths : [$paths];
         if (!$this->fsFileSystem->exists($paths)) {
@@ -212,7 +218,7 @@ trait FilesystemTrait
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    protected function realpath($path): string
+    protected function realpath(string $path): string
     {
         // Whether $path is unix or not.
         $unipath = strlen($path) === 0 || $path[0] !== '/';
@@ -246,8 +252,8 @@ trait FilesystemTrait
         }
         // Put initial separator that could have been lost.
         $path = !$unipath ? '/'.$path : $path;
-        $path = $unc ? '\\\\'.$path : $path;
 
-        return $path;
+        /* @phpstan-ignore-next-line */
+        return $unc ? '\\\\'.$path : $path;
     }
 }

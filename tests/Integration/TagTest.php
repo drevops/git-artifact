@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
 /**
@@ -19,7 +21,7 @@ class TagTest extends AbstractIntegrationTestCase
         parent::setUp();
     }
 
-    public function testDetachedTag()
+    public function testDetachedTag(): void
     {
         $this->gitCreateFixtureCommits(2);
         $this->gitAddTag($this->src, 'tag1');

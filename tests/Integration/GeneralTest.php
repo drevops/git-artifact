@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
 /**
@@ -10,26 +12,26 @@ namespace DrevOps\Robo\Tests\Integration;
 class GeneralTest extends AbstractIntegrationTestCase
 {
 
-    public function testPresence()
+    public function testPresence(): void
     {
         $output = $this->runRoboCommand('list');
         $this->assertStringContainsString('artifact', implode(PHP_EOL, $output));
     }
 
-    public function testHelp()
+    public function testHelp(): void
     {
         $output = $this->runRoboCommand('--help artifact');
         $this->assertStringContainsString('artifact [options] [--] <remote>', implode(PHP_EOL, $output));
     }
 
-    public function testCompulsoryParameter()
+    public function testCompulsoryParameter(): void
     {
         $output = $this->runRoboCommand('artifact', true);
 
         $this->assertStringContainsString('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
     }
 
-    public function testInfo()
+    public function testInfo(): void
     {
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild();
@@ -48,7 +50,7 @@ class GeneralTest extends AbstractIntegrationTestCase
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
-    public function testShowChanges()
+    public function testShowChanges(): void
     {
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild('--show-changes');
@@ -59,7 +61,7 @@ class GeneralTest extends AbstractIntegrationTestCase
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
-    public function testNoCleanup()
+    public function testNoCleanup(): void
     {
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild('--no-cleanup');
@@ -70,7 +72,7 @@ class GeneralTest extends AbstractIntegrationTestCase
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
-    public function testReport()
+    public function testReport(): void
     {
         $report = $this->src.DIRECTORY_SEPARATOR.'report.txt';
 
@@ -80,15 +82,15 @@ class GeneralTest extends AbstractIntegrationTestCase
         $this->assertFileExists($report);
         $output = file_get_contents($report);
 
-        $this->assertStringContainsString('Artefact report', $output);
-        $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), $output);
-        $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), $output);
-        $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $output);
-        $this->assertStringContainsString('Gitignore file:    No', $output);
-        $this->assertStringContainsString('Push result:       Success', $output);
+        $this->assertStringContainsString('Artefact report', (string) $output);
+        $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), (string) $output);
+        $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), (string) $output);
+        $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), (string) $output);
+        $this->assertStringContainsString('Gitignore file:    No', (string) $output);
+        $this->assertStringContainsString('Push result:       Success', (string) $output);
     }
 
-    public function testDebug()
+    public function testDebug(): void
     {
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild('--debug');
@@ -100,7 +102,7 @@ class GeneralTest extends AbstractIntegrationTestCase
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
     }
 
-    public function testDebugDisabled()
+    public function testDebugDisabled(): void
     {
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild();

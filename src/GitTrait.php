@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo;
 
 use Robo\Collection\CollectionBuilder;
@@ -35,7 +37,7 @@ trait GitTrait
      *
      * @throws \Exception
      */
-    protected function gitSetSrcRepo($path): void
+    protected function gitSetSrcRepo(string $path): void
     {
         $this->fsPathsExist($path);
         $this->src = $path;
@@ -47,7 +49,7 @@ trait GitTrait
      * @param string $path
      *   Path or URL of the remote git repository.
      */
-    protected function gitSetDst($path): void
+    protected function gitSetDst(string $path): void
     {
         if (!$this->gitIsRemote($path)) {
             throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote', $path));
@@ -71,7 +73,7 @@ trait GitTrait
      * @throws \Exception
      *   If unable to add a remote.
      */
-    protected function gitAddRemote($location, $name, $remote): Result
+    protected function gitAddRemote(string $location, string $name, string $remote): Result
     {
         return $this->gitCommandRun(
             $location,
@@ -91,17 +93,23 @@ trait GitTrait
      * @return bool
      *   TRUE if remote with the name already exists in current repo, FALSE
      *   otherwise.
+     *
+     * @throws \Exception
      */
-    protected function gitRemoteExists($location, $name): bool
+    protected function gitRemoteExists(string $location, string $name): bool
     {
         $result = $this->gitCommandRun(
             $location,
-            sprintf('remote'),
+            'remote',
             'Unable to list remotes',
             true
         );
 
         $lines = preg_split('/\R/', $result->getMessage());
+
+        if (empty($lines)) {
+            return false;
+        }
 
         return in_array($name, $lines);
     }
@@ -113,14 +121,16 @@ trait GitTrait
      *   Local path or remote URI of the repository.
      * @param string $branch
      *   Branch name.
-     * @param bool   $createNew
+     * @param bool $createNew
      *   Optional flag to also create a branch before switching. Defaults to
      *   false.
      *
      * @return \Robo\Result
      *   Result object.
+     *
+     * @throws \Exception
      */
-    protected function gitSwitchToBranch($location, $branch, $createNew = false): Result
+    protected function gitSwitchToBranch(string $location, string $branch, bool $createNew = false): Result
     {
         return $this->gitCommandRun(
             $location,
@@ -227,7 +237,7 @@ trait GitTrait
      * @throws \Exception
      *  If unable to get the branch.
      */
-    protected function gitGetCurrentBranch($location): string
+    protected function gitGetCurrentBranch(string $location): string
     {
         $result = $this->gitCommandRun(
             $location,
@@ -245,12 +255,13 @@ trait GitTrait
      * @param string $location
      *   Repository location path or URI.
      *
-     * @return array
+     * @return array<string>
      *   Array of tags.
+     *
      * @throws \Exception
      *   If not able to retrieve tags.
      */
-    protected function gitGetTags($location): array
+    protected function gitGetTags(string $location): array
     {
         $result = $this->gitCommandRun(
             $location,
@@ -258,8 +269,12 @@ trait GitTrait
             'Unable to retrieve tags',
             true
         );
+        $tags = preg_split('/\R/', $result->getMessage());
+        if (empty($tags)) {
+            return [];
+        }
 
-        return array_filter(preg_split('/\R/', $result->getMessage()));
+        return array_filter($tags);
     }
 
     /**
@@ -273,19 +288,21 @@ trait GitTrait
      *   Repository location path or URI.
      * @param string $command
      *   Command to run.
-     * @param null   $errorMessage
+     * @param string|null $errorMessage
      *   Optional error message.
-     * @param bool   $noDebug
+     * @param bool $noDebug
      *   Flag to enforce no-debug mode. Used by commands that use output for
      *   values.
      *
      * @return \Robo\Result
      *   Result object.
+     *
      * @throws \Exception If command did not finish successfully.
      */
-    protected function gitCommandRun($location, $command, $errorMessage = null, $noDebug = false): Result
+    protected function gitCommandRun(string $location, string $command, string $errorMessage = null, bool $noDebug = false): Result
     {
         $git = $this->gitCommand($location, $noDebug);
+        /* @phpstan-ignore-next-line */
         $git->rawArg($command);
         $result = $git->run();
 
@@ -300,17 +317,18 @@ trait GitTrait
     /**
      * Get unified git command.
      *
-     * @param string $location
+     * @param string|null $location
      *   Optional repository location.
-     * @param bool   $noDebug
+     * @param bool $noDebug
      *   Flag to enforce no-debug mode. Used by commands that use output for
      *   values.
      *
      * @return \Robo\Task\Base\Exec|\Robo\Collection\CollectionBuilder
      *   Exec task.
      */
-    protected function gitCommand($location = null, $noDebug = false): object
+    protected function gitCommand(string $location = null, bool $noDebug = false): object
     {
+        /* @phpstan-ignore-next-line */
         $git = $this->taskExec('git')
             ->printOutput(false)
             ->arg('--no-pager');
@@ -346,8 +364,10 @@ trait GitTrait
      *
      * @return bool
      *   Returns TRUE if location matches type, FALSE otherwise.
+     *
+     * @throws \Exception
      */
-    protected function gitIsRemote($location, $type = 'any'): bool
+    protected function gitIsRemote(string $location, string $type = 'any'): bool
     {
         $isLocal = $this->fsPathsExist($this->fsGetAbsolutePath($location), false);
         $isUri = self::gitIsUri($location);
@@ -376,9 +396,9 @@ trait GitTrait
      * @return bool
      *   TRUE if it is a valid Git branch, FALSE otherwise.
      */
-    protected static function gitIsValidBranch($branch): bool
+    protected static function gitIsValidBranch(string $branch): bool
     {
-        return (bool) preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $branch) && strlen($branch) < 255;
+        return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $branch) && strlen($branch) < 255;
     }
 
     /**
@@ -390,7 +410,7 @@ trait GitTrait
      * @return bool
      *   TRUE if location is URI, FALSE otherwise.
      */
-    protected static function gitIsUri($location): bool
+    protected static function gitIsUri(string $location): bool
     {
         return (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $location);
     }

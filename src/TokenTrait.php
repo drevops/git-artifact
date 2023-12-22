@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo;
 
 /**
@@ -14,13 +16,13 @@ trait TokenTrait
      * @param string $string
      *   String that may contain tokens surrounded by '[' and ']'.
      *
-     * @return string
+     * @return string|null
      *   String with replaced tokens if replacements are available or
      *   original string.
      */
-    protected function tokenProcess($string): string
+    protected function tokenProcess(string $string): ?string
     {
-        $string = preg_replace_callback('/(?:\[([^\]]+)\])/', function ($match) {
+        return preg_replace_callback('/(?:\[([^\]]+)\])/', function ($match) {
             if (count($match) > 1) {
                 $parts = explode(':', $match[1], 2);
                 $token = isset($parts[0]) ? $parts[0] : null;
@@ -28,6 +30,7 @@ trait TokenTrait
                 if ($token) {
                     $method = 'getToken'.ucfirst($token);
                     if (method_exists($this, $method)) {
+                        /* @phpstan-ignore-next-line */
                         $match[0] = call_user_func([$this, $method], $argument);
                     }
                 }
@@ -35,8 +38,6 @@ trait TokenTrait
 
             return $match[0];
         }, $string);
-
-        return $string;
     }
 
     /**
@@ -48,7 +49,7 @@ trait TokenTrait
      * @return bool
      *   True if there is at least one token present, false otherwise.
      */
-    protected function hasToken($string): bool
+    protected function hasToken(string $string): bool
     {
         return (bool) preg_match('/\[[^]]+]/', $string);
     }

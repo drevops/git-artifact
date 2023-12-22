@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Unit;
 
 /**
@@ -10,7 +12,7 @@ namespace DrevOps\Robo\Tests\Unit;
 class ExcludeTest extends AbstractUnitTestCase
 {
 
-    public function testExcludeExists()
+    public function testExcludeExists(): void
     {
         $this->createFixtureExcludeFile();
 
@@ -21,9 +23,18 @@ class ExcludeTest extends AbstractUnitTestCase
 
 
     /**
+     * @param array<string> $lines
+     *   Lines.
+     * @param bool $strict
+     *   Strict.
+     * @param bool $expected
+     *   Expected.
+     *
+     * @return void
+     *
      * @dataProvider dataProviderExcludeEmpty
      */
-    public function testExcludeEmpty($lines, $strict, $expected)
+    public function testExcludeEmpty(array $lines, bool $strict, bool $expected): void
     {
         $this->createFixtureExcludeFile(implode(PHP_EOL, $lines));
 
@@ -33,12 +44,12 @@ class ExcludeTest extends AbstractUnitTestCase
     }
 
     /**
-     * @return array[]
+     * @return array<mixed>
      *   Data provider.
      *
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-    public static function dataProviderExcludeEmpty()
+    public static function dataProviderExcludeEmpty(): array
     {
         return [
             // Empty file.

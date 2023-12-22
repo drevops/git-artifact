@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -67,24 +69,27 @@ abstract class AbstractTestCase extends TestCase
     /**
      * Call protected methods on the class.
      *
-     * @param object|string $object
+     * @param object|class-string $object
      *   Object or class name to use for a method call.
-     * @param string        $method
+     * @param string $method
      *   Method name. Method can be static.
-     * @param array         $args
+     * @param array<mixed> $args
      *   Array of arguments to pass to the method. To pass arguments by
      *   reference, pass them by reference as an element of this array.
      *
      * @return mixed
      *   Method result.
+     *
+     * @throws \ReflectionException
      */
-    protected static function callProtectedMethod($object, $method, array $args = [])
+    protected static function callProtectedMethod($object, string $method, array $args = [])
     {
         $class = new \ReflectionClass(is_object($object) ? get_class($object) : $object);
         $method = $class->getMethod($method);
         $method->setAccessible(true);
         $object = $method->isStatic() ? null : $object;
 
+        /* @phpstan-ignore-next-line */
         return $method->invokeArgs($object, $args);
     }
 
@@ -95,10 +100,12 @@ abstract class AbstractTestCase extends TestCase
      *   Object to set the value on.
      * @param string $property
      *   Property name to set the value. Property should exists in the object.
-     * @param mixed  $value
+     * @param mixed $value
      *   Value to set to the property.
+     *
+     * @throws \ReflectionException
      */
-    protected static function setProtectedValue($object, $property, $value)
+    protected static function setProtectedValue($object, string $property, $value): void
     {
         $class = new \ReflectionClass(get_class($object));
         $property = $class->getProperty($property);
@@ -130,18 +137,20 @@ abstract class AbstractTestCase extends TestCase
     /**
      * Helper to prepare class or trait mock.
      *
-     * @param string $class
+     * @param class-string $class
      *   Class or trait name to generate the mock.
-     * @param array  $methodsMap
+     * @param array<string, \Closure> $methodsMap
      *   Optional array of methods and values, keyed by method name. Array
      *   elements can be return values, callbacks created with
      *   $this->returnCallback(), or closures.
-     * @param array  $args
+     * @param array<mixed> $args
      *   Optional array of constructor arguments. If omitted, a constructor
      *   will not be called.
      *
      * @return object
      *   Mocked class.
+     *
+     * @throws \ReflectionException
      */
     protected function prepareMock($class, array $methodsMap = [], array $args = [])
     {
@@ -161,6 +170,8 @@ abstract class AbstractTestCase extends TestCase
             } else {
                 $mockBuilder = $mockBuilder->disableOriginalConstructor();
             }
+            /* @todo setMethods method is not found on MockBuilder */
+            /* @phpstan-ignore-next-line */
             $mock = $mockBuilder->setMethods($methods)
                 ->getMock();
         }
