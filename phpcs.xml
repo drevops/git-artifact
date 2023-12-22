@@ -1,14 +1,27 @@
 <?xml version="1.0"?>
-<ruleset name="git-artifact">
-    <description>Custom coding standard.</description>
+<ruleset name="custom">
+    <description>Custom PHPCS standard.</description>
 
-    <rule ref="Symfony"/>
+    <!-- Coding standard. -->
+    <rule ref="Symfony">
+        <exclude name="Symfony.Commenting.FunctionComment.SpacingAfterParamType" />
+    </rule>
 
-    <file>src</file>
-    <file>tests</file>
-
+    <!-- Show sniff codes in all reports -->
+    <arg value="s"/>
+    <!-- Show progress of the run. -->
+    <arg value="p"/>
     <arg name="colors"/>
-    <arg value="sp"/>
+
+    <!--
+    PHP_CodeSniffer does not support scanning of files without extensions, so
+    we have to use the ugly workaround to copy the file into a file with a 'php'
+    extension, scan that file, and then delete it.
+    @see https://github.com/squizlabs/PHP_CodeSniffer/issues/2916
+    -->
+    <file>src</file>
+    <file>RoboFile.php</file>
+    <file>tests</file>
 
     <rule ref="Symfony.Commenting.License.Warning">
         <exclude-pattern>*.*</exclude-pattern>
@@ -18,6 +31,10 @@
     </rule>
     <rule ref="Symfony.ControlStructure.YodaConditions.Invalid">
         <exclude-pattern>*.*</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR1">
+        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace" />
     </rule>
 
     <!--Allow uncommented functions in tests as they usually provide enough
