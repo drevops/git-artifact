@@ -8,6 +8,9 @@ namespace DrevOps\Robo\Tests\Integration;
  * Class GeneralTest.
  *
  * @group integration
+ *
+ * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\FilesystemTrait
  */
 class GeneralTest extends AbstractIntegrationTestCase
 {

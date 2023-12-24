@@ -8,6 +8,8 @@ namespace DrevOps\Robo\Tests\Integration;
  * Class ForcePushTest.
  *
  * @group integration
+ *
+ * @covers \DrevOps\Robo\TokenTrait
  */
 class TokenTest extends AbstractIntegrationTestCase
 {

@@ -10,6 +10,10 @@ namespace DrevOps\Robo\Tests\Integration;
  * @group integration
  *
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ *
+ * @covers \DrevOps\Robo\GitTrait
+ * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\FilesystemTrait
  */
 class ForcePushTest extends AbstractIntegrationTestCase
 {

@@ -8,6 +8,10 @@ namespace DrevOps\Robo\Tests\Integration;
  * Class BranchTest.
  *
  * @group integration
+ *
+ * @covers \DrevOps\Robo\GitTrait
+ * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\FilesystemTrait
  */
 class BranchTest extends AbstractIntegrationTestCase
 {

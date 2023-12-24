@@ -8,10 +8,15 @@ namespace DrevOps\Robo\Tests\Unit;
  * Class ExcludeTest.
  *
  * @group unit
+ *
+ * @covers \DrevOps\Robo\ArtefactTrait
  */
 class ExcludeTest extends AbstractUnitTestCase
 {
 
+    /**
+     * @throws \ReflectionException
+     */
     public function testExcludeExists(): void
     {
         $this->createFixtureExcludeFile();
@@ -33,6 +38,8 @@ class ExcludeTest extends AbstractUnitTestCase
      * @return void
      *
      * @dataProvider dataProviderExcludeEmpty
+     *
+     * @throws \ReflectionException
      */
     public function testExcludeEmpty(array $lines, bool $strict, bool $expected): void
     {
@@ -174,7 +181,7 @@ class ExcludeTest extends AbstractUnitTestCase
      * @return string
      *   Created file name.
      */
-    protected function createFixtureExcludeFile($contents = '')
+    protected function createFixtureExcludeFile(string $contents = ''): string
     {
         return $this->gitCreateFixtureFile($this->fixtureDir.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info', 'exclude', $contents);
     }
