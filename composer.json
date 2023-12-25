@@ -15,6 +15,7 @@
         "source": "https://github.com/drevops/git-artifact"
     },
     "require": {
+        "php": ">=8.1",
         "consolidation/robo": "^4"
     },
     "require-dev": {
