@@ -1,16 +1,23 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Unit;
 
 /**
  * Class ExcludeTest.
  *
  * @group unit
+ *
+ * @covers \DrevOps\Robo\ArtefactTrait
  */
-class ExcludeTest extends AbstractUnitTest
+class ExcludeTest extends AbstractUnitTestCase
 {
 
-    public function testExcludeExists()
+    /**
+     * @throws \ReflectionException
+     */
+    public function testExcludeExists(): void
     {
         $this->createFixtureExcludeFile();
 
@@ -21,9 +28,20 @@ class ExcludeTest extends AbstractUnitTest
 
 
     /**
+     * @param array<string> $lines
+     *   Lines.
+     * @param bool $strict
+     *   Strict.
+     * @param bool $expected
+     *   Expected.
+     *
+     * @return void
+     *
      * @dataProvider dataProviderExcludeEmpty
+     *
+     * @throws \ReflectionException
      */
-    public function testExcludeEmpty($lines, $strict, $expected)
+    public function testExcludeEmpty(array $lines, bool $strict, bool $expected): void
     {
         $this->createFixtureExcludeFile(implode(PHP_EOL, $lines));
 
@@ -32,7 +50,13 @@ class ExcludeTest extends AbstractUnitTest
         $this->assertEquals($expected, $actual);
     }
 
-    public function dataProviderExcludeEmpty()
+    /**
+     * @return array<mixed>
+     *   Data provider.
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public static function dataProviderExcludeEmpty(): array
     {
         return [
             // Empty file.
@@ -157,7 +181,7 @@ class ExcludeTest extends AbstractUnitTest
      * @return string
      *   Created file name.
      */
-    protected function createFixtureExcludeFile($contents = '')
+    protected function createFixtureExcludeFile(string $contents = ''): string
     {
         return $this->gitCreateFixtureFile($this->fixtureDir.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info', 'exclude', $contents);
     }

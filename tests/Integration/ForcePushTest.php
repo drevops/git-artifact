@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
 /**
  * Class ForcePushTest.
  *
  * @group integration
+ *
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ *
+ * @covers \DrevOps\Robo\GitTrait
+ * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\FilesystemTrait
  */
-class ForcePushTest extends AbstractIntegrationTest
+class ForcePushTest extends AbstractIntegrationTestCase
 {
 
     protected function setUp(): void
@@ -16,7 +24,7 @@ class ForcePushTest extends AbstractIntegrationTest
         parent::setUp();
     }
 
-    public function testBuild()
+    public function testBuild(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -27,7 +35,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testBuildMoreCommits()
+    public function testBuildMoreCommits(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -41,7 +49,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(5, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testIdempotence()
+    public function testIdempotence(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -52,7 +60,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testSubRepos()
+    public function testSubRepos(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -90,7 +98,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->gitAssertFilesNotExist($this->dst, ['r3/r31/311/.git']);
     }
 
-    public function testCleanupAfterSuccess()
+    public function testCleanupAfterSuccess(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -101,7 +109,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertGitNoRemote($this->src, $this->remote);
     }
 
-    public function testCleanupAfterFailure()
+    public function testCleanupAfterFailure(): void
     {
         $this->gitCreateFixtureCommits(1);
 
@@ -112,7 +120,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertGitNoRemote($this->src, $this->remote);
     }
 
-    public function testGitignore()
+    public function testGitignore(): void
     {
         $this->gitCreateFixtureFile($this->src, '.gitignore', 'f3');
         $this->gitCreateFixtureCommits(2);
@@ -130,7 +138,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testGitignoreCustom()
+    public function testGitignoreCustom(): void
     {
         $this->gitCreateFixtureCommits(2);
         $this->gitCreateFixtureFile($this->src, 'uic');
@@ -160,7 +168,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->gitAssertNoFilesCommitted($this->dst, ['uc'], 'testbranch');
     }
 
-    public function testGitignoreCustomRemoveCommittedFiles()
+    public function testGitignoreCustomRemoveCommittedFiles(): void
     {
         $this->gitCreateFixtureFile($this->src, '.gitignore', ['ii', 'ic']);
 
@@ -186,7 +194,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->gitAssertFilesNotExist($this->dst, ['f1', 'ii', 'd/ci', 'ui'], 'testbranch');
     }
 
-    public function testGitignoreCustomWhitelisting()
+    public function testGitignoreCustomWhitelisting(): void
     {
         $this->gitCreateFixtureFile($this->src, '.gitignore', ['ii', 'ic', 'd_ic', 'd_ii', '/vendor']);
 
@@ -267,7 +275,7 @@ class ForcePushTest extends AbstractIntegrationTest
         ], 'testbranch');
     }
 
-    public function testBuildTag()
+    public function testBuildTag(): void
     {
         $this->gitCreateFixtureCommits(2);
         $this->gitAddTag($this->src, 'tag1');
@@ -277,7 +285,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'tag1', ['Deployment commit']);
     }
 
-    public function testBuildMultipleTags()
+    public function testBuildMultipleTags(): void
     {
         $this->gitCreateFixtureCommits(2);
         $this->gitAddTag($this->src, 'tag1');
@@ -288,7 +296,7 @@ class ForcePushTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'tag1-tag2', ['Deployment commit']);
     }
 
-    public function testBuildMultipleTagsDelimiter()
+    public function testBuildMultipleTagsDelimiter(): void
     {
         $this->gitCreateFixtureCommits(2);
         $this->gitAddTag($this->src, 'tag1');

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests;
 
+use DrevOps\Robo\Tests\Exception\ErrorException;
 use PHPUnit\Framework\AssertionFailedError;
-use PHPUnit\Framework\Error\Error;
 use SebastianBergmann\GlobalState\RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -50,11 +52,11 @@ trait CommandTrait
      *   Source path.
      * @param string $remote
      *   Remote path.
-     * @param bool   $printDebug
+     * @param bool $printDebug
      *   Optional flag to print debug information when running commands.
      *   Defaults to FALSE.
      */
-    protected function setUp($src, $remote, $printDebug = false): void
+    protected function setUp(string $src, string $remote, bool $printDebug = false): void
     {
         $this->printDebug = $printDebug;
         $this->fs = new Filesystem();
@@ -72,7 +74,7 @@ trait CommandTrait
      *
      * To be called by test's tearDown() method.
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->fs->exists($this->src)) {
             $this->fs->remove($this->src);
@@ -88,7 +90,7 @@ trait CommandTrait
      * @param string $path
      *   Path to the repository directory.
      */
-    protected function gitInitRepo($path)
+    protected function gitInitRepo(string $path): void
     {
         if ($this->fs->exists($path)) {
             $this->fs->remove($path);
@@ -101,23 +103,25 @@ trait CommandTrait
     /**
      * Get all commit hashes in the repository.
      *
-     * @param null   $path
+     * @param string|null $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      * @param string $format
      *   Format of commits.
      *
-     * @return array
+     * @return array<string>
      *   Array of commit hashes, sorted from the earliest to the latest commit.
+     *
      * @throws \Exception
      */
-    protected function gitGetAllCommits($path = null, $format = '%s')
+    protected function gitGetAllCommits(string $path = null, string $format = '%s'): array
     {
         $commits = [];
         try {
             $commits = $this->runGitCommand('log --format="'.$format.'"', $path);
         } catch (\Exception $exception) {
-            $output = trim($exception->getPrevious()->getMessage());
+            $output = ($exception->getPrevious() instanceof \Throwable) ? $exception->getPrevious()->getMessage() : '';
+            $output = trim($output);
             // Different versions of Git may produce these expected messages.
             $expectedErrorMessages = [
                 "fatal: bad default revision 'HEAD'",
@@ -134,16 +138,18 @@ trait CommandTrait
     /**
      * Get a range of commits.
      *
-     * @param array  $range
+     * @param array<int> $range
      *   Array of commit indexes, stating from 1.
-     * @param string $path
+     * @param string|null $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      *
-     * @return array
+     * @return array<string>
      *   Array of commit hashes, ordered by keys in the $range.
+     *
+     * @throws \Exception
      */
-    protected function gitGetCommitsHashesFromRange(array $range, $path = null)
+    protected function gitGetCommitsHashesFromRange(array $range, string $path = null): array
     {
         $commits = $this->gitGetAllCommits($path);
 
@@ -162,14 +168,14 @@ trait CommandTrait
     /**
      * Get all committed files.
      *
-     * @param string $path
+     * @param string|null $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      *
-     * @return array
+     * @return array<string>
      *   Array of commit committed files.
      */
-    protected function gitGetCommittedFiles($path = null)
+    protected function gitGetCommittedFiles(string $path = null): array
     {
         return $this->runGitCommand('ls-tree --full-tree --name-only -r HEAD', $path);
     }
@@ -177,15 +183,15 @@ trait CommandTrait
     /**
      * Create multiple fixture commits.
      *
-     * @param int  $count
+     * @param int $count
      *   Number of commits to create.
-     * @param int  $offset
+     * @param int $offset
      *   Number of commit indices to offset.
-     * @param null $path
+     * @param string|null $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      */
-    protected function gitCreateFixtureCommits($count, $offset = 0, $path = null)
+    protected function gitCreateFixtureCommits(int $count, int $offset = 0, string $path = null): void
     {
         $path = $path ? $path : $this->src;
         for ($i = $offset; $i < $count + $offset; $i++) {
@@ -196,16 +202,16 @@ trait CommandTrait
     /**
      * Create fixture commit with specified index.
      *
-     * @param string $index
+     * @param int $index
      *   Index of the commit to be used in the message.
-     * @param string $path
+     * @param string|null $path
      *   Optional path to the repository directory. If not provided, fixture
      *   directory is used.
      *
      * @return string
      *   Hash of created commit.
      */
-    protected function gitCreateFixtureCommit($index, $path = null)
+    protected function gitCreateFixtureCommit(int $index, string $path = null): string
     {
         $path = $path ? $path : $this->src;
         $this->gitCreateFixtureFile($path, 'f'.$index);
@@ -225,7 +231,7 @@ trait CommandTrait
      * @param string $message
      *   Commit message.
      */
-    protected function gitCommitAll($path, $message)
+    protected function gitCommitAll(string $path, string $message): void
     {
         $this->runGitCommand('add .', $path);
         $this->runGitCommand(sprintf('commit -am "%s"', $message), $path);
@@ -239,16 +245,16 @@ trait CommandTrait
      * @param string $branch
      *   Branch name.
      */
-    protected function gitCheckout($path, $branch)
+    protected function gitCheckout(string $path, string $branch): void
     {
         try {
             $this->runGitCommand(sprintf('checkout %s', $branch), $path);
-        } catch (Error $error) {
+        } catch (ErrorException $error) {
             $allowedFails = [
                 "error: pathspec '$branch' did not match any file(s) known to git",
             ];
 
-            $output = explode(PHP_EOL, $error->getPrevious()->getMessage());
+            $output = explode(PHP_EOL, ($error->getPrevious() instanceof \Throwable) ? $error->getPrevious()->getMessage() : '');
             // Re-throw exception if it is not one of the allowed ones.
             if (empty(array_intersect($output, $allowedFails))) {
                 throw $error;
@@ -275,13 +281,13 @@ trait CommandTrait
      *    File path.
      * @param string $name
      *    Optional file name.
-     * @param string $content
+     * @param string|array<string> $content
      *    Optional file content.
      *
      * @return string
      *   Created file name.
      */
-    protected function gitCreateFixtureFile($path, $name = '', $content = '')
+    protected function gitCreateFixtureFile(string $path, string $name = '', $content = ''): string
     {
         $name = $name ? $name : 'tmp'.rand(1000, 100000);
         $path = $path.DIRECTORY_SEPARATOR.$name;
@@ -306,7 +312,7 @@ trait CommandTrait
      * @param string $name
      *    File name.
      */
-    protected function gitRemoveFixtureFile($path, $name)
+    protected function gitRemoveFixtureFile(string $path, string $name): void
     {
         $path = $path.DIRECTORY_SEPARATOR.$name;
         $this->fs->remove($path);
@@ -323,10 +329,10 @@ trait CommandTrait
      *   Optional path to the repository directory.
      * @param string $name
      *   Tag name.
-     * @param bool   $annotate
+     * @param bool $annotate
      *   Optional flag to add random annotation to the tag. Defaults to FALSE.
      */
-    protected function gitAddTag($path, $name, $annotate = false)
+    protected function gitAddTag(string $path, string $name, bool $annotate = false): void
     {
         if ($annotate) {
             $this->runGitCommand(sprintf('tag -a %s -m "%s"', $name, 'Annotation for tag '.$name), $path);
@@ -338,16 +344,16 @@ trait CommandTrait
     /**
      * Assert that files exist in repository in specified branch.
      *
-     * @param string       $path
+     * @param string $path
      *   Repository location.
-     * @param array|string $files
+     * @param array<string>|string $files
      *   File or array of files.
-     * @param string|null  $branch
+     * @param string|null $branch
      *   Optional branch. If set, will be checked out before assertion.
      *
      * @todo: Update arguments order and add assertion message.
      */
-    protected function gitAssertFilesExist($path, $files, $branch = null)
+    protected function gitAssertFilesExist(string $path, $files, string $branch = null): void
     {
         $files = is_array($files) ? $files : [$files];
         if ($branch) {
@@ -361,14 +367,14 @@ trait CommandTrait
     /**
      * Assert that files do not exist in repository in specified branch.
      *
-     * @param string       $path
+     * @param string $path
      *   Repository location.
-     * @param array|string $files
+     * @param array<string>|string $files
      *   File or array of files.
-     * @param string|null  $branch
+     * @param string|null $branch
      *   Optional branch. If set, will be checked out before assertion.
      */
-    protected function gitAssertFilesNotExist($path, $files, $branch = null)
+    protected function gitAssertFilesNotExist(string $path, $files, string $branch = null): void
     {
         $files = is_array($files) ? $files : [$files];
         if ($branch) {
@@ -382,14 +388,14 @@ trait CommandTrait
     /**
      * Assert git files are present and were committed.
      *
-     * @param string        $path
+     * @param string $path
      *   Path to repo.
-     * @param array| string $expectedFiles
+     * @param array<string>|string $expectedFiles
      *   Array of files or a single file.
-     * @param string        $branch
+     * @param string $branch
      *   Optional branch name.
      */
-    protected function gitAssertFilesCommitted($path, $expectedFiles, $branch = ''): void
+    protected function gitAssertFilesCommitted(string $path, $expectedFiles, string $branch = ''): void
     {
         if ($branch) {
             $this->gitCheckout($path, $branch);
@@ -402,14 +408,14 @@ trait CommandTrait
     /**
      * Assert git files were not committed.
      *
-     * @param string        $path
+     * @param string $path
      *   Path to repo.
-     * @param array| string $expectedFiles
+     * @param array<string>|string $expectedFiles
      *   Array of files or a single file.
-     * @param string        $branch
+     * @param string $branch
      *   Optional branch name.
      */
-    protected function gitAssertNoFilesCommitted($path, $expectedFiles, $branch = '')
+    protected function gitAssertNoFilesCommitted(string $path, $expectedFiles, string $branch = ''): void
     {
         if ($branch) {
             $this->gitCheckout($path, $branch);
@@ -423,18 +429,20 @@ trait CommandTrait
     /**
      * Assert which git commits are present.
      *
-     * @param int    $count
+     * @param int $count
      *   Number of commits.
      * @param string $path
      *   Path to the repo.
      * @param string $branch
      *   Branch name.
-     * @param array  $additionalCommits
+     * @param array<string> $additionalCommits
      *   Array of additional commits.
-     * @param array  $assertFiles
-     *   Array of files.
+     * @param bool $assertFiles
+     *   Assert files or not.
+     *
+     * @throws \Exception
      */
-    protected function assertFixtureCommits($count, $path, $branch, $additionalCommits = [], $assertFiles = true): void
+    protected function assertFixtureCommits(int $count, string $path, string $branch, array $additionalCommits = [], bool $assertFiles = true): void
     {
         $this->gitCheckout($path, $branch);
         $this->gitReset($path);
@@ -460,14 +468,14 @@ trait CommandTrait
      *
      * @param string $args
      *   CLI arguments.
-     * @param string $path
+     * @param string|null $path
      *   Optional path to the repository. If not provided, fixture repository is
      *   used.
      *
-     * @return array
+     * @return array<string>
      *   Array of output lines.
      */
-    protected function runGitCommand($args, $path = null)
+    protected function runGitCommand(string $args, string $path = null): array
     {
         $path = $path ? $path : $this->src;
 
@@ -485,15 +493,15 @@ trait CommandTrait
      *
      * @param string $command
      *   Command string to run.
-     * @param bool   $expectFail
+     * @param bool $expectFail
      *   Flag to state that the command should fail.
      * @param string $roboBin
      *   Optional relative path to Robo binary.
      *
-     * @return array Array of output lines.
+     * @return array<string>
      *   Array of output lines.
      */
-    public function runRoboCommand($command, $expectFail = false, $roboBin = 'vendor/bin/robo')
+    public function runRoboCommand(string $command, bool $expectFail = false, string $roboBin = 'vendor/bin/robo'): array
     {
         if (!file_exists($roboBin)) {
             throw new RuntimeException(sprintf('Robo binary is not available at path "%s"', $roboBin));
@@ -504,11 +512,11 @@ trait CommandTrait
             if ($expectFail) {
                 throw new AssertionFailedError('Command exited successfully but should not');
             }
-        } catch (Error $error) {
+        } catch (ErrorException $error) {
             if (!$expectFail) {
                 throw $error;
             }
-            $output = explode(PHP_EOL, $error->getPrevious()->getMessage());
+            $output = explode(PHP_EOL, ($error->getPrevious() instanceof \Throwable) ? $error->getPrevious()->getMessage() : '');
         }
 
         return $output;
@@ -520,13 +528,13 @@ trait CommandTrait
      * @param string $command
      *   Command string to run.
      *
-     * @return array
+     * @return array<string>
      *   Array of output lines.
      *
-     * @throws \PHPUnit\Framework\Error\Error
+     * @throws \DrevOps\Robo\Tests\Exception\ErrorException
      *   If commands exists with non-zero status.
      */
-    protected function runCliCommand($command)
+    protected function runCliCommand(string $command): array
     {
         if ($this->printDebug) {
             print '++ '.$command.PHP_EOL;
@@ -534,10 +542,10 @@ trait CommandTrait
         exec($command.' 2>&1', $output, $code);
 
         if ($code !== 0) {
-            throw new Error(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new Error(implode(PHP_EOL, $output), $code, '', -1));
+            throw new ErrorException(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new ErrorException(implode(PHP_EOL, $output), $code, '', -1));
         }
         if ($this->printDebug) {
-            print '++++ '.implode($output, PHP_EOL).PHP_EOL;
+            print '++++ '.implode(PHP_EOL, $output).PHP_EOL;
         }
 
         return $output;
@@ -551,8 +559,10 @@ trait CommandTrait
      *
      * @param array $expected
      * @param array $array
+     *
+     * @phpstan-ignore-next-line
      */
-    protected function assertArraySimilar(array $expected, array $array)
+    protected function assertArraySimilar(array $expected, array $array): void
     {
         $this->assertEquals([], array_diff($array, $expected));
         $this->assertEquals([], array_diff_key($array, $expected));

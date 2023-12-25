@@ -1,19 +1,23 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
 /**
  * Class ForcePushTest.
  *
  * @group integration
+ *
+ * @covers \DrevOps\Robo\TokenTrait
  */
-class TokenTest extends AbstractIntegrationTest
+class TokenTest extends AbstractIntegrationTestCase
 {
 
     /**
      * @dataProvider dataProviderTokenProcess
      */
-    public function testTokenProcess($string, $name, $replacement, $expectedString)
+    public function testTokenProcess(string $string, string $name, string $replacement, string $expectedString): void
     {
         $mock = $this->prepareMock('DrevOps\Robo\TokenTrait', [
             'getToken'.ucfirst($name) => function ($prop) use ($replacement) {
@@ -25,7 +29,11 @@ class TokenTest extends AbstractIntegrationTest
         $this->assertEquals($expectedString, $actual);
     }
 
-    public function dataProviderTokenProcess()
+    /**
+     * @return array<array<string>>
+     *   Data provider.
+     */
+    public static function dataProviderTokenProcess(): array
     {
         return [
             [
@@ -96,7 +104,7 @@ class TokenTest extends AbstractIntegrationTest
     /**
      * @dataProvider dataProviderHasToken
      */
-    public function testHasToken($string, $hasToken)
+    public function testHasToken(string $string, bool $hasToken): void
     {
         $mock = $this->prepareMock('DrevOps\Robo\TokenTrait');
 
@@ -104,7 +112,11 @@ class TokenTest extends AbstractIntegrationTest
         $this->assertEquals($hasToken, $actual);
     }
 
-    public function dataProviderHasToken()
+    /**
+     * @return array<mixed>
+     *     Data provider.
+     */
+    public static function dataProviderHasToken(): array
     {
         return [
             ['notoken', false],

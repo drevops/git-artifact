@@ -1,7 +1,7 @@
 {
     "name": "drevops/git-artifact",
-    "description": "Build artifact from your codebase in CI and push it to a separate git repo.",
     "type": "robo-tasks",
+    "description": "Build artifact from your codebase in CI and push it to a separate git repo.",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
@@ -9,18 +9,31 @@
             "email": "alex@drevops.com"
         }
     ],
+    "homepage": "https://github.com/drevops/git-artifact",
+    "support": {
+        "issues": "https://github.com/drevops/git-artifact/issues",
+        "source": "https://github.com/drevops/git-artifact"
+    },
     "require": {
         "consolidation/robo": "^4"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.6",
-        "phpunit/phpunit": "^9.5",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
-        "escapestudios/symfony2-coding-standard": "^3"
+        "escapestudios/symfony2-coding-standard": "^3",
+        "phpmd/phpmd": "^2.15",
+        "phpstan/phpstan": "^1.10",
+        "phpunit/phpunit": "^10.5",
+        "squizlabs/php_codesniffer": "^3.6"
     },
     "scripts": {
-        "lint": "./vendor/bin/phpcs -s",
-        "test": "./vendor/bin/phpunit --colors=always --fail-on-warning",
+        "lint": [
+            "phpcs",
+            "phpmd --exclude vendor . text phpmd.xml",
+            "phpstan"
+        ],
+        "lint:fix": "phpcbf",
+        "test": "phpunit --no-coverage",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit",
         "clean": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;",
         "install-codestandards": [
             "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"

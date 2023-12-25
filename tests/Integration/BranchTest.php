@@ -1,13 +1,19 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
 /**
  * Class BranchTest.
  *
  * @group integration
+ *
+ * @covers \DrevOps\Robo\GitTrait
+ * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\FilesystemTrait
  */
-class BranchTest extends AbstractIntegrationTest
+class BranchTest extends AbstractIntegrationTestCase
 {
 
     /**
@@ -19,7 +25,7 @@ class BranchTest extends AbstractIntegrationTest
         parent::setUp();
     }
 
-    public function testBuild()
+    public function testBuild(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -31,7 +37,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testBuildMoreCommitsSameBranch()
+    public function testBuildMoreCommitsSameBranch(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -46,7 +52,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     }
 
-    public function testBuildMoreCommits()
+    public function testBuildMoreCommits(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -70,7 +76,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->assertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
     }
 
-    public function testCleanupAfterSuccess()
+    public function testCleanupAfterSuccess(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -81,7 +87,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->assertGitNoRemote($this->src, $this->remote);
     }
 
-    public function testCleanupAfterFailure()
+    public function testCleanupAfterFailure(): void
     {
         $this->gitCreateFixtureCommits(2);
 
@@ -96,7 +102,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->assertGitNoRemote($this->src, $this->remote);
     }
 
-    public function testGitignore()
+    public function testGitignore(): void
     {
         $this->gitCreateFixtureFile($this->src, '.gitignore', 'f3');
         $this->gitCreateFixtureCommits(2);
@@ -123,7 +129,7 @@ class BranchTest extends AbstractIntegrationTest
         $this->gitAssertFilesNotExist($this->dst, 'f3');
     }
 
-    public function testGitignoreCustom()
+    public function testGitignoreCustom(): void
     {
         $this->gitCreateFixtureFile($this->src, 'mygitignore', 'f3');
         $this->gitCreateFixtureCommits(2);

@@ -1,10 +1,27 @@
-# Package and push files to remote repositories
-Robo task to push git artifact to remote repository
+<p align="center">
+  <a href="" rel="noopener">
+  <img width=200px height=200px src="https://placehold.jp/000000/ffffff/200x200.png?text=Git+Artifact&css=%7B%22border-radius%22%3A%22%20100px%22%7D" alt="Git Artifact"></a>
+</p>
 
+<h1 align="center">Package and push files to remote repositories</h1>
+
+<div align="center">
+
+[![GitHub Issues](https://img.shields.io/github/issues/drevops/git-artifact.svg)](https://github.com/drevops/git-artifact/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/drevops/git-artifact.svg)](https://github.com/drevops/git-artifact/pulls)
 [![CircleCI](https://circleci.com/gh/drevops/git-artifact.svg?style=shield)](https://circleci.com/gh/drevops/git-artifact)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/git-artifact)
 [![Total Downloads](https://poser.pugx.org/drevops/behat-screenshot/downloads)](https://packagist.org/packages/drevops/git-artifact)
 ![LICENSE](https://img.shields.io/github/license/drevops/git-artifact)
+![Renovate](https://img.shields.io/badge/renovate-enabled-green?logo=renovatebot)
+
+</div>
+
+---
+
+<p align="center">Robo task to push git artifact to remote repository.
+    <br>
+</p>
 
 ## What is it?
 Build artifact from your codebase in CI and push it to a separate git repo.
@@ -178,7 +195,7 @@ In this example, all commits in the repository will be pushed to the same branch
 
 In this example, if the latest commit was tagged with tag `1.2.0`, the artifact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`.
 
-## Contributing
+## Maintenance / Contributing
 1. Fork this repo.
 2. Check it out locally and create a feature branch.
 3. `composer install` to install all required dependencies.

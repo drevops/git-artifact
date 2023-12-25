@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
-use DrevOps\Robo\Tests\AbstractTest;
+use DrevOps\Robo\Tests\AbstractTestCase;
 
 /**
- * Class AbstractTest
+ * Class AbstractTestCase
  */
-abstract class AbstractIntegrationTest extends AbstractTest
+abstract class AbstractIntegrationTestCase extends AbstractTestCase
 {
 
     /**
@@ -75,7 +77,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
      * @return string
      *   Command output.
      */
-    protected function assertBuildSuccess($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
+    protected function assertBuildSuccess(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
         $this->assertStringNotContainsString('[error]', $output);
@@ -99,7 +101,7 @@ abstract class AbstractIntegrationTest extends AbstractTest
      * @return string
      *   Command output.
      */
-    protected function assertBuildFailure($args = '', $branch = 'testbranch', $commit = 'Deployment commit')
+    protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
         $this->assertStringContainsString('[error]', $output);
@@ -115,11 +117,13 @@ abstract class AbstractIntegrationTest extends AbstractTest
      *
      * @param string $args
      *   Additional arguments or options as a string.
+     * @param bool $expectFail
+     *   Expect on fail.
      *
      * @return string
      *   Output string.
      */
-    protected function runBuild($args = '', $expectFail = false)
+    protected function runBuild(string $args = '', bool $expectFail = false): string
     {
         if ($this->mode) {
             $args .= ' --mode='.$this->mode;
@@ -141,13 +145,13 @@ abstract class AbstractIntegrationTest extends AbstractTest
      *
      * @param string $command
      *   Command string to run.
-     * @param bool   $expectFail
+     * @param bool $expectFail
      *   Flag to state that the command should fail.
      *
-     * @return array Array of output lines.
+     * @return array<string>
      *   Array of output lines.
      */
-    protected function runRoboCommandTimestamped($command, $expectFail = false)
+    protected function runRoboCommandTimestamped(string $command, bool $expectFail = false): array
     {
         // Add --now option to all 'artifact' commands.
         if (strpos($command, 'artifact') === 0) {
@@ -163,10 +167,10 @@ abstract class AbstractIntegrationTest extends AbstractTest
      * @param string $path
      *   Path to repository.
      *
-     * @param        $branch
+     * @param string $branch
      *   Branch name to assert.
      */
-    protected function assertGitCurrentBranch($path, $branch)
+    protected function assertGitCurrentBranch(string $path, string $branch): void
     {
         $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
 
@@ -179,10 +183,10 @@ abstract class AbstractIntegrationTest extends AbstractTest
      * @param string $path
      *   Path to repository.
      *
-     * @param        $remote
+     * @param string $remote
      *   Remote name to assert.
      */
-    protected function assertGitNoRemote($path, $remote)
+    protected function assertGitNoRemote(string $path, string $remote): void
     {
         $remotes = $this->runGitCommand('remote', $path);
 

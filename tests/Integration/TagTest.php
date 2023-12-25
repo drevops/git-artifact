@@ -1,13 +1,19 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace DrevOps\Robo\Tests\Integration;
 
 /**
  * Class TagTest.
  *
  * @group integration
+ *
+ * @covers \DrevOps\Robo\GitTrait
+ * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\FilesystemTrait
  */
-class TagTest extends AbstractIntegrationTest
+class TagTest extends AbstractIntegrationTestCase
 {
 
     /**
@@ -19,7 +25,7 @@ class TagTest extends AbstractIntegrationTest
         parent::setUp();
     }
 
-    public function testDetachedTag()
+    public function testDetachedTag(): void
     {
         $this->gitCreateFixtureCommits(2);
         $this->gitAddTag($this->src, 'tag1');
