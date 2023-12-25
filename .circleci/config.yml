@@ -1,6 +1,4 @@
-version: 2.1
-orbs:
-  codecov: codecov/codecov@1.0.2
+version: 2
 aliases:
   - &deploy_ssh_fingerprint "e8:d7:da:b8:6a:fb:75:50:8d:5f:48:61:3c:46:49:50"
 
