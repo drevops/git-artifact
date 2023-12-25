@@ -10,7 +10,6 @@
 [![GitHub Issues](https://img.shields.io/github/issues/drevops/git-artifact.svg)](https://github.com/drevops/git-artifact/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/drevops/git-artifact.svg)](https://github.com/drevops/git-artifact/pulls)
 [![CircleCI](https://circleci.com/gh/drevops/git-artifact.svg?style=shield)](https://circleci.com/gh/drevops/git-artifact)
-[![codecov](https://codecov.io/gh/drevops/git-artifact/graph/badge.svg?token=7WEB1IXBYT)](https://codecov.io/gh/drevops/git-artifact)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/git-artifact)
 [![Total Downloads](https://poser.pugx.org/drevops/behat-screenshot/downloads)](https://packagist.org/packages/drevops/git-artifact)
 ![LICENSE](https://img.shields.io/github/license/drevops/git-artifact)
