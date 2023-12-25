@@ -1,4 +1,6 @@
 version: 2
+orbs:
+  codecov: codecov/codecov@1.0.2
 aliases:
   - &deploy_ssh_fingerprint "e8:d7:da:b8:6a:fb:75:50:8d:5f:48:61:3c:46:49:50"
 
@@ -40,7 +42,10 @@ jobs:
       - run: composer validate --ansi --strict
       - run: composer install
       - run: composer lint
-      - run: composer test
+      - run: composer test:coverage
+      - codecov/upload:
+          token: {{ CODECOV_TOKEN }}
+          files: ./cobertura.xml
       - persist_to_workspace:
           root: /workspace
           paths:
