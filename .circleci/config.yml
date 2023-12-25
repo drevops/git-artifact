@@ -44,7 +44,7 @@ jobs:
       - run: composer lint
       - run: composer test:coverage
       - codecov/upload:
-          token: {{ CODECOV_TOKEN }}
+          token: CODECOV_TOKEN
           files: ./cobertura.xml
       - persist_to_workspace:
           root: /workspace
