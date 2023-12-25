@@ -28,7 +28,7 @@
     "scripts": {
         "lint": [
             "phpcs",
-            "phpmd --exclude vendor,vendor-bin,node_modules . text phpmd.xml",
+            "phpmd --exclude vendor . text phpmd.xml",
             "phpstan"
         ],
         "lint:fix": "phpcbf",

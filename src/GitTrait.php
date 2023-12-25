@@ -48,6 +48,8 @@ trait GitTrait
      *
      * @param string $path
      *   Path or URL of the remote git repository.
+     *
+     * @throws \Exception
      */
     protected function gitSetDst(string $path): void
     {
@@ -148,6 +150,8 @@ trait GitTrait
      *
      * @return \Robo\Result
      *   Result object.
+     *
+     * @throws \Exception
      */
     protected function gitRemoveBranch($location, $branch): Result
     {
@@ -164,8 +168,10 @@ trait GitTrait
      *   Local path or remote URI of the repository.
      * @param string $remote
      *   Remote name.
+     *
+     * @throws \Exception
      */
-    protected function gitRemoveRemote($location, $remote): void
+    protected function gitRemoveRemote(string $location, string $remote): void
     {
         if ($this->gitRemoteExists($location, $remote)) {
             $this->gitCommandRun(
@@ -186,14 +192,15 @@ trait GitTrait
      *   Remote name.
      * @param string $remoteBranch
      *   Remote branch to push to.
-     * @param bool   $force
+     * @param bool $force
      *   Force push.
      *
      * @return \Robo\Result
      *   Result object.
+     *
      * @throws \Exception
      */
-    protected function gitPush($location, $localBranch, $remoteName, $remoteBranch, $force = false): Result
+    protected function gitPush(string $location, string $localBranch, string $remoteName, string $remoteBranch, bool $force = false): Result
     {
         return $this->gitCommandRun(
             $location,
@@ -212,8 +219,10 @@ trait GitTrait
      *
      * @return \Robo\Result
      *   Result object.
+     *
+     * @throws \Exception
      */
-    protected function gitCommit($location, $message): Result
+    protected function gitCommit(string $location, string $message): Result
     {
         $this->gitCommandRun(
             $location,

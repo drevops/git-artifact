@@ -160,6 +160,7 @@ trait ArtefactTrait
      *   specified, root directory is used.
      *
      * @throws AbortTasksException
+     * @throws \Exception
      *
      * @phpstan-ignore-next-line
      */
@@ -220,6 +221,8 @@ trait ArtefactTrait
 
     /**
      * Prepare artifact to be then deployed.
+     *
+     * @throws \Exception
      */
     protected function prepareArtefact(): void
     {
@@ -260,6 +263,8 @@ trait ArtefactTrait
 
     /**
      * Perform actual push to remote.
+     *
+     * @throws \Exception
      */
     protected function doPush(): void
     {

@@ -8,7 +8,6 @@ use Robo\Contract\VerbosityThresholdInterface;
 use Robo\Exception\TaskException;
 use Robo\LoadAllTasks;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 
 /**
  * Trait FilesystemTrait.
@@ -153,13 +152,13 @@ trait FilesystemTrait
      *
      * @param string $file
      *   File to resolve. If absolute, no resolution will be performed.
-     * @param string $root
+     * @param string|null $root
      *   Optional path to root dir. If not provided, internal root path is used.
      *
      * @return string
      *   Absolute path for provided file.
      */
-    protected function fsGetAbsolutePath($file, $root = null): string
+    protected function fsGetAbsolutePath(string $file, string $root = null): string
     {
         if ($this->fsFileSystem->isAbsolutePath($file)) {
             return $this->realpath($file);
@@ -167,9 +166,8 @@ trait FilesystemTrait
         $root = $root ? $root : $this->fsGetRootDir();
         $root = $this->realpath($root);
         $file = $root.DIRECTORY_SEPARATOR.$file;
-        $file = $this->realpath($file);
 
-        return $file;
+        return $this->realpath($file);
     }
 
     /**
