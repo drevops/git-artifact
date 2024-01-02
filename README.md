@@ -195,12 +195,18 @@ In this example, all commits in the repository will be pushed to the same branch
 
 In this example, if the latest commit was tagged with tag `1.2.0`, the artifact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`.
 
-## Maintenance / Contributing
-1. Fork this repo.
-2. Check it out locally and create a feature branch.
-3. `composer install` to install all required dependencies.
-4. Work on your changes.
-5. `composer lint` to check coding standards.
-6. `composer test` to run test.
-7. Commit your changes, push and create a pull request.
-8. `composer clean` to cleanup your environment.
+## Maintenance
+
+### Lint code
+
+```bash
+composer lint
+composer lint:fix
+```
+
+### Run tests
+
+```bash
+composer test
+```
+

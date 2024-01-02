@@ -1,5 +1,8 @@
+# To ignore OS temporary files use global .gitignore
+# https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#configuring-ignored-files-for-all-repositories-on-your-computer
+
 vendor
 artifact
 composer.lock
 git_*
-.phpunit.result.cache
+.phpunit.cache

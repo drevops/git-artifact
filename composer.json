@@ -34,11 +34,7 @@
         ],
         "lint:fix": "phpcbf",
         "test": "phpunit --no-coverage",
-        "test:coverage": "XDEBUG_MODE=coverage phpunit",
-        "clean": "vagrant -f destroy &>/dev/null || $(which true); rm -Rf $(pwd)/.vagrant; rm -Rf $(pwd)/.beetbox; rm -Rf $(pwd)/Vagrantfile; rm -Rf $(pwd)/vendor; rm -Rf $(pwd)/screenshots;",
-        "install-codestandards": [
-            "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
-        ]
+        "test:coverage": "XDEBUG_MODE=coverage phpunit"
     },
     "autoload": {
         "psr-4": {
