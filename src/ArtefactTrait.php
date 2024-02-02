@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace DrevOps\Robo;
 
@@ -378,7 +378,7 @@ trait ArtefactTrait
      *
      * @param string $mode
      *   Mode to set.
-     * @param array  $options
+     * @param array $options
      *   Array of CLI options.
      *
      * @phpstan-ignore-next-line
@@ -617,7 +617,9 @@ trait ArtefactTrait
         $lines = file($filename);
         if ($lines) {
             $lines = array_map('trim', $lines);
-            $lines = array_filter($lines, 'strlen');
+            $lines = array_filter($lines, function ($line) {
+                return strlen($line) > 0;
+            });
             $lines = array_filter($lines, function ($line) {
                 return strpos(trim($line), '#') !== 0;
             });
@@ -667,7 +669,7 @@ trait ArtefactTrait
      *
      * @throws \Exception
      */
-    protected function gitAddAll(string  $location): void
+    protected function gitAddAll(string $location): void
     {
         $result = $this->gitCommandRun(
             $location,
