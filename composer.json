@@ -34,7 +34,10 @@
             "phpstan",
             "rector --clear-cache --dry-run"
         ],
-        "lint:fix": "phpcbf",
+        "lint-fix": [
+            "rector --clear-cache",
+            "phpcbf"
+        ],
         "test": "if [ \"${XDEBUG_MODE}\" = 'coverage' ]; then phpunit; else phpunit --no-coverage; fi"
     },
     "autoload": {

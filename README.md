@@ -201,7 +201,7 @@ In this example, if the latest commit was tagged with tag `1.2.0`, the artifact 
 
 ```bash
 composer lint
-composer lint:fix
+composer lint-fix
 ```
 
 ### Run tests
