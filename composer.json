@@ -24,17 +24,18 @@
         "phpmd/phpmd": "^2.15",
         "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^10.5",
+        "rector/rector": "^1.0.0",
         "squizlabs/php_codesniffer": "^3.6"
     },
     "scripts": {
         "lint": [
             "phpcs",
             "phpmd --exclude vendor . text phpmd.xml",
-            "phpstan"
+            "phpstan",
+            "rector --clear-cache --dry-run"
         ],
         "lint:fix": "phpcbf",
-        "test": "phpunit --no-coverage",
-        "test:coverage": "XDEBUG_MODE=coverage phpunit"
+        "test": "if [ \"${XDEBUG_MODE}\" = 'coverage' ]; then phpunit; else phpunit --no-coverage; fi"
     },
     "autoload": {
         "psr-4": {
