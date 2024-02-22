@@ -24,9 +24,11 @@
 </p>
 
 ## What is it?
+
 Build artifact from your codebase in CI and push it to a separate git repo.
 
 ## Why?
+
 Some hosting providers, like Acquia, have limitation on the languages or
 frameworks required to build applications (for example, running
 `composer install` is not possible due to read-only file system). This means
@@ -46,6 +48,7 @@ artifact files (CSS, JS, etc.), there are 2 modes to make this commit:
 See example of deployed artifact in [Artefact branches](https://github.com/drevops/git-artifact-destination/branches).
 
 ## Modes
+
 ### Force-push mode (default)
 Push packaged artifact to the same branch, preserving the history from the
 source repository, but overwriting history in destination repository on each
@@ -71,6 +74,7 @@ created branch after each deployment.
 
 
 ## Usage
+
 Use provided [`RoboFile.php`](RoboFile.php) or crearte a custom `RoboFile.php`
 in your repository with the following content:
 
@@ -171,9 +175,11 @@ See extended and fully-configured [example in the DrevOps project](https://githu
 
 
 ### Adding dependencies
+
 `--gitignore` option allows to specify the path to the _artifact gitignore_ file that replaces existing _.gitignore_ (if any) during the build. Any files no longer ignored by the replaced _artifact gitignore_ are added into the _deployment commit_. If there are no no-longer-excluded files, the _deployment commit_ is still created, to make sure that the deployment timestamp is captured.
 
 ### Token support
+
 Both `--branch` and `--message` option values support token replacement. Tokens are pre-defined strings surrounded by `[` and `]` and may contain optional formatter (for flexibility). For example, `[timestamp:Y-m-d]` is replaced with current timestamp in format `Y-m-d` (token formatter), which is PHP `date()` expected format.
 
 Available tokens:
