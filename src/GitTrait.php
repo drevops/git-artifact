@@ -381,19 +381,12 @@ trait GitTrait
         $isLocal = $this->fsPathsExist($this->fsGetAbsolutePath($location), false);
         $isUri = self::gitIsUri($location);
 
-        switch ($type) {
-            case 'any':
-                return $isLocal || $isUri;
-
-            case 'local':
-                return $isLocal;
-
-            case 'uri':
-                return $isUri;
-
-            default:
-                throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided', $type));
-        }
+        return match ($type) {
+            'any' => $isLocal || $isUri,
+            'local' => $isLocal,
+            'uri' => $isUri,
+            default => throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided', $type)),
+        };
     }
 
     /**

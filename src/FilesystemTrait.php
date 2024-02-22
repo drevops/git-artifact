@@ -60,7 +60,7 @@ trait FilesystemTrait
      */
     protected function fsSetRootDir(string $path = null): void
     {
-        $path = !empty($path) ? $this->fsGetAbsolutePath($path) : $this->fsGetRootDir();
+        $path = empty($path) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($path);
         $this->fsPathsExist($path);
         $this->fsRootDir = $path;
     }
@@ -219,10 +219,10 @@ trait FilesystemTrait
     protected function realpath(string $path): string
     {
         // Whether $path is unix or not.
-        $unipath = strlen($path) === 0 || $path[0] !== '/';
-        $unc = substr($path, 0, 2) === '\\\\' ? true : false;
+        $unipath = $path === '' || $path[0] !== '/';
+        $unc = str_starts_with($path, '\\\\');
         // Attempt to detect if path is relative in which case, add cwd.
-        if (strpos($path, ':') === false && $unipath && !$unc) {
+        if (!str_contains($path, ':') && $unipath && !$unc) {
             $path = getcwd().DIRECTORY_SEPARATOR.$path;
             if ($path[0] === '/') {
                 $unipath = false;
@@ -231,7 +231,7 @@ trait FilesystemTrait
 
         // Resolve path parts (single dot, double dot and double delimiters).
         $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), function ($part) {
+        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function ($part) : bool {
             return strlen($part) > 0;
         });
 
@@ -252,7 +252,7 @@ trait FilesystemTrait
             $path = readlink($path);
         }
         // Put initial separator that could have been lost.
-        $path = !$unipath ? '/'.$path : $path;
+        $path = $unipath ? $path : '/'.$path;
 
         /* @phpstan-ignore-next-line */
         return $unc ? '\\\\'.$path : $path;

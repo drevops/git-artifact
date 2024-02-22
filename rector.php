@@ -53,6 +53,7 @@ return static function (RectorConfig $rectorConfig): void {
     // Dependencies.
     '*/vendor/*',
     '*/node_modules/*',
+    '*/tests/*',
   ]);
 
   $rectorConfig->fileExtensions([
