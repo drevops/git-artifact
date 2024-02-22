@@ -862,6 +862,9 @@ trait ArtefactTrait
 
     /**
      * Print debug information.
+     *
+     * @param mixed ...$args
+     *   The args.
      */
     protected function printDebug(mixed ...$args): void
     {
