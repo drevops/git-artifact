@@ -9,6 +9,7 @@
 
 [![GitHub Issues](https://img.shields.io/github/issues/drevops/git-artifact.svg)](https://github.com/drevops/git-artifact/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/drevops/git-artifact.svg)](https://github.com/drevops/git-artifact/pulls)
+[![Test PHP](https://github.com/drevops/git-artifact/actions/workflows/test-php.yml/badge.svg)](https://github.com/drevops/git-artifact/actions/workflows/test-php.yml)
 [![CircleCI](https://circleci.com/gh/drevops/git-artifact.svg?style=shield)](https://circleci.com/gh/drevops/git-artifact)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/git-artifact)
 [![Total Downloads](https://poser.pugx.org/drevops/behat-screenshot/downloads)](https://packagist.org/packages/drevops/git-artifact)
@@ -45,11 +46,13 @@ Since destination repository requires a commit to add changes introduced by the
 artifact files (CSS, JS, etc.), there are 2 modes to make this commit:
 "force-push" and "branch".
 
-See example of deployed artifact in [Artefact branches](https://github.com/drevops/git-artifact-destination/branches).
+See example of deployed artifact
+in [Artefact branches](https://github.com/drevops/git-artifact-destination/branches).
 
 ## Modes
 
 ### Force-push mode (default)
+
 Push packaged artifact to the same branch, preserving the history from the
 source repository, but overwriting history in destination repository on each
 push.
@@ -59,6 +62,7 @@ push.
 ![diagram of force-push mode](https://user-images.githubusercontent.com/378794/33816665-a7b0e4a8-de8e-11e7-88f2-80baefb3d73f.png)
 
 ### Branch mode
+
 Push packaged artifact to the new branch on each deployment, preserving history
 from the source repository, but requiring to trigger a deployment of newly
 created branch after each deployment.
@@ -67,11 +71,9 @@ created branch after each deployment.
 
 ![diagram of branch mode](https://user-images.githubusercontent.com/378794/33816666-a87b3910-de8e-11e7-82cd-51e007ece063.png)
 
-
 ## Installation
 
     composer require --dev -n --ansi --prefer-source --ignore-platform-reqs drevops/git-artifact
-
 
 ## Usage
 
@@ -108,21 +110,32 @@ specified remote repository into the same branch as a current one.
 
 ### Run in CI
 
+See examples:
+
+- [GitHub Actions](.github/workflows/test-php.yml)
+- [CircleCI](.circleci/config.yml)
+
 Fill-in these variables trough UI or in deployment script.
 
     # Remote repository to push artifact to.
     DEPLOY_REMOTE="${DEPLOY_REMOTE:-}"
+
     # Remote repository branch. Can be a specific branch or a token.
     DEPLOY_BRANCH="${DEPLOY_BRANCH:-[branch]}"
+
     # Source of the code to be used for artifact building.
     DEPLOY_SRC="${DEPLOY_SRC:-}"
+
     # The root directory where the deployment script should run from. Defaults to
     # the current directory.
     DEPLOY_ROOT="${DEPLOY_ROOT:-$(pwd)}"
+
     # Deployment report file name.
     DEPLOY_REPORT="${DEPLOY_REPORT:-${DEPLOY_ROOT}/deployment_report.txt}"
+
     # Email address of the user who will be committing to a remote repository.
     DEPLOY_USER_NAME="${DEPLOY_USER_NAME:-"Deployer Robot"}"
+
     # Name of the user who will be committing to a remote repository.
     DEPLOY_USER_EMAIL="${DEPLOY_USER_EMAIL:-deployer@example.com}"
 
@@ -137,7 +150,8 @@ Call from CI configuration or deployment script:
       --report="${DEPLOY_REPORT}" \
       --push
 
-See extended and fully-configured [example in the DrevOps project](https://github.com/drevops/drevops/blob/develop/scripts/drevops/deploy-artifact.sh).
+See extended and
+fully-configured [example in the DrevOps project](https://github.com/drevops/drevops/blob/develop/scripts/drevops/deploy-artifact.sh).
 
 ## Options
 
@@ -173,33 +187,47 @@ See extended and fully-configured [example in the DrevOps project](https://githu
     Help:
       Push artifact of current repository to remote git repository.
 
-
 ### Adding dependencies
 
-`--gitignore` option allows to specify the path to the _artifact gitignore_ file that replaces existing _.gitignore_ (if any) during the build. Any files no longer ignored by the replaced _artifact gitignore_ are added into the _deployment commit_. If there are no no-longer-excluded files, the _deployment commit_ is still created, to make sure that the deployment timestamp is captured.
+`--gitignore` option allows to specify the path to the _artifact gitignore_ file
+that replaces existing _.gitignore_ (if any) during the build. Any files no
+longer ignored by the replaced _artifact gitignore_ are added into the
+_deployment commit_. If there are no no-longer-excluded files, the _deployment
+commit_ is still created, to make sure that the deployment timestamp is
+captured.
 
 ### Token support
 
-Both `--branch` and `--message` option values support token replacement. Tokens are pre-defined strings surrounded by `[` and `]` and may contain optional formatter (for flexibility). For example, `[timestamp:Y-m-d]` is replaced with current timestamp in format `Y-m-d` (token formatter), which is PHP `date()` expected format.
+Both `--branch` and `--message` option values support token replacement. Tokens
+are pre-defined strings surrounded by `[` and `]` and may contain optional
+formatter (for flexibility). For example, `[timestamp:Y-m-d]` is replaced with
+current timestamp in format `Y-m-d` (token formatter), which is PHP `date()`
+expected format.
 
 Available tokens:
+
 - `[timestamp:FORMAT]` - current time with a PHP `date()`-compatible format.
 - `[branch]` - current `source` branch.
 - `[tags]` - tags from latest `_source` commit (if any), separated by comma.
 
 ## Examples
+
 ### Push branch to the same remote
 
     robo artifact git@myserver.com/repository.git --push
 
-In this example, all commits in the repository will be pushed to the same branch as current one with all processed files (assets etc.) captured in the additional deployment commit. `--push` flag enables actual pushing into remote repository.
-
+In this example, all commits in the repository will be pushed to the same branch
+as current one with all processed files (assets etc.) captured in the additional
+deployment commit. `--push` flag enables actual pushing into remote repository.
 
 ### Push release branches created from tags
 
     robo artifact git@myserver.com/repository.git --mode=branch --branch=release/[tags:-] --push
 
-In this example, if the latest commit was tagged with tag `1.2.0`, the artifact will be pushed to the branch `release/1.2.0`. If there latest commit is tagged with multiple tags - they will be glued to gether with delimiter `-`, which would reult in the branch name `release/1.2.0-secondtag`.
+In this example, if the latest commit was tagged with tag `1.2.0`, the artifact
+will be pushed to the branch `release/1.2.0`. If there latest commit is tagged
+with multiple tags - they will be glued to gether with delimiter `-`, which
+would reult in the branch name `release/1.2.0-secondtag`.
 
 ## Maintenance
 

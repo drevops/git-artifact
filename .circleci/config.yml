@@ -57,30 +57,40 @@ jobs:
       - *step_setup_git
       - checkout
       - run:
-          name: Create test asset file.
-          command: touch test-file-$(date "+%Y%m%d-%H%M%S").txt
-      - run:
           name: Demonstration of deployment in 'force-push' mode.
           command: |
+            TEST_FILE="test-file-force-push-circleci-$(date "+%Y%m%d-%H%M%S").txt"
+            touch $TEST_FILE
+
             vendor/bin/robo artifact \
             git@github.com:drevops/git-artifact-destination.git \
+            --branch=mode-force-push-circleci \
             --mode=force-push \
-            --branch=mode-force-push \
             --report=$HOME/report-mode-force-push.txt \
             --push
+
             DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-force-push.txt | sed 's/ //g')
             echo "Deployed to $DEPLOY_BRANCH"
+            echo
+            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOY_BRANCH/$TEST_FILE"
+
       - run:
           name: Demonstration of deployment in 'branch' mode.
           command: |
+            TEST_FILE="test-file-branch-circleci-$(date "+%Y%m%d-%H%M%S").txt"
+            touch $TEST_FILE
+
             vendor/bin/robo artifact \
             git@github.com:drevops/git-artifact-destination.git \
+            --branch=mode-branch-circleci-[timestamp:Y-m-d_H-i-s] \
             --mode=branch \
-            --branch=mode-branch-[timestamp:Y-m-d_H-i-s] \
             --report=$HOME/report-mode-branch.txt \
             --push
+
             DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-branch.txt | sed 's/ //g')
             echo "Deployed to $DEPLOY_BRANCH"
+            echo
+            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOY_BRANCH/$TEST_FILE"
 
 workflows:
   version: 2
