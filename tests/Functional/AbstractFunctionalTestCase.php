@@ -2,14 +2,14 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Functional;
 
 use DrevOps\Robo\Tests\AbstractTestCase;
 
 /**
  * Class AbstractTestCase
  */
-abstract class AbstractIntegrationTestCase extends AbstractTestCase
+abstract class AbstractFunctionalTestCase extends AbstractTestCase
 {
 
     /**

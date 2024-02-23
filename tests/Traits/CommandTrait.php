@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests;
+namespace DrevOps\Robo\Tests\Traits;
 
 use DrevOps\Robo\Tests\Exception\ErrorException;
 use PHPUnit\Framework\AssertionFailedError;

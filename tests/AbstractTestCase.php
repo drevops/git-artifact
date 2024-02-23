@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace DrevOps\Robo\Tests;
 
+use DrevOps\Robo\Tests\Traits\CommandTrait;
+use DrevOps\Robo\Tests\Traits\MockTrait;
+use DrevOps\Robo\Tests\Traits\ReflectionTrait;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -20,6 +23,9 @@ abstract class AbstractTestCase extends TestCase
         CommandTrait::tearDown as protected commandTraitTearDown;
         CommandTrait::runRoboCommand as public commandRunRoboCommand;
     }
+
+    use ReflectionTrait;
+    use MockTrait;
 
     /**
      * File system.
@@ -64,136 +70,6 @@ abstract class AbstractTestCase extends TestCase
         if ($this->fs->exists($this->fixtureDir)) {
             $this->fs->remove($this->fixtureDir);
         }
-    }
-
-    /**
-     * Call protected methods on the class.
-     *
-     * @param object|class-string $object
-     *   Object or class name to use for a method call.
-     * @param string $method
-     *   Method name. Method can be static.
-     * @param array<mixed> $args
-     *   Array of arguments to pass to the method. To pass arguments by
-     *   reference, pass them by reference as an element of this array.
-     *
-     * @return mixed
-     *   Method result.
-     *
-     * @throws \ReflectionException
-     */
-    protected static function callProtectedMethod($object, string $method, array $args = [])
-    {
-        $class = new \ReflectionClass(is_object($object) ? $object::class : $object);
-        $method = $class->getMethod($method);
-        $method->setAccessible(true);
-        $object = $method->isStatic() ? null : $object;
-
-        /* @phpstan-ignore-next-line */
-        return $method->invokeArgs($object, $args);
-    }
-
-    /**
-     * Set protected property value.
-     *
-     * @param object $object
-     *   Object to set the value on.
-     * @param string $property
-     *   Property name to set the value. Property should exists in the object.
-     * @param mixed $value
-     *   Value to set to the property.
-     *
-     * @throws \ReflectionException
-     */
-    protected static function setProtectedValue($object, string $property, mixed $value): void
-    {
-        $class = new \ReflectionClass($object::class);
-        $property = $class->getProperty($property);
-        $property->setAccessible(true);
-
-        $property->setValue($object, $value);
-    }
-
-    /**
-     * Get protected value from the object.
-     *
-     * @param object $object
-     *   Object to set the value on.
-     * @param string $property
-     *   Property name to get the value. Property should exists in the object.
-     *
-     * @return mixed
-     *   Protected property value.
-     */
-    protected static function getProtectedValue($object, $property)
-    {
-        $class = new \ReflectionClass($object::class);
-        $property = $class->getProperty($property);
-        $property->setAccessible(true);
-
-        return $property->getValue($class);
-    }
-
-    /**
-     * Helper to prepare class or trait mock.
-     *
-     * @param class-string $class
-     *   Class or trait name to generate the mock.
-     * @param array<string, \Closure> $methodsMap
-     *   Optional array of methods and values, keyed by method name. Array
-     *   elements can be return values, callbacks created with
-     *   $this->returnCallback(), or closures.
-     * @param array<mixed> $args
-     *   Optional array of constructor arguments. If omitted, a constructor
-     *   will not be called.
-     *
-     * @return object
-     *   Mocked class.
-     *
-     * @throws \ReflectionException
-     */
-    protected function prepareMock(string $class, array $methodsMap = [], array $args = [])
-    {
-        $methods = array_keys($methodsMap);
-
-        $reflectionClass = new \ReflectionClass($class);
-
-        if ($reflectionClass->isAbstract()) {
-            $mock = $this->getMockForAbstractClass($class, $args, '', !empty($args), true, true, $methods);
-        } elseif ($reflectionClass->isTrait()) {
-            $mock = $this->getMockForTrait($class, [], '', true, true, true, array_keys($methodsMap));
-        } else {
-            $mockBuilder = $this->getMockBuilder($class);
-            if (!empty($args)) {
-                $mockBuilder = $mockBuilder->enableOriginalConstructor()
-                    ->setConstructorArgs($args);
-            } else {
-                $mockBuilder = $mockBuilder->disableOriginalConstructor();
-            }
-            /* @todo setMethods method is not found on MockBuilder */
-            /* @phpstan-ignore-next-line */
-            $mock = $mockBuilder->setMethods($methods)
-                ->getMock();
-        }
-
-        foreach ($methodsMap as $method => $value) {
-            // Handle callback values differently.
-            if (is_object($value) && str_contains($value::class, 'Callback')) {
-                $mock->expects($this->any())
-                    ->method($method)
-                    ->will($value);
-            } elseif (is_object($value) && str_contains($value::class, 'Closure')) {
-                $mock->expects($this->any())
-                    ->method($method)
-                    ->will($this->returnCallback($value));
-            } else {
-                $mock->expects($this->any())
-                    ->method($method)
-                    ->willReturn($value);
-            }
-        }
-
-        return $mock;
     }
 
     /**

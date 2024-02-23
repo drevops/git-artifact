@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Functional;
 
 use DrevOps\Robo\TokenTrait;
 
@@ -13,7 +13,7 @@ use DrevOps\Robo\TokenTrait;
  *
  * @covers \DrevOps\Robo\TokenTrait
  */
-class TokenTest extends AbstractIntegrationTestCase
+class TokenTest extends AbstractFunctionalTestCase
 {
 
     /**

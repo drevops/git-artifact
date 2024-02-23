@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Functional;
 
 /**
  * Class BranchTest.
@@ -13,7 +13,7 @@ namespace DrevOps\Robo\Tests\Integration;
  * @covers \DrevOps\Robo\ArtefactTrait
  * @covers \DrevOps\Robo\FilesystemTrait
  */
-class BranchTest extends AbstractIntegrationTestCase
+class BranchTest extends AbstractFunctionalTestCase
 {
 
     /**
