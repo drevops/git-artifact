@@ -153,8 +153,8 @@ trait CommandTrait
     {
         $commits = $this->gitGetAllCommits($path);
 
-        array_walk($range, function (&$v) {
-            $v -= 1;
+        array_walk($range, static function (&$v) : void {
+            --$v;
         });
 
         $ret = [];
@@ -249,15 +249,15 @@ trait CommandTrait
     {
         try {
             $this->runGitCommand(sprintf('checkout %s', $branch), $path);
-        } catch (ErrorException $error) {
+        } catch (ErrorException $errorException) {
             $allowedFails = [
-                "error: pathspec '$branch' did not match any file(s) known to git",
+                sprintf("error: pathspec '%s' did not match any file(s) known to git", $branch),
             ];
 
-            $output = explode(PHP_EOL, ($error->getPrevious() instanceof \Throwable) ? $error->getPrevious()->getMessage() : '');
+            $output = explode(PHP_EOL, ($errorException->getPrevious() instanceof \Throwable) ? $errorException->getPrevious()->getMessage() : '');
             // Re-throw exception if it is not one of the allowed ones.
             if (empty(array_intersect($output, $allowedFails))) {
-                throw $error;
+                throw $errorException;
             }
         }
     }
@@ -289,7 +289,7 @@ trait CommandTrait
      */
     protected function gitCreateFixtureFile(string $path, string $name = '', $content = ''): string
     {
-        $name = $name ? $name : 'tmp'.rand(1000, 100000);
+        $name = $name !== '' && $name !== '0' ? $name : 'tmp'.rand(1000, 100000);
         $path = $path.DIRECTORY_SEPARATOR.$name;
         $dir = dirname($path);
         if (!empty($dir)) {
@@ -397,7 +397,7 @@ trait CommandTrait
      */
     protected function gitAssertFilesCommitted(string $path, $expectedFiles, string $branch = ''): void
     {
-        if ($branch) {
+        if ($branch !== '' && $branch !== '0') {
             $this->gitCheckout($path, $branch);
         }
         $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
@@ -417,7 +417,7 @@ trait CommandTrait
      */
     protected function gitAssertNoFilesCommitted(string $path, $expectedFiles, string $branch = ''): void
     {
-        if ($branch) {
+        if ($branch !== '' && $branch !== '0') {
             $this->gitCheckout($path, $branch);
         }
         $expectedFiles = is_array($expectedFiles) ? $expectedFiles : [$expectedFiles];
@@ -512,11 +512,11 @@ trait CommandTrait
             if ($expectFail) {
                 throw new AssertionFailedError('Command exited successfully but should not');
             }
-        } catch (ErrorException $error) {
+        } catch (ErrorException $errorException) {
             if (!$expectFail) {
-                throw $error;
+                throw $errorException;
             }
-            $output = explode(PHP_EOL, ($error->getPrevious() instanceof \Throwable) ? $error->getPrevious()->getMessage() : '');
+            $output = explode(PHP_EOL, ($errorException->getPrevious() instanceof \Throwable) ? $errorException->getPrevious()->getMessage() : '');
         }
 
         return $output;
@@ -551,17 +551,19 @@ trait CommandTrait
         return $output;
     }
 
-    /**
-     * Asserts that two associative arrays are similar.
-     *
-     * Both arrays must have the same indexes with identical values
-     * without respect to key ordering
-     *
-     * @param array $expected
-     * @param array $array
-     *
-     * @phpstan-ignore-next-line
-     */
+  /**
+   * Asserts that two associative arrays are similar.
+   *
+   * Both arrays must have the same indexes with identical values
+   * without respect to key ordering
+   *
+   * @param array $expected
+   *   Expected assert.
+   * @param array $array
+   *   The array want to assert.
+   *
+   * @phpstan-ignore-next-line
+   */
     protected function assertArraySimilar(array $expected, array $array): void
     {
         $this->assertEquals([], array_diff($array, $expected));

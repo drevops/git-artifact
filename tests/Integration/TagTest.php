@@ -19,7 +19,7 @@ class TagTest extends AbstractIntegrationTestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->mode = 'force-push';
         parent::setUp();

@@ -19,7 +19,7 @@ class BranchTest extends AbstractIntegrationTestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->mode = 'branch';
         parent::setUp();

@@ -35,7 +35,6 @@ class ExcludeTest extends AbstractUnitTestCase
      * @param bool $expected
      *   Expected.
      *
-     * @return void
      *
      * @dataProvider dataProviderExcludeEmpty
      *

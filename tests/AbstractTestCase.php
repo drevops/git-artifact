@@ -84,7 +84,7 @@ abstract class AbstractTestCase extends TestCase
      */
     protected static function callProtectedMethod($object, string $method, array $args = [])
     {
-        $class = new \ReflectionClass(is_object($object) ? get_class($object) : $object);
+        $class = new \ReflectionClass(is_object($object) ? $object::class : $object);
         $method = $class->getMethod($method);
         $method->setAccessible(true);
         $object = $method->isStatic() ? null : $object;
@@ -105,9 +105,9 @@ abstract class AbstractTestCase extends TestCase
      *
      * @throws \ReflectionException
      */
-    protected static function setProtectedValue($object, string $property, $value): void
+    protected static function setProtectedValue($object, string $property, mixed $value): void
     {
-        $class = new \ReflectionClass(get_class($object));
+        $class = new \ReflectionClass($object::class);
         $property = $class->getProperty($property);
         $property->setAccessible(true);
 
@@ -127,7 +127,7 @@ abstract class AbstractTestCase extends TestCase
      */
     protected static function getProtectedValue($object, $property)
     {
-        $class = new \ReflectionClass(get_class($object));
+        $class = new \ReflectionClass($object::class);
         $property = $class->getProperty($property);
         $property->setAccessible(true);
 
@@ -152,7 +152,7 @@ abstract class AbstractTestCase extends TestCase
      *
      * @throws \ReflectionException
      */
-    protected function prepareMock($class, array $methodsMap = [], array $args = [])
+    protected function prepareMock(string $class, array $methodsMap = [], array $args = [])
     {
         $methods = array_keys($methodsMap);
 
@@ -178,11 +178,11 @@ abstract class AbstractTestCase extends TestCase
 
         foreach ($methodsMap as $method => $value) {
             // Handle callback values differently.
-            if (is_object($value) && strpos(get_class($value), 'Callback') !== false) {
+            if (is_object($value) && str_contains($value::class, 'Callback')) {
                 $mock->expects($this->any())
                     ->method($method)
                     ->will($value);
-            } elseif (is_object($value) && strpos(get_class($value), 'Closure') !== false) {
+            } elseif (is_object($value) && str_contains($value::class, 'Closure')) {
                 $mock->expects($this->any())
                     ->method($method)
                     ->will($this->returnCallback($value));

@@ -154,7 +154,7 @@ abstract class AbstractIntegrationTestCase extends AbstractTestCase
     protected function runRoboCommandTimestamped(string $command, bool $expectFail = false): array
     {
         // Add --now option to all 'artifact' commands.
-        if (strpos($command, 'artifact') === 0) {
+        if (str_starts_with($command, 'artifact')) {
             $command .= ' --now='.$this->now;
         }
 
