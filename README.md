@@ -235,7 +235,7 @@ would reult in the branch name `release/1.2.0-secondtag`.
 
 ```bash
 composer lint
-composer lint:fix
+composer lint-fix
 ```
 
 ### Run tests

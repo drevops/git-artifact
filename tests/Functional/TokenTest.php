@@ -2,7 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Functional;
+
+use DrevOps\Robo\TokenTrait;
 
 /**
  * Class ForcePushTest.
@@ -11,7 +13,7 @@ namespace DrevOps\Robo\Tests\Integration;
  *
  * @covers \DrevOps\Robo\TokenTrait
  */
-class TokenTest extends AbstractIntegrationTestCase
+class TokenTest extends AbstractFunctionalTestCase
 {
 
     /**
@@ -19,9 +21,9 @@ class TokenTest extends AbstractIntegrationTestCase
      */
     public function testTokenProcess(string $string, string $name, string $replacement, string $expectedString): void
     {
-        $mock = $this->prepareMock('DrevOps\Robo\TokenTrait', [
-            'getToken'.ucfirst($name) => function ($prop) use ($replacement) {
-                return !empty($prop) ? $replacement.' with property '.$prop : $replacement;
+        $mock = $this->prepareMock(TokenTrait::class, [
+            'getToken'.ucfirst($name) => static function (?string $prop) use ($replacement) : string {
+                return empty($prop) ? $replacement : $replacement.' with property '.$prop;
             },
         ]);
 
@@ -106,7 +108,7 @@ class TokenTest extends AbstractIntegrationTestCase
      */
     public function testHasToken(string $string, bool $hasToken): void
     {
-        $mock = $this->prepareMock('DrevOps\Robo\TokenTrait');
+        $mock = $this->prepareMock(TokenTrait::class);
 
         $actual = $this->callProtectedMethod($mock, 'hasToken', [$string]);
         $this->assertEquals($hasToken, $actual);

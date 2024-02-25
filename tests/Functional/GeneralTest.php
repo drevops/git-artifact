@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Functional;
 
 /**
  * Class GeneralTest.
@@ -12,7 +12,7 @@ namespace DrevOps\Robo\Tests\Integration;
  * @covers \DrevOps\Robo\ArtefactTrait
  * @covers \DrevOps\Robo\FilesystemTrait
  */
-class GeneralTest extends AbstractIntegrationTestCase
+class GeneralTest extends AbstractFunctionalTestCase
 {
 
     public function testPresence(): void

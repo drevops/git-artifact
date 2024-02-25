@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Integration;
+namespace DrevOps\Robo\Tests\Functional;
 
 /**
  * Class ForcePushTest.
@@ -15,7 +15,7 @@ namespace DrevOps\Robo\Tests\Integration;
  * @covers \DrevOps\Robo\ArtefactTrait
  * @covers \DrevOps\Robo\FilesystemTrait
  */
-class ForcePushTest extends AbstractIntegrationTestCase
+class ForcePushTest extends AbstractFunctionalTestCase
 {
 
     protected function setUp(): void

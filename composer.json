@@ -24,16 +24,8 @@
         "phpmd/phpmd": "^2.15",
         "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^10.5",
+        "rector/rector": "^1.0.0",
         "squizlabs/php_codesniffer": "^3.6"
-    },
-    "scripts": {
-        "lint": [
-            "phpcs",
-            "phpmd --exclude vendor . text phpmd.xml",
-            "phpstan"
-        ],
-        "lint:fix": "phpcbf",
-        "test": "if [ \"${XDEBUG_MODE}\" = 'coverage' ]; then phpunit; else phpunit --no-coverage; fi"
     },
     "autoload": {
         "psr-4": {
@@ -49,5 +41,23 @@
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
+    },
+    "scripts": {
+        "lint": [
+            "phpcs",
+            "phpmd --exclude vendor,vendor-bin,node_modules . text phpmd.xml",
+            "phpstan",
+            "rector --clear-cache --dry-run"
+        ],
+        "lint-fix": [
+            "rector --clear-cache",
+            "phpcbf"
+        ],
+        "test": "if [ \"${XDEBUG_MODE}\" = 'coverage' ]; then phpunit; else phpunit --no-coverage; fi",
+        "build": [
+            "@composer bin box require --dev humbug/box",
+            "box validate",
+            "box compile"
+        ]
     }
 }

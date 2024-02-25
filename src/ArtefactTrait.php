@@ -38,7 +38,7 @@ trait ArtefactTrait
      *
      * @var string|null
      */
-    protected $originalBranch = null;
+    protected $originalBranch;
 
     /**
      * Destination branch with optional tokens.
@@ -277,7 +277,7 @@ trait ArtefactTrait
             $this->result = $result->wasSuccessful();
         } catch (\Exception $exception) {
             // Re-throw the message with additional context.
-            throw new \Exception(sprintf('Error occurred while pushing branch "%s": %s', $this->dstBranch, $exception->getMessage()));
+            throw new \Exception(sprintf('Error occurred while pushing branch "%s": %s', $this->dstBranch, $exception->getMessage()), $exception->getCode(), $exception);
         }
 
         if ($this->result) {
@@ -301,7 +301,7 @@ trait ArtefactTrait
      */
     protected function resolveOptions(array $options): void
     {
-        $this->now = !empty($options['now']) ? (int) $options['now'] : time();
+        $this->now = empty($options['now']) ? time() : (int) $options['now'];
 
         $this->debug = !empty($options['debug']);
 
@@ -310,7 +310,7 @@ trait ArtefactTrait
         $this->fsSetRootDir($options['root']);
 
         // Default source to the root directory.
-        $srcPath = !empty($options['src']) ? $this->fsGetAbsolutePath($options['src']) : $this->fsGetRootDir();
+        $srcPath = empty($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
         $this->gitSetSrcRepo($srcPath);
 
         $this->originalBranch = $this->resolveOriginalBranch($this->src);
@@ -329,7 +329,7 @@ trait ArtefactTrait
 
         $this->needsPush = !empty($options['push']);
 
-        $this->report = !empty($options['report']) ? $options['report'] : null;
+        $this->report = empty($options['report']) ? null : $options['report'];
 
         $this->setMode($options['mode'], $options);
     }
@@ -617,11 +617,11 @@ trait ArtefactTrait
         $lines = file($filename);
         if ($lines) {
             $lines = array_map('trim', $lines);
-            $lines = array_filter($lines, function ($line) {
+            $lines = array_filter($lines, static function ($line) : bool {
                 return strlen($line) > 0;
             });
-            $lines = array_filter($lines, function ($line) {
-                return strpos(trim($line), '#') !== 0;
+            $lines = array_filter($lines, static function ($line) : bool {
+                return !str_starts_with(trim($line), '#');
             });
         }
 
@@ -856,20 +856,21 @@ trait ArtefactTrait
     {
         $color = 'green';
         $char = $this->decorationCharacter('V', '✔');
-        $format = "<fg=white;bg=$color;options=bold>%s %s</fg=white;bg=$color;options=bold>";
+        $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
         $this->writeln(sprintf($format, $char, $text));
     }
 
     /**
      * Print debug information.
+     *
+     * @param mixed ...$args
+     *   The args.
      */
-    protected function printDebug(): void
+    protected function printDebug(mixed ...$args): void
     {
         if (!$this->debug) {
             return;
         }
-
-        $args = func_get_args();
         $message = array_shift($args);
         /* @phpstan-ignore-next-line */
         $this->writeln(vsprintf($message, $args));

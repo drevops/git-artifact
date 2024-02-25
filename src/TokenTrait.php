@@ -22,7 +22,7 @@ trait TokenTrait
      */
     protected function tokenProcess(string $string): ?string
     {
-        return preg_replace_callback('/(?:\[([^\]]+)\])/', function ($match) {
+        return preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match) {
             if (count($match) > 1) {
                 $parts = explode(':', $match[1], 2);
                 $token = isset($parts[0]) ? $parts[0] : null;

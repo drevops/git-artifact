@@ -14,14 +14,14 @@
          displayDetailsOnTestsThatTriggerNotices="true"
 >
     <testsuites>
-        <testsuite name="GitArtefact">
-            <directory>./tests/</directory>
+        <testsuite name="default">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
     <source restrictDeprecations="true" restrictNotices="true" restrictWarnings="true">
         <include>
-            <file>src</file>
+            <directory>src</directory>
         </include>
     </source>
 

@@ -2,6 +2,7 @@
 
 namespace DrevOps\Robo\Tests\Unit;
 
+use DrevOps\Robo\ArtefactTrait;
 use DrevOps\Robo\Tests\AbstractTestCase;
 
 /**
@@ -21,7 +22,7 @@ abstract class AbstractUnitTestCase extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->mock = $this->getMockForTrait('DrevOps\Robo\ArtefactTrait');
+        $this->mock = $this->getMockForTrait(ArtefactTrait::class);
         $this->callProtectedMethod($this->mock, 'fsSetRootDir', [$this->fixtureDir]);
     }
 }
