@@ -46,7 +46,7 @@
         "lint": [
             "phpcs",
             "phpmd --exclude vendor,vendor-bin,node_modules . text phpmd.xml",
-            "memory_limit=-1 phpstan",
+            "phpstan",
             "rector --clear-cache --dry-run"
         ],
         "lint-fix": [
