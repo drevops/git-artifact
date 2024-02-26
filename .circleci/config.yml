@@ -68,7 +68,6 @@ jobs:
             --mode=force-push \
             --report=$HOME/report-mode-force-push.txt \
             --push
-            --debug
 
             DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-force-push.txt | sed 's/ //g')
             echo "Deployed to $DEPLOY_BRANCH"
