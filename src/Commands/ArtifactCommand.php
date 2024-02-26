@@ -24,7 +24,7 @@ class ArtifactCommand extends Command
 
   protected function configure()
   {
-    $this->setName('git-artifact');
+    $this->setName('artifact');
     $this->addArgument('remote', InputArgument::REQUIRED, 'Path to the remote git repository.');
     $this
       ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.', '[branch]')
@@ -43,8 +43,23 @@ class ArtifactCommand extends Command
 
   protected function execute(InputInterface $input, OutputInterface $output)
   {
-    $first = array_shift($_SERVER['argv']);
-    array_unshift($_SERVER['argv'], $first, 'artifact');
-    return $this->runner->execute($_SERVER['argv'], null, null, $output);
+    $argv = [
+      'robo',
+      'artifact'
+    ];
+    $arguments = $input->getArguments();
+    foreach ($arguments as $name => $value) {
+      if (!empty($value)) {
+        $argv[] = $value;
+      }
+    }
+    $options = $input->getOptions();
+    foreach ($options as $name => $value) {
+      if (!empty($value)) {
+        $argv[] = "--$name=$value";
+      }
+    }
+
+    return $this->runner->execute($argv, null, null, $output);
   }
 }
