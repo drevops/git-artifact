@@ -62,7 +62,7 @@ jobs:
             TEST_FILE="test-file-force-push-circleci-$(date "+%Y%m%d-%H%M%S").txt"
             touch $TEST_FILE
 
-            vendor/bin/robo artifact \
+            ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode-force-push-circleci \
             --mode=force-push \
@@ -80,7 +80,7 @@ jobs:
             TEST_FILE="test-file-branch-circleci-$(date "+%Y%m%d-%H%M%S").txt"
             touch $TEST_FILE
 
-            vendor/bin/robo artifact \
+            ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode-branch-circleci-[timestamp:Y-m-d_H-i-s] \
             --mode=branch \

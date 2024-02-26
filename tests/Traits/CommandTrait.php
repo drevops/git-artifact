@@ -488,27 +488,27 @@ trait CommandTrait
         return $this->runCliCommand($command.' '.trim($args));
     }
 
-    /**
-     * Run Robo command.
-     *
-     * @param string $command
-     *   Command string to run.
-     * @param bool $expectFail
-     *   Flag to state that the command should fail.
-     * @param string $roboBin
-     *   Optional relative path to Robo binary.
-     *
-     * @return array<string>
-     *   Array of output lines.
-     */
-    public function runRoboCommand(string $command, bool $expectFail = false, string $roboBin = 'vendor/bin/robo'): array
+  /**
+   * Run Robo command.
+   *
+   * @param string $argsAndOptions
+   *   Args and options.
+   * @param bool $expectFail
+   *   Flag to state that the command should fail.
+   * @param string $gitArtifactBin
+   *   Git artifact bin.
+   *
+   * @return array<string>
+   *   Array of output lines.
+   */
+    public function runGitArtifactCommand(string $argsAndOptions, bool $expectFail = false, string $gitArtifactBin = './git-artifact'): array
     {
-        if (!file_exists($roboBin)) {
-            throw new RuntimeException(sprintf('Robo binary is not available at path "%s"', $roboBin));
+        if (!file_exists($gitArtifactBin)) {
+            throw new RuntimeException(sprintf('git-artifact binary is not available at path "%s"', $gitArtifactBin));
         }
 
         try {
-            $output = $this->runCliCommand($roboBin.' '.$command);
+            $output = $this->runCliCommand($gitArtifactBin.' '.$argsAndOptions);
             if ($expectFail) {
                 throw new AssertionFailedError('Command exited successfully but should not');
             }

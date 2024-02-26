@@ -106,7 +106,7 @@ jobs:
           TEST_FILE="test-file-force-push-github-$(date "+%Y%m%d-%H%M%S").txt"
           touch $TEST_FILE
 
-          vendor/bin/robo artifact \
+          ./git-artifact \
           git@github.com:drevops/git-artifact-destination.git \
           --branch=mode-force-push-github \
           --mode=force-push \
@@ -123,7 +123,7 @@ jobs:
           TEST_FILE="test-file-branch-github-$(date "+%Y%m%d-%H%M%S").txt"
           touch $TEST_FILE
 
-          vendor/bin/robo artifact \
+          ./git-artifact \
           git@github.com:drevops/git-artifact-destination.git \
           --branch=mode-branch-github-[timestamp:Y-m-d_H-i-s] \
           --mode=branch \

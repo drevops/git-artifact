@@ -129,7 +129,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
             $args .= ' --mode='.$this->mode;
         }
 
-        $output = $this->runRoboCommandTimestamped(sprintf('artifact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
+        $output = $this->runGitArtifactCommandTimestamped(sprintf('--src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
 
         if ($this->isDebug()) {
             print str_pad('', 80, '+').PHP_EOL;
@@ -151,14 +151,12 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
      * @return array<string>
      *   Array of output lines.
      */
-    protected function runRoboCommandTimestamped(string $command, bool $expectFail = false): array
+    protected function runGitArtifactCommandTimestamped(string $command, bool $expectFail = false): array
     {
         // Add --now option to all 'artifact' commands.
-        if (str_starts_with($command, 'artifact')) {
-            $command .= ' --now='.$this->now;
-        }
+        $command .= ' --now='.$this->now;
 
-        return $this->commandRunRoboCommand($command, $expectFail);
+        return $this->commandRunGitArtifactCommand($command, $expectFail);
     }
 
     /**

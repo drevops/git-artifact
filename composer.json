@@ -46,7 +46,7 @@
         "lint": [
             "phpcs",
             "phpmd --exclude vendor,vendor-bin,node_modules . text phpmd.xml",
-            "phpstan",
+            "memory_limit=-1 phpstan",
             "rector --clear-cache --dry-run"
         ],
         "lint-fix": [
@@ -59,5 +59,8 @@
             "box validate",
             "box compile"
         ]
-    }
+    },
+    "bin": [
+        "git-artifact"
+    ]
 }

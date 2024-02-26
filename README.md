@@ -103,7 +103,7 @@ class RoboFile extends \Robo\Tasks
 
 ### Run
 
-    vendor/bin/robo artifact git@myserver.com/repository.git
+    git-artifact git@myserver.com/repository.git
 
 This will create an artifact from current directory and will send it to the
 specified remote repository into the same branch as a current one.
@@ -214,7 +214,7 @@ Available tokens:
 
 ### Push branch to the same remote
 
-    robo artifact git@myserver.com/repository.git --push
+    git-artifact git@myserver.com/repository.git --push
 
 In this example, all commits in the repository will be pushed to the same branch
 as current one with all processed files (assets etc.) captured in the additional
@@ -222,7 +222,7 @@ deployment commit. `--push` flag enables actual pushing into remote repository.
 
 ### Push release branches created from tags
 
-    robo artifact git@myserver.com/repository.git --mode=branch --branch=release/[tags:-] --push
+    git-artifact git@myserver.com/repository.git --mode=branch --branch=release/[tags:-] --push
 
 In this example, if the latest commit was tagged with tag `1.2.0`, the artifact
 will be pushed to the branch `release/1.2.0`. If there latest commit is tagged

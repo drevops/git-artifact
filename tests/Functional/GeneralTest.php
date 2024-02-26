@@ -15,21 +15,16 @@ namespace DrevOps\Robo\Tests\Functional;
 class GeneralTest extends AbstractFunctionalTestCase
 {
 
-    public function testPresence(): void
-    {
-        $output = $this->runRoboCommand('list');
-        $this->assertStringContainsString('artifact', implode(PHP_EOL, $output));
-    }
-
     public function testHelp(): void
     {
-        $output = $this->runRoboCommand('--help artifact');
+        $output = $this->runGitArtifactCommand('--help');
         $this->assertStringContainsString('artifact [options] [--] <remote>', implode(PHP_EOL, $output));
+        $this->assertStringContainsString('Push artifact of current repository to remote git repository.', implode(PHP_EOL, $output));
     }
 
     public function testCompulsoryParameter(): void
     {
-        $output = $this->runRoboCommand('artifact', true);
+        $output = $this->runGitArtifactCommand('', true);
 
         $this->assertStringContainsString('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
     }
