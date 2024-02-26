@@ -111,7 +111,7 @@ jobs:
           --branch=mode-force-push-github \
           --mode=force-push \
           --report=$HOME/report-mode-force-push.txt \
-          --push
+          --push \
           --debug
 
           DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-force-push.txt | sed 's/ //g')
