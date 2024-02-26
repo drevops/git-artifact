@@ -14,14 +14,14 @@ aliases:
     run:
       name: Setup git
       command: |
-        mkdir -p "${HOME}/.ssh/"
-        echo -e "Host *\n\tStrictHostKeyChecking no\n" > "${HOME}/.ssh/config"
+        mkdir -p "$HOME/.ssh/"
+        echo -e "Host *\n\tStrictHostKeyChecking no\n" > "$HOME/.ssh/config"
         DEPLOY_SSH_FILE="${DEPLOY_SSH_FINGERPRINT//:}"
-        DEPLOY_SSH_FILE="${HOME}/.ssh/id_rsa_${DEPLOY_SSH_FILE//\"}"
-        if [ -f "${DEPLOY_SSH_FILE}" ]; then
-          echo "Found Deploy SSH key file ${DEPLOY_SSH_FILE}"
+        DEPLOY_SSH_FILE="$HOME/.ssh/id_rsa_${DEPLOY_SSH_FILE//\"}"
+        if [ -f "$DEPLOY_SSH_FILE" ]; then
+          echo "Found Deploy SSH key file $DEPLOY_SSH_FILE"
           ssh-add -D > /dev/null
-          ssh-add "${DEPLOY_SSH_FILE}"
+          ssh-add "$DEPLOY_SSH_FILE"
         fi
         git config --global user.name "$DEPLOY_USER_NAME"
         git config --global user.email "$DEPLOY_USER_EMAIL"
@@ -32,71 +32,192 @@ jobs:
     steps:
       - attach_workspace:
           at: /workspace
+
       - checkout
+
       - add_ssh_keys:
           fingerprints:
             - *deploy_ssh_fingerprint
+
       - *step_setup_git
-      - run: composer validate --ansi --strict
-      - run: composer install
-      - run: composer lint
-      - run: composer test
+
+      - run:
+          name: Validate composer.json
+          command: composer validate --ansi --strict
+
+      - run:
+          name: Install dependencies
+          command: composer install --ansi --no-progress --no-interaction --no-suggest --prefer-dist
+
+      - run:
+          name: Lint code
+          command: composer lint
+
+      - run:
+          name: Run tests
+          command: composer test
+
       - persist_to_workspace:
           root: /workspace
           paths:
             - code
 
-  deploy:
+  # Demonstration of deployment in 'force-push' mode.
+  deploy-force-push:
     <<: *container_config
     steps:
       - attach_workspace:
           at: /workspace
+
       - add_ssh_keys:
           fingerprints:
             - *deploy_ssh_fingerprint
+
       - *step_setup_git
+
       - checkout
+
+      # Test file will have a consistent name between deployments, but
+      # the contents will be added to on each deployment to simulate
+      # changes in the source repository.
       - run:
-          name: Demonstration of deployment in 'force-push' mode.
+          name: Prepare test file.
           command: |
-            TEST_FILE="test-file-force-push-circleci-$(date "+%Y%m%d-%H%M%S").txt"
-            touch $TEST_FILE
-
-            vendor/bin/robo artifact \
-            git@github.com:drevops/git-artifact-destination.git \
-            --branch=mode-force-push-circleci \
-            --mode=force-push \
-            --report=$HOME/report-mode-force-push.txt \
-            --push
-
-            DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-force-push.txt | sed 's/ //g')
-            echo "Deployed to $DEPLOY_BRANCH"
-            echo
-            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOY_BRANCH/$TEST_FILE"
+            export TEST_FILE="test-file--force-push--circleci--${CIRCLE_BRANCH//\//-}.txt"
+            echo "Deployment 1 for branch $CIRCLE_BRANCH" >> $TEST_FILE
+            date "+%Y%m%d-%H%M%S" >> $TEST_FILE
 
       - run:
-          name: Demonstration of deployment in 'branch' mode.
+          name: Deployment 1
           command: |
-            TEST_FILE="test-file-branch-circleci-$(date "+%Y%m%d-%H%M%S").txt"
-            touch $TEST_FILE
-
             vendor/bin/robo artifact \
-            git@github.com:drevops/git-artifact-destination.git \
-            --branch=mode-branch-circleci-[timestamp:Y-m-d_H-i-s] \
-            --mode=branch \
-            --report=$HOME/report-mode-branch.txt \
-            --push
+              git@github.com:drevops/git-artifact-destination.git \
+              --branch=mode--force-push--circleci--[branch] \
+              --mode=force-push \
+              --report=$HOME/report--mode--force-push.txt \
+              --push \
+              --debug
 
-            DEPLOY_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report-mode-branch.txt | sed 's/ //g')
-            echo "Deployed to $DEPLOY_BRANCH"
+            DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
+            echo "Deployed to $DEPLOYED_BRANCH"
             echo
-            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOY_BRANCH/$TEST_FILE"
+            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+            rm $HOME/report--mode--force-push.txt
+
+      - run:
+          name: Update the test file to simulate changes in the source repository.
+          command: |
+            export TEST_FILE="test-file--branch--circleci--${CIRCLE_BRANCH//\//-}.txt"
+            echo "Deployment 2 for branch $CIRCLE_BRANCH" >> $TEST_FILE
+            date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+
+      - run:
+          name: Deployment 2
+          command: |
+            vendor/bin/robo artifact \
+              git@github.com:drevops/git-artifact-destination.git \
+              --branch=mode--force-push--circleci--[branch] \
+              --mode=force-push \
+              --report=$HOME/report--mode--force-push.txt \
+              --push \
+              --debug
+
+            DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
+            echo "Deployed to $DEPLOYED_BRANCH"
+            echo
+            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+
+  # Demonstration of deployment in 'branch' mode.
+  # Note that by design, pushing into the same branch will result in the failure
+  # of the second push. This is because the mode is intended to create a new
+  # branch per artifact deployment.
+  deploy-branch:
+    <<: *container_config
+    steps:
+      - attach_workspace:
+          at: /workspace
+
+      - add_ssh_keys:
+          fingerprints:
+            - *deploy_ssh_fingerprint
+
+      - *step_setup_git
+
+      - checkout
+
+      # Test file will have a consistent name between deployments, but
+      # the contents will be added to on each deployment to simulate
+      # changes in the source repository.
+      # Since each deployment in this mode creates a new branch, the test file
+      # will be pushed to a new branch each time and won't be updated in
+      # existing branches.
+      - run:
+          name: Prepare test file.
+          command: |
+            export TEST_FILE="test-file--branch--circleci--${CIRCLE_BRANCH//\//-}.txt"
+            echo "Deployment 1 for branch $CIRCLE_BRANCH" >> $TEST_FILE
+            date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+
+      - run:
+          name: Deployment 1
+          command: |
+            vendor/bin/robo artifact \
+              git@github.com:drevops/git-artifact-destination.git \
+              --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
+              --mode=branch \
+              --report=$HOME/report--mode--branch.txt \
+              --push \
+              --debug
+
+            DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
+            echo "Deployed to $DEPLOYED_BRANCH"
+            echo
+            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+            rm $HOME/report--mode--branch.txt
+
+      - run:
+          name: Update the test file to simulate changes in the source repository.
+          command: |
+            export TEST_FILE="test-file--branch--circleci--${CIRCLE_BRANCH//\//-}.txt"
+            echo "Deployment 2 for branch $CIRCLE_BRANCH" >> $TEST_FILE
+            date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+
+      - run:
+          name: Deployment 2 - same branch
+          command: |
+            vendor/bin/robo artifact \
+              git@github.com:drevops/git-artifact-destination.git \
+              --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
+              --mode=branch \
+              --report=$HOME/report--mode--branch.txt \
+              --push \
+              --debug \
+              && { echo "Expected to fail as repeated pushes to the same branch are not allowed, but succeeded" >&2; exit 1; } || echo "Failed as expected"
+
+      - run:
+          name: Deployment 2 - new branch
+          command: |
+            vendor/bin/robo artifact \
+              git@github.com:drevops/git-artifact-destination.git \
+              --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i-s] \
+              --mode=branch \
+              --report=$HOME/report--mode--branch.txt \
+              --push \
+              --debug
+
+            DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
+            echo "Deployed to $DEPLOYED_BRANCH"
+            echo
+            echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
 
 workflows:
   version: 2
   main:
     jobs:
       - build
-      - deploy:
+      - deploy-force-push:
+          requires:
+            - build
+      - deploy-branch:
           requires:
             - build
