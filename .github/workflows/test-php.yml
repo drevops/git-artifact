@@ -101,6 +101,9 @@ jobs:
       - name: Install dependencies
         run: composer install
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Demonstration of deployment in 'force-push' mode.
         run: |
           TEST_FILE="test-file-force-push-github-$(date "+%Y%m%d-%H%M%S").txt"
