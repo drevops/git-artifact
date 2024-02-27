@@ -116,8 +116,10 @@ jobs:
       - name: Prepare test file.
         run: |
           export TEST_FILE="test-file--force-push--gha--${GITHUB_BRANCH//\//-}.txt"
-          echo "Deployment 1 for branch $GITHUB_BRANCH" >> $TEST_FILE
+          echo "Deployment 1 for branch $GITHUB_BRANCH" > $TEST_FILE
           date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+          cat $TEST_FILE
+          echo $TEST_FILE > $HOME/test-file.txt
 
       - name: Deployment 1
         run: |
@@ -132,14 +134,15 @@ jobs:
           DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
           echo "Deployed to $DEPLOYED_BRANCH"
           echo
-          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$(cat $HOME/test-file.txt)"
           rm $HOME/report--mode--force-push.txt
 
       - name: Update the test file to simulate changes in the source repository.
         run: |
           export TEST_FILE="test-file--force-push--gha--${GITHUB_BRANCH//\//-}.txt"
-          echo "Deployment 2 for branch $GITHUB_BRANCH" >> $TEST_FILE
+          echo "Deployment 2 for branch $GITHUB_BRANCH" > $TEST_FILE
           date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+          cat $TEST_FILE
 
       - name: Deployment 2
         run: |
@@ -154,7 +157,7 @@ jobs:
           DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
           echo "Deployed to $DEPLOYED_BRANCH"
           echo
-          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$(cat $HOME/test-file.txt)"
 
   # Demonstration of deployment in 'branch' mode.
   # Note that by design, pushing into the same branch will result in the failure
@@ -213,8 +216,10 @@ jobs:
       - name: Prepare test file.
         run: |
           export TEST_FILE="test-file--branch--gha--${GITHUB_BRANCH//\//-}.txt"
-          echo "Deployment 1 for branch $GITHUB_BRANCH" >> $TEST_FILE
+          echo "Deployment 1 for branch $GITHUB_BRANCH" > $TEST_FILE
           date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+          cat $TEST_FILE
+          echo $TEST_FILE > $HOME/test-file.txt
 
       - name: Deployment 1
         run: |
@@ -229,14 +234,15 @@ jobs:
           DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
           echo "Deployed to $DEPLOYED_BRANCH"
           echo
-          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$(cat $HOME/test-file.txt)"
           rm $HOME/report--mode--branch.txt
 
       - name: Update the test file to simulate changes in the source repository.
         run: |
           export TEST_FILE="test-file--branch--gha--${GITHUB_BRANCH//\//-}.txt"
-          echo "Deployment 2 for branch $GITHUB_BRANCH" >> $TEST_FILE
+          echo "Deployment 2 for branch $GITHUB_BRANCH" > $TEST_FILE
           date "+%Y%m%d-%H%M%S" >> $TEST_FILE
+          cat $TEST_FILE
 
       - name: Deployment 2 - same branch
         run: |
@@ -262,4 +268,4 @@ jobs:
           DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
           echo "Deployed to $DEPLOYED_BRANCH"
           echo
-          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$TEST_FILE"
+          echo "See https://github.com/drevops/git-artifact-destination/blob/$DEPLOYED_BRANCH/$(cat $HOME/test-file.txt)"
