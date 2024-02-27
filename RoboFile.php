@@ -5,7 +5,7 @@
  * @see http://robo.li/
  */
 
-use DrevOps\Robo\ArtefactTrait;
+use DrevOps\Robo\ArtifactTrait;
 use Robo\Tasks;
 
 /**
@@ -14,8 +14,8 @@ use Robo\Tasks;
 class RoboFile extends Tasks
 {
 
-    use ArtefactTrait {
-        ArtefactTrait::__construct as private __artifactConstruct;
+    use ArtifactTrait {
+        ArtifactTrait::__construct as private __artifactConstruct;
     }
 
     /**

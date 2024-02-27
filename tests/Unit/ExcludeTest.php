@@ -9,7 +9,7 @@ namespace DrevOps\Robo\Tests\Unit;
  *
  * @group unit
  *
- * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\ArtifactTrait
  */
 class ExcludeTest extends AbstractUnitTestCase
 {

@@ -9,7 +9,7 @@ namespace DrevOps\Robo\Tests\Functional;
  *
  * @group integration
  *
- * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\ArtifactTrait
  * @covers \DrevOps\Robo\FilesystemTrait
  */
 class GeneralTest extends AbstractFunctionalTestCase
@@ -34,7 +34,7 @@ class GeneralTest extends AbstractFunctionalTestCase
         $this->gitCreateFixtureCommits(1);
         $output = $this->runBuild();
 
-        $this->assertStringContainsString('Artefact information', $output);
+        $this->assertStringContainsString('Artifact information', $output);
         $this->assertStringContainsString('Mode:                  force-push', $output);
         $this->assertStringContainsString('Source repository:     '.$this->src, $output);
         $this->assertStringContainsString('Remote repository:     '.$this->dst, $output);
@@ -80,7 +80,7 @@ class GeneralTest extends AbstractFunctionalTestCase
         $this->assertFileExists($report);
         $output = file_get_contents($report);
 
-        $this->assertStringContainsString('Artefact report', (string) $output);
+        $this->assertStringContainsString('Artifact report', (string) $output);
         $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), (string) $output);
         $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), (string) $output);
         $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), (string) $output);

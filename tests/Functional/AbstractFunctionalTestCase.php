@@ -20,7 +20,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
     protected $currentBranch;
 
     /**
-     * Artefact branch.
+     * Artifact branch.
      *
      * @var string
      */

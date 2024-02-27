@@ -10,12 +10,12 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
- * Class Artefact.
+ * Class Artifact.
  *
  * Robo task to package current repository with all dependencies and send it
  * to the remote repository.
  */
-trait ArtefactTrait
+trait ArtifactTrait
 {
 
     use FilesystemTrait {
@@ -106,7 +106,7 @@ trait ArtefactTrait
     protected $showChanges;
 
     /**
-     * Artefact build result.
+     * Artifact build result.
      *
      * @var bool
      */
@@ -127,7 +127,7 @@ trait ArtefactTrait
     protected $now;
 
     /**
-     * Artefact constructor.
+     * Artifact constructor.
      */
     public function __construct()
     {
@@ -190,7 +190,7 @@ trait ArtefactTrait
             $this->gitSetDst($remote);
 
             $this->showInfo();
-            $this->prepareArtefact();
+            $this->prepareArtifact();
 
             if ($this->needsPush) {
                 $this->doPush();
@@ -224,7 +224,7 @@ trait ArtefactTrait
      *
      * @throws \Exception
      */
-    protected function prepareArtefact(): void
+    protected function prepareArtifact(): void
     {
         $this->gitSwitchToBranch($this->src, $this->artifactBranch, true);
 
@@ -340,7 +340,7 @@ trait ArtefactTrait
     protected function showInfo(): void
     {
         $this->writeln('----------------------------------------------------------------------');
-        $this->writeln(' Artefact information');
+        $this->writeln(' Artifact information');
         $this->writeln('----------------------------------------------------------------------');
         $this->writeln(' Build timestamp:       '.date('Y/m/d H:i:s', $this->now));
         $this->writeln(' Mode:                  '.$this->mode);
@@ -358,7 +358,7 @@ trait ArtefactTrait
     protected function dumpReport(): void
     {
         $lines[] = '----------------------------------------------------------------------';
-        $lines[] = ' Artefact report';
+        $lines[] = ' Artifact report';
         $lines[] = '----------------------------------------------------------------------';
         $lines[] = ' Build timestamp:   '.date('Y/m/d H:i:s', $this->now);
         $lines[] = ' Mode:              '.$this->mode;
