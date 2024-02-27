@@ -46,7 +46,7 @@ this commit: `force-push` or `branch`, accommodating different workflow
 preferences.
 
 See example of deployed artifact
-in [Artefact branches](https://github.com/drevops/git-artifact-destination/branches).
+in [Artifact branches](https://github.com/drevops/git-artifact-destination/branches).
 
 ## Modes
 
@@ -96,7 +96,7 @@ in your repository with the following content:
 
 ```php
 <?php
-use DrevOps\Robo\ArtefactTrait;
+use DrevOps\Robo\ArtifactTrait;
 
 /**
  * Class RoboFile.
@@ -104,8 +104,8 @@ use DrevOps\Robo\ArtefactTrait;
 class RoboFile extends \Robo\Tasks
 {
 
-    use ArtefactTrait {
-        ArtefactTrait::__construct as private __artifactConstruct;
+    use ArtifactTrait {
+        ArtifactTrait::__construct as private __artifactConstruct;
     }
 
     public function __construct()

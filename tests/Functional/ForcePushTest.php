@@ -12,7 +12,7 @@ namespace DrevOps\Robo\Tests\Functional;
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  *
  * @covers \DrevOps\Robo\GitTrait
- * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\ArtifactTrait
  * @covers \DrevOps\Robo\FilesystemTrait
  */
 class ForcePushTest extends AbstractFunctionalTestCase

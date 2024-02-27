@@ -10,7 +10,7 @@ namespace DrevOps\Robo\Tests\Functional;
  * @group integration
  *
  * @covers \DrevOps\Robo\GitTrait
- * @covers \DrevOps\Robo\ArtefactTrait
+ * @covers \DrevOps\Robo\ArtifactTrait
  * @covers \DrevOps\Robo\FilesystemTrait
  */
 class TagTest extends AbstractFunctionalTestCase
