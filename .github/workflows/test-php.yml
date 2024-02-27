@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GITHUB_BRANCH: ${{ github.head_ref }}
+      GITHUB_BRANCH: ${{ github.head_ref || github.ref_name }}
 
     steps:
       - name: Checkout code
@@ -137,7 +137,7 @@ jobs:
 
       - name: Update the test file to simulate changes in the source repository.
         run: |
-          export TEST_FILE="test-file--branch--gha--${GITHUB_BRANCH//\//-}.txt"
+          export TEST_FILE="test-file--force-push--gha--${GITHUB_BRANCH//\//-}.txt"
           echo "Deployment 2 for branch $GITHUB_BRANCH" >> $TEST_FILE
           date "+%Y%m%d-%H%M%S" >> $TEST_FILE
 
@@ -166,7 +166,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GITHUB_BRANCH: ${{ github.head_ref }}
+      GITHUB_BRANCH: ${{ github.head_ref || github.ref_name }}
 
     steps:
       - name: Checkout code
