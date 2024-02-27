@@ -66,9 +66,38 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  build-php:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Build PHAR
+        run: composer build
+
+      - name: Test PHAR
+        run: ./.build/git-artifact || exit 1
+  #;> PHP_PHAR
+
   # Demonstration of deployment in 'force-push' mode.
   deploy-force-push:
-    needs: test-php
+    needs:
+      - test-php
+      - build-php
 
     runs-on: ubuntu-latest
 
@@ -164,7 +193,9 @@ jobs:
   # of the second push. This is because the mode is intended to create a new
   # branch per artifact deployment.
   deploy-branch:
-    needs: test-php
+    needs:
+      - test-php
+      - build-php
 
     runs-on: ubuntu-latest
 

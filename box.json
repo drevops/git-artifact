@@ -1,0 +1,13 @@
+{
+    "output": ".build/git-artifact",
+    "compression": "GZ",
+    "finder": [
+        {
+            "in": "./",
+            "exclude": [
+                "php-script",
+                "tests"
+            ]
+        }
+    ]
+}
