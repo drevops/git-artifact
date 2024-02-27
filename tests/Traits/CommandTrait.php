@@ -2,11 +2,10 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Traits;
+namespace DrevOps\GitArtifact\Tests\Traits;
 
-use DrevOps\Robo\Tests\Exception\ErrorException;
+use DrevOps\GitArtifact\Tests\Exception\ErrorException;
 use PHPUnit\Framework\AssertionFailedError;
-use SebastianBergmann\GlobalState\RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -504,7 +503,7 @@ trait CommandTrait
     public function runGitArtifactCommand(string $argsAndOptions, bool $expectFail = false, string $gitArtifactBin = './git-artifact'): array
     {
         if (!file_exists($gitArtifactBin)) {
-            throw new RuntimeException(sprintf('git-artifact binary is not available at path "%s"', $gitArtifactBin));
+            throw new \RuntimeException(sprintf('git-artifact binary is not available at path "%s"', $gitArtifactBin));
         }
 
         try {
@@ -531,7 +530,7 @@ trait CommandTrait
      * @return array<string>
      *   Array of output lines.
      *
-     * @throws \DrevOps\Robo\Tests\Exception\ErrorException
+     * @throws \DrevOps\GitArtifact\Tests\Exception\ErrorException
      *   If commands exists with non-zero status.
      */
     protected function runCliCommand(string $command): array

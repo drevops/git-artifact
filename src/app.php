@@ -5,7 +5,7 @@
  * Main entry point for the application.
  */
 use Robo\Runner;
-use DrevOps\Robo\Commands\ArtifactCommand;
+use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use Symfony\Component\Console\Application;
 
 $application = new Application();

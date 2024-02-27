@@ -1,9 +1,9 @@
 <?php
 
-namespace DrevOps\Robo\Tests\Unit;
+namespace DrevOps\GitArtifact\Tests\Unit;
 
-use DrevOps\Robo\ArtifactTrait;
-use DrevOps\Robo\Tests\AbstractTestCase;
+use DrevOps\GitArtifact\ArtifactTrait;
+use DrevOps\GitArtifact\Tests\AbstractTestCase;
 
 /**
  * Class AbstractUnitTestCase.

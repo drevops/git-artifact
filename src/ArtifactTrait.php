@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\Robo;
+namespace DrevOps\GitArtifact;
 
 use Robo\Exception\AbortTasksException;
 use Symfony\Component\Console\Input\InputOption;

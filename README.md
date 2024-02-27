@@ -90,32 +90,6 @@ composer require drevops/git-artifact
 ```
 
 ## Usage
-
-Use provided [`RoboFile.php`](RoboFile.php) or create a custom `RoboFile.php`
-in your repository with the following content:
-
-```php
-<?php
-use DrevOps\Robo\ArtifactTrait;
-
-/**
- * Class RoboFile.
- */
-class RoboFile extends \Robo\Tasks
-{
-
-    use ArtifactTrait {
-        ArtifactTrait::__construct as private __artifactConstruct;
-    }
-
-    public function __construct()
-    {
-        $this->__artifactConstruct();
-    }
-}
-```
-
-### Run
 ```shell
 ./git-artifact git@github.com:yourorg/your-repo-destination.git
 ```
@@ -133,8 +107,7 @@ See examples:
 Call from CI configuration or deployment script:
 ```shell
 export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
-vendor/bin/robo --load-from "${HOME}/.composer/vendor/drevops/git-artifact/RoboFile.php" artifact \
-  git@github.com:yourorg/your-repo-destination.git \
+./git-artifact git@github.com:yourorg/your-repo-destination.git \
   --branch="${DEPLOY_BRANCH}" \
   --push
 ```

@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Exception;
+namespace DrevOps\GitArtifact\Tests\Exception;
 
 use PHPUnit\Framework\Exception;
 

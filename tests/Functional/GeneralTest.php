@@ -2,15 +2,15 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Functional;
+namespace DrevOps\GitArtifact\Tests\Functional;
 
 /**
  * Class GeneralTest.
  *
  * @group integration
  *
- * @covers \DrevOps\Robo\ArtifactTrait
- * @covers \DrevOps\Robo\FilesystemTrait
+ * @covers \DrevOps\GitArtifact\ArtifactTrait
+ * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
 class GeneralTest extends AbstractFunctionalTestCase
 {

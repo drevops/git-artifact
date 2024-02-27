@@ -1,6 +1,6 @@
 {
     "name": "drevops/git-artifact",
-    "type": "robo-tasks",
+    "type": "package",
     "description": "Build artifact from your codebase in CI and push it to a separate git repo.",
     "license": "GPL-2.0-or-later",
     "authors": [
@@ -29,12 +29,12 @@
     },
     "autoload": {
         "psr-4": {
-            "DrevOps\\Robo\\": "src"
+            "DrevOps\\GitArtifact\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "DrevOps\\Robo\\Tests\\": "tests"
+            "DrevOps\\GitArtifact\\Tests\\": "tests"
         }
     },
     "config": {

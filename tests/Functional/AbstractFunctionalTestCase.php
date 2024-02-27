@@ -2,9 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Functional;
+namespace DrevOps\GitArtifact\Tests\Functional;
 
-use DrevOps\Robo\Tests\AbstractTestCase;
+use DrevOps\GitArtifact\Tests\AbstractTestCase;
 
 /**
  * Class AbstractTestCase

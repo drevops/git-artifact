@@ -2,14 +2,14 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Unit;
+namespace DrevOps\GitArtifact\Tests\Unit;
 
 /**
  * Class ExcludeTest.
  *
  * @group unit
  *
- * @covers \DrevOps\Robo\ArtifactTrait
+ * @covers \DrevOps\GitArtifact\ArtifactTrait
  */
 class ExcludeTest extends AbstractUnitTestCase
 {

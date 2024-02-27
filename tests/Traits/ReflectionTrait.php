@@ -1,6 +1,6 @@
 <?php
 
-namespace DrevOps\Robo\Tests\Traits;
+namespace DrevOps\GitArtifact\Tests\Traits;
 
 /**
  * Trait ReflectionTrait.

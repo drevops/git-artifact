@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Commands;
+namespace DrevOps\GitArtifact\Commands;
 
 use Robo\Runner;
 use Symfony\Component\Console\Command\Command;
