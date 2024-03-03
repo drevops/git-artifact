@@ -21,6 +21,9 @@
 
 ---
 
+>[!NOTE]
+> Version `0.7` will be a standalone CLI application and will no longer require Robo to run.
+
 ## What is it?
 
 A tool to assemble a code artifact from your codebase, eliminate unwanted files,
@@ -35,7 +38,7 @@ be developed in a separate (source) repository, compiled into an artifact either
 locally or via CI, and then transferred to the hosting provider's version
 control system (destination repository).
 
-This tool facilitates such processes seamlessly: it uses a .gitignore.deployment
+This tool facilitates such processes seamlessly: it uses a `.gitignore.deployment`
 file to determine which files should be transferred to the destination
 repository, ensuring only necessary files are included and leaving out those
 specified by the ignore file.
@@ -63,7 +66,7 @@ existing history in the destination repository.
 Forwarding all changes from the source repository to the destination
 repository as-is for every branch: for example, a commit in the source
 repository branch `feature/123` would create a commit in the destination
-repository branch `feature/123`. The following commits in the source repository
+repository branch `feature/123`. The next commit to the source repository
 branch `feature/123` would update the destination repository branch
 `feature/123` with the changes, but would overwrite the last "deployment"
 commit.
