@@ -345,9 +345,9 @@ trait GitTrait
         try {
             return $this->gitWrapper->git($command, $location);
         } catch (\Exception $exception) {
-            if ($errorMessage !== '') {
-                throw new \Exception($errorMessage);
-            }
+//            if ($errorMessage !== '') {
+//                throw new \Exception($errorMessage);
+//            }
             throw $exception;
         }
     }
