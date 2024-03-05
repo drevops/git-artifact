@@ -282,31 +282,17 @@ class Artifact
                 $this->dstBranch,
                 $this->mode === self::modeForcePush()
             );
-            $this->result = ($result !== '');
+            $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
         } catch (\Exception $exception) {
             // Re-throw the message with additional context.
-            throw new \Exception(
-                sprintf(
-                    'Error occurred while pushing branch "%s": %s',
-                    $this->dstBranch,
-                    $exception->getMessage()
-                ),
-                $exception->getCode(),
-                $exception
-            );
-        }
-
-        if ($this->result) {
-            $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
-        } else {
-            // We should never reach this - any problems with git push should
-            // throw an exception, that we catching above.
             throw new \Exception(
                 sprintf(
                     'Error occurred while pushing branch "%s" with commit message "%s"',
                     $this->dstBranch,
                     $this->message
-                )
+                ),
+                $exception->getCode(),
+                $exception
             );
         }
     }
