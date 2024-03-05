@@ -86,9 +86,7 @@ trait GitTrait
     {
         return $this->gitCommandRun(
             $location,
-            'remote add',
-            [],
-            [$name, $remote],
+            sprintf('remote add %s %s', $name, $remote),
             sprintf('Unable to add "%s" remote', $name)
         );
     }
@@ -112,8 +110,6 @@ trait GitTrait
         $result = $this->gitCommandRun(
             $location,
             'remote',
-            [],
-            [],
             'Unable to list remotes',
         );
 
@@ -144,12 +140,9 @@ trait GitTrait
      */
     protected function gitSwitchToBranch(string $location, string $branch, bool $createNew = false): string
     {
-        $commandOptions = $createNew ? ['b' => true] : [];
         return $this->gitCommandRun(
             $location,
-            'checkout',
-            $commandOptions,
-            [$branch],
+            sprintf('checkout %s %s', $createNew ? '-b' : '', $branch),
         );
     }
 
@@ -170,13 +163,7 @@ trait GitTrait
     {
         return $this->gitCommandRun(
             $location,
-            'branch',
-            [
-                'D' => true,
-            ],
-            [
-                $branch
-            ],
+            sprintf('branch -D %s', $branch),
         );
     }
 
@@ -195,9 +182,7 @@ trait GitTrait
         if ($this->gitRemoteExists($location, $remote)) {
             $this->gitCommandRun(
                 $location,
-                'remote rm',
-                [],
-                [$remote],
+                sprintf('remote rm %s', $remote),
             );
         }
     }
@@ -228,15 +213,15 @@ trait GitTrait
         string $remoteBranch,
         bool $force = false
     ): string {
-        $commandOptions = $force ? ['force' => true] : [];
         return $this->gitCommandRun(
             $location,
-            'push',
-            $commandOptions,
-            [
+            sprintf(
+                'push %s refs/heads/%s:refs/heads/%s%s',
                 $remoteName,
-                sprintf('refs/heads/%s:refs/heads/%s', $localBranch, $remoteBranch),
-            ],
+                $localBranch,
+                $remoteBranch,
+                $force ? ' --force' : ''
+            ),
             sprintf(
                 'Unable to push local branch "%s" to "%s" remote branch "%s"',
                 $localBranch,
@@ -263,17 +248,12 @@ trait GitTrait
     {
         $this->gitCommandRun(
             $location,
-            'add',
-            ['A' => true],
+            'add -A',
         );
 
         return $this->gitCommandRun(
             $location,
-            'commit',
-            [
-                'allow-empty' => true,
-                'm' => $message,
-            ],
+            sprintf('commit --allow-empty -m "%s"', $message),
         );
     }
 
@@ -293,11 +273,7 @@ trait GitTrait
     {
         $result = $this->gitCommandRun(
             $location,
-            'rev-parse',
-            [
-                'abbrev-ref' => true
-            ],
-            ['HEAD'],
+            'rev-parse --abbrev-ref HEAD',
             'Unable to get current repository branch',
         );
 
@@ -320,12 +296,7 @@ trait GitTrait
     {
         $result = $this->gitCommandRun(
             $location,
-            'tag',
-            [
-                'l' => true,
-                'points-at' => 'HEAD'
-            ],
-            [],
+            'tag -l --points-at HEAD',
             'Unable to retrieve tags',
         );
         $tags = preg_split('/\R/', $result);
@@ -347,8 +318,6 @@ trait GitTrait
      *   Repository location path or URI.
      * @param string $command
      *   Command to run.
-     * @param array $commandOptions
-     * @param array $commandArgs
      * @param string $errorMessage
      *   Optional error message.
      * @param bool $noDebug
@@ -363,51 +332,17 @@ trait GitTrait
     protected function gitCommandRun(
         string $location,
         string $command,
-        array $commandOptions = [],
-        array $commandArgs = [],
         string $errorMessage = '',
         bool $noDebug = true
     ): string {
         try {
-            $gitCommand = $this->gitCommand($location, $command, $commandOptions, $commandArgs);
-            return $this->gitWrapper->run($gitCommand);
+            return $this->gitWrapper->git($command, $location);
         } catch (\Exception $exception) {
             if ($errorMessage !== '') {
                 throw new \Exception($errorMessage);
             }
             throw $exception;
         }
-    }
-
-    /**
-     * Get unified git command.
-     *
-     * @param string $location
-     *   Optional repository location.
-     * @param string $command
-     * @param array $commandOptions
-     * @param array $commandArgs
-     *
-     * @return GitCommand
-     *   Git command.
-     */
-    protected function gitCommand(
-        string $location,
-        string $command,
-        array $commandOptions,
-        array $commandArgs,
-    ): GitCommand {
-        $gitCommand = new GitCommand($command);
-        foreach ($commandArgs as $arg) {
-            $gitCommand->addArgument($arg);
-        }
-        foreach ($commandOptions as $option => $value) {
-            $gitCommand->setOption($option, $value);
-        }
-        $gitCommand->setDirectory($location);
-        $gitCommand->setOption('no-pager', true);
-
-        return $gitCommand;
     }
 
     /**

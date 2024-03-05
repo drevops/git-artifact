@@ -698,8 +698,7 @@ class Artifact
     {
         $result = $this->gitCommandRun(
             $location,
-            'add',
-            ['A' => true],
+            'add -A',
         );
 
         $this->printDebug(sprintf("Added all files:\n%s", $result));
@@ -724,12 +723,7 @@ class Artifact
         foreach ($files as $file) {
             $this->gitCommandRun(
                 $location,
-                'update-index',
-                [
-                    'info-only' => true,
-                    'add' => true,
-                ],
-                [$file],
+                sprintf('update-index --info-only --add "%s"', $file),
             );
             $this->printDebug(sprintf('Updated index for file "%s"', $file));
         }
@@ -758,17 +752,10 @@ class Artifact
             $this->printDebug($gitignoreContent);
             $this->printDebug('-----.gitignore---------');
         }
-
+        $command = sprintf('ls-files --directory -i -c --exclude-from=%s %s', $gitignorePath, $location);
         $result = $this->gitCommandRun(
             $location,
-            'ls-files',
-            [
-                'directory' => true,
-                'i' => true,
-                'c' => true,
-                'exclude-from' => $gitignorePath,
-            ],
-            [$location],
+            $command,
             'Unable to remove ignored files',
         );
         $files = preg_split('/\R/', $result);
@@ -797,14 +784,10 @@ class Artifact
      */
     protected function removeOtherFiles(string $location): void
     {
+        $command = 'ls-files --others --exclude-standard';
         $result = $this->gitCommandRun(
             $location,
-            'ls-files',
-            [
-                'others' => true,
-                'exclude-standard' => true,
-            ],
-            [],
+            $command,
             'Unable to remove other files',
         );
         $files = preg_split('/\R/', $result);
