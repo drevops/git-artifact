@@ -335,6 +335,7 @@ trait GitTrait
         string $errorMessage = '',
         bool $noDebug = true
     ): string {
+        $command = '--no-pager '. $command;
         try {
             return $this->gitWrapper->git($command, $location);
         } catch (\Exception $exception) {
