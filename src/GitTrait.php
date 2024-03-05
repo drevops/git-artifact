@@ -140,9 +140,14 @@ trait GitTrait
      */
     protected function gitSwitchToBranch(string $location, string $branch, bool $createNew = false): string
     {
+        if ($createNew) {
+            $command = sprintf('checkout -b %s', $branch);
+        } else {
+            $command = sprintf('checkout %s', $branch);
+        }
         return $this->gitCommandRun(
             $location,
-            sprintf('checkout %s %s', $createNew ? '-b' : '', $branch),
+            $command,
         );
     }
 
@@ -250,11 +255,12 @@ trait GitTrait
             $location,
             'add -A',
         );
-
-        return $this->gitCommandRun(
-            $location,
-            sprintf('commit --allow-empty -m "%s"', $message),
-        );
+        $command = new GitCommand('commit', [
+          'allow-empty' => true,
+          'm' => $message,
+        ]);
+        $command->setDirectory($location);
+        return $this->gitWrapper->run($command);
     }
 
     /**
