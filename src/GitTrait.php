@@ -343,11 +343,13 @@ trait GitTrait
     ): string {
         $command = '--no-pager '. $command;
         try {
-            return $this->gitWrapper->git($command, $location);
+            $result = $this->gitWrapper->git($command, $location);
+
+            return $result;
         } catch (\Exception $exception) {
-//            if ($errorMessage !== '') {
-//                throw new \Exception($errorMessage);
-//            }
+            if ($errorMessage !== '') {
+                throw new \Exception($errorMessage);
+            }
             throw $exception;
         }
     }
