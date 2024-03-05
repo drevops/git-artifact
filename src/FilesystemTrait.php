@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact;
 
-use Robo\Contract\VerbosityThresholdInterface;
-use Robo\Exception\TaskException;
-use Robo\LoadAllTasks;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 
 /**
  * Trait FilesystemTrait.
  */
 trait FilesystemTrait
 {
-
-    use LoadAllTasks;
 
     /**
      * Current directory where call originated.
@@ -29,7 +25,7 @@ trait FilesystemTrait
      *
      * @var \Symfony\Component\Filesystem\Filesystem
      */
-    protected $fsFileSystem;
+    protected Filesystem $fsFileSystem;
 
     /**
      * Stack of original current working directories.
@@ -41,14 +37,6 @@ trait FilesystemTrait
      * @var array<string>
      */
     protected $fsOriginalCwdStack = [];
-
-    /**
-     * FilesystemTrait constructor.
-     */
-    public function __construct()
-    {
-        $this->fsFileSystem = new Filesystem();
-    }
 
     /**
      * Set root directory path.
@@ -133,18 +121,15 @@ trait FilesystemTrait
      * @return bool
      *   TRUE if command is available, FALSE otherwise.
      *
-     * @throws TaskException
      */
     protected function fsIsCommandAvailable(string $command): bool
     {
-        /* @phpstan-ignore-next-line */
-        $result = $this->taskExecStack()
-            ->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG)
-            ->printOutput(false)
-            ->exec('which '.$command)
-            ->run();
-
-        return $result->wasSuccessful();
+        $process = new Process(['which', 'git']);
+        $process->run();
+        if ($process->isSuccessful()) {
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -4,14 +4,16 @@
  * @file
  * Main entry point for the application.
  */
-use Robo\Runner;
+
+use GitWrapper\GitWrapper;
 use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Filesystem\Filesystem;
 
 $application = new Application();
-if (isset($runner) && $runner instanceof Runner) {
-    $command = new ArtifactCommand($runner);
-    $application->add($command);
-    $application->setDefaultCommand((string) $command->getName(), true);
-}
+$gitWrapper = new GitWrapper();
+$fileSystem = new Filesystem();
+$command = new ArtifactCommand($gitWrapper, $fileSystem);
+$application->add($command);
+$application->setDefaultCommand((string) $command->getName(), true);
 $application->run();

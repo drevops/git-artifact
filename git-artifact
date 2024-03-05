@@ -3,16 +3,10 @@
 
 foreach ([$GLOBALS['_composer_autoload_path'] ?? NULL, __DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php'] as $file) {
   if ($file && file_exists($file)) {
-      $classLoader = require_once $file;
+    require_once $file;
     unset($file);
     break;
   }
 }
-
-$runner = new \Robo\Runner();
-$runner
-    ->setRelativePluginNamespace('Robo\Plugin')
-    ->setEnvConfigPrefix('ROBO')
-    ->setClassLoader($classLoader);
 
 require __DIR__ . '/src/app.php';
