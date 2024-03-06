@@ -93,7 +93,7 @@ jobs:
         run: composer build
 
       - name: Test PHAR
-        run: ./.build/git-artifact || exit 1
+        run: ./.build/git-artifact --help || exit 1
   #;> PHP_PHAR
 
   # Demonstration of deployment in 'force-push' mode.
