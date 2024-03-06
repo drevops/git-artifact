@@ -312,10 +312,6 @@ trait GitTrait
     /**
      * Run git command.
      *
-     * We cannot use Robo's git stack here as it does not support specifying
-     * current git working dir.
-     * Instead, we are using Robo's exec stack and our own wrapper.
-     *
      * @param string $location
      *   Repository location path or URI.
      * @param string $command

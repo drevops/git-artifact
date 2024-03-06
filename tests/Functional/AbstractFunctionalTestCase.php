@@ -140,7 +140,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
     }
 
     /**
-     * Run Robo command with current timestamp attached to artifact commands.
+     * Run command with current timestamp attached to artifact commands.
      *
      * @param string $command
      *   Command string to run.

@@ -488,7 +488,7 @@ trait CommandTrait
     }
 
   /**
-   * Run Robo command.
+   * Run command.
    *
    * @param string $argsAndOptions
    *   Args and options.
