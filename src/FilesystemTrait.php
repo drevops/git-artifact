@@ -22,8 +22,6 @@ trait FilesystemTrait
 
     /**
      * File system for custom commands.
-     *
-     * @var \Symfony\Component\Filesystem\Filesystem
      */
     protected Filesystem $fsFileSystem;
 
@@ -124,12 +122,10 @@ trait FilesystemTrait
      */
     protected function fsIsCommandAvailable(string $command): bool
     {
-        $process = new Process(['which', 'git']);
+        $process = new Process(['which', $command]);
         $process->run();
-        if ($process->isSuccessful()) {
-            return true;
-        }
-        return false;
+
+        return $process->isSuccessful();
     }
 
     /**

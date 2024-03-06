@@ -17,8 +17,6 @@ trait GitTrait
 
     /**
      * Git Wrapper.
-     *
-     * @var GitWrapper
      */
     protected GitWrapper $gitWrapper;
 
@@ -113,7 +111,7 @@ trait GitTrait
             'Unable to list remotes',
         );
 
-        $lines = preg_split('/\R/', $result);
+        $lines = preg_split('/\R/', (string) $result);
 
         if (empty($lines)) {
             return false;
@@ -140,11 +138,8 @@ trait GitTrait
      */
     protected function gitSwitchToBranch(string $location, string $branch, bool $createNew = false): string
     {
-        if ($createNew) {
-            $command = sprintf('checkout -b %s', $branch);
-        } else {
-            $command = sprintf('checkout %s', $branch);
-        }
+        $command = $createNew ? sprintf('checkout -b %s', $branch) : sprintf('checkout %s', $branch);
+
         return $this->gitCommandRun(
             $location,
             $command,
@@ -256,10 +251,11 @@ trait GitTrait
             'add -A',
         );
         $command = new GitCommand('commit', [
-          'allow-empty' => true,
-          'm' => $message,
+            'allow-empty' => true,
+            'm' => $message,
         ]);
         $command->setDirectory($location);
+
         return $this->gitWrapper->run($command);
     }
 
@@ -283,7 +279,7 @@ trait GitTrait
             'Unable to get current repository branch',
         );
 
-        return trim($result);
+        return trim((string) $result);
     }
 
     /**
@@ -305,7 +301,7 @@ trait GitTrait
             'tag -l --points-at HEAD',
             'Unable to retrieve tags',
         );
-        $tags = preg_split('/\R/', $result);
+        $tags = preg_split('/\R/', (string) $result);
         if (empty($tags)) {
             return [];
         }
@@ -341,14 +337,15 @@ trait GitTrait
         string $errorMessage = '',
         bool $noDebug = true
     ): string {
-        $command = '--no-pager '. $command;
+        $command = '--no-pager '.$command;
+        if (!$noDebug) {
+            $command .= ' -vvv';
+        }
         try {
-            $result = $this->gitWrapper->git($command, $location);
-
-            return $result;
+            return $this->gitWrapper->git($command, $location);
         } catch (\Exception $exception) {
             if ($errorMessage !== '') {
-                throw new \Exception($errorMessage);
+                throw new \Exception($errorMessage, $exception->getCode(), $exception);
             }
             throw $exception;
         }

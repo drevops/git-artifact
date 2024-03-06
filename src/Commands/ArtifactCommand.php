@@ -19,14 +19,16 @@ use Symfony\Component\Filesystem\Filesystem;
 class ArtifactCommand extends Command
 {
 
-  /**
-   * Construct for command.
-   *
-   * @param GitWrapper $gitWrapper
-   *   Git wrapper.
-   * @param string|null $name
-   *   Command name.
-   */
+    /**
+     * Construct for command.
+     *
+     * @param GitWrapper $gitWrapper
+     *   Git wrapper.
+     * @param Filesystem $fileSystem
+     *   File system.
+     * @param string|null $name
+     *   Command name.
+     */
     public function __construct(
         protected GitWrapper $gitWrapper,
         protected Filesystem $fileSystem,
@@ -109,6 +111,7 @@ class ArtifactCommand extends Command
         $remote = $input->getArgument('remote');
         // @phpstan-ignore-next-line
         $artifact->artifact($remote, $input->getOptions());
+
         return Command::SUCCESS;
     }
 }

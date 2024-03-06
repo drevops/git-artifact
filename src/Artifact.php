@@ -10,6 +10,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
+/**
+ * Class to handle git artifact function.
+ *
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ */
 class Artifact
 {
     use GitTrait;
@@ -118,21 +124,19 @@ class Artifact
     protected $now;
 
     /**
-     * Console output.
-     *
-     * @var OutputInterface
-     */
-    protected OutputInterface $output;
-
-    /**
      * Artifact constructor.
+     * @param GitWrapper $gitWrapper
+     *   Git wrapper.
+     * @param Filesystem $fsFileSystem
+     *   File system.
+     * @param OutputInterface $output
+     *   Output.
      */
     public function __construct(
         GitWrapper $gitWrapper,
         Filesystem $fsFileSystem,
-        OutputInterface $output
+        protected OutputInterface $output
     ) {
-        $this->output = $output;
         $this->fsFileSystem = $fsFileSystem;
         $this->gitWrapper = $gitWrapper;
     }
@@ -222,6 +226,39 @@ class Artifact
     }
 
     /**
+     * Branch mode.
+     *
+     * @return string
+     *   Branch mode name.
+     */
+    public static function modeBranch(): string
+    {
+        return 'branch';
+    }
+
+    /**
+     * Force-push mode.
+     *
+     * @return string
+     *   Force-push mode name.
+     */
+    public static function modeForcePush(): string
+    {
+        return 'force-push';
+    }
+
+    /**
+     * Diff mode.
+     *
+     * @return string
+     *   Diff mode name.
+     */
+    public static function modeDiff(): string
+    {
+        return 'diff';
+    }
+
+    /**
      * Prepare artifact to be then deployed.
      *
      * @throws \Exception
@@ -275,7 +312,7 @@ class Artifact
         }
 
         try {
-            $result = $this->gitPush(
+            $this->gitPush(
                 $this->src,
                 $this->artifactBranch,
                 $this->remoteName,
@@ -421,39 +458,6 @@ class Artifact
         }
 
         $this->mode = $mode;
-    }
-
-    /**
-     * Branch mode.
-     *
-     * @return string
-     *   Branch mode name.
-     */
-    public static function modeBranch(): string
-    {
-        return 'branch';
-    }
-
-    /**
-     * Force-push mode.
-     *
-     * @return string
-     *   Force-push mode name.
-     */
-    public static function modeForcePush(): string
-    {
-        return 'force-push';
-    }
-
-    /**
-     * Diff mode.
-     *
-     * @return string
-     *   Diff mode name.
-     */
-    public static function modeDiff(): string
-    {
-        return 'diff';
     }
 
     /**
@@ -865,6 +869,7 @@ class Artifact
      * Check if running in debug mode.
      *
      * @return bool
+     *   Check is debugging mode or not.
      */
     protected function isDebug(): bool
     {
@@ -872,9 +877,12 @@ class Artifact
     }
 
     /**
+     * Write line as yell style.
+     *
      * @param string $text
+     *   Text yell.
      */
-    public function yell(string $text): void
+    protected function yell(string $text): void
     {
         $color = 'green';
         $char = $this->decorationCharacter('>', '➜');
@@ -883,12 +891,15 @@ class Artifact
     }
 
     /**
+     * Write line as say style.
+     *
      * @param string $text
+     *   Text.
      */
     protected function say(string $text): void
     {
         $char = $this->decorationCharacter('>', '➜');
-        $this->writeln("$char  $text");
+        $this->writeln(sprintf('%s  %s', $char, $text));
     }
 
     /**
@@ -944,12 +955,14 @@ class Artifact
      *   Decorated.
      *
      * @return string
+     *   The decoration character.
      */
     protected function decorationCharacter(string $nonDecorated, string $decorated): string
     {
-        if (!$this->output->isDecorated() || (strncasecmp(PHP_OS, 'WIN', 3) == 0)) {
+        if (!$this->output->isDecorated() || (strncasecmp(PHP_OS, 'WIN', 3) === 0)) {
             return $nonDecorated;
         }
+
         return $decorated;
     }
 }
