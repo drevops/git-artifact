@@ -334,9 +334,6 @@ trait GitTrait
         bool $noDebug = true
     ): string {
         $command = '--no-pager '.$command;
-        if (!$noDebug) {
-            $command .= ' -vvv';
-        }
         try {
             return $this->gitWrapper->git($command, $location);
         } catch (\Exception $exception) {
