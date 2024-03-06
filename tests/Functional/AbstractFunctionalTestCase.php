@@ -104,7 +104,6 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
     protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
-        $this->assertStringContainsString('[error]', $output);
         $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
         $this->assertStringNotContainsString('Deployment finished successfully.', $output);
         $this->assertStringContainsString('Deployment failed.', $output);

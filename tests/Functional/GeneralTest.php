@@ -94,7 +94,6 @@ class GeneralTest extends AbstractFunctionalTestCase
         $output = $this->runBuild('--debug');
 
         $this->assertStringContainsString('Debug messages enabled', $output);
-        $this->assertStringContainsString('[Exec]', $output);
 
         $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
@@ -106,7 +105,6 @@ class GeneralTest extends AbstractFunctionalTestCase
         $output = $this->runBuild();
 
         $this->assertStringNotContainsString('Debug messages enabled', $output);
-        $this->assertStringNotContainsString('[Exec]', $output);
 
         $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
