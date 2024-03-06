@@ -18,7 +18,10 @@ use Symfony\Component\Finder\Finder;
  */
 class Artifact
 {
-    use GitTrait;
+    use GitTrait {
+        gitCommandRun as gitCommandRunFromTrait;
+    }
+
     use TokenTrait;
 
     /**
@@ -964,5 +967,21 @@ class Artifact
         }
 
         return $decorated;
+    }
+
+
+    protected function gitCommandRun(
+        string $location,
+        string $command,
+        string $errorMessage = '',
+        bool $noDebug = true
+    ): string {
+        if ($this->isDebug() || $noDebug !== false) {
+            $result = $this->gitCommandRunFromTrait($location, $command, $errorMessage, false);
+        } else {
+            $result = $this->gitCommandRunFromTrait($location, $command, $errorMessage);
+        }
+        $this->printDebug($result);
+        return $result;
     }
 }
