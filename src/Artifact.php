@@ -4,7 +4,11 @@ declare(strict_types = 1);
 
 namespace DrevOps\GitArtifact;
 
+use GitWrapper\EventSubscriber\GitLoggerEventSubscriber;
 use GitWrapper\GitWrapper;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -18,10 +22,7 @@ use Symfony\Component\Finder\Finder;
  */
 class Artifact
 {
-    use GitTrait {
-        gitCommandRun as gitCommandRunFromTrait;
-    }
-
+    use GitTrait;
     use TokenTrait;
 
     /**
@@ -126,7 +127,7 @@ class Artifact
      */
     protected $now;
 
-    /**
+  /**
      * Artifact constructor.
      * @param GitWrapper $gitWrapper
      *   Git wrapper.
@@ -138,10 +139,15 @@ class Artifact
     public function __construct(
         GitWrapper $gitWrapper,
         Filesystem $fsFileSystem,
-        protected OutputInterface $output
+        protected OutputInterface $output,
     ) {
         $this->fsFileSystem = $fsFileSystem;
         $this->gitWrapper = $gitWrapper;
+        if ($this->isDebug()) {
+            $logger = new Logger('git');
+            $logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
+            $this->gitWrapper->addLoggerEventSubscriber(new GitLoggerEventSubscriber($logger));
+        }
     }
 
     /**
@@ -967,21 +973,5 @@ class Artifact
         }
 
         return $decorated;
-    }
-
-
-    protected function gitCommandRun(
-        string $location,
-        string $command,
-        string $errorMessage = '',
-        bool $noDebug = true
-    ): string {
-        if ($this->isDebug() || $noDebug !== false) {
-            $result = $this->gitCommandRunFromTrait($location, $command, $errorMessage, false);
-        } else {
-            $result = $this->gitCommandRunFromTrait($location, $command, $errorMessage);
-        }
-        $this->printDebug($result);
-        return $result;
     }
 }

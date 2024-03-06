@@ -318,9 +318,6 @@ trait GitTrait
      *   Command to run.
      * @param string $errorMessage
      *   Optional error message.
-     * @param bool $noDebug
-     *   Flag to enforce no-debug mode. Used by commands that use output for
-     *   values.
      *
      * @return string
      *   Stdout.
@@ -331,7 +328,6 @@ trait GitTrait
         string $location,
         string $command,
         string $errorMessage = '',
-        bool $noDebug = true
     ): string {
         $command = '--no-pager '.$command;
         try {
