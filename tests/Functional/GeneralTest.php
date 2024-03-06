@@ -9,7 +9,7 @@ namespace DrevOps\GitArtifact\Tests\Functional;
  *
  * @group integration
  *
- * @covers \DrevOps\GitArtifact\ArtifactTrait
+ * @covers \DrevOps\GitArtifact\Artifact
  * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
 class GeneralTest extends AbstractFunctionalTestCase
