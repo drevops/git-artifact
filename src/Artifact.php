@@ -4,11 +4,7 @@ declare(strict_types = 1);
 
 namespace DrevOps\GitArtifact;
 
-use GitWrapper\EventSubscriber\GitLoggerEventSubscriber;
 use GitWrapper\GitWrapper;
-use Monolog\Handler\StreamHandler;
-use Monolog\Level;
-use Monolog\Logger;
 use SplFileInfo;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -143,11 +139,6 @@ class Artifact
     ) {
         $this->fsFileSystem = $fsFileSystem;
         $this->gitWrapper = $gitWrapper;
-        if ($this->isDebug()) {
-            $logger = new Logger('git');
-            $logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
-            $this->gitWrapper->addLoggerEventSubscriber(new GitLoggerEventSubscriber($logger));
-        }
     }
 
     /**

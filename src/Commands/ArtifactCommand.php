@@ -5,7 +5,11 @@ declare(strict_types = 1);
 namespace DrevOps\GitArtifact\Commands;
 
 use DrevOps\GitArtifact\Artifact;
+use GitWrapper\EventSubscriber\GitLoggerEventSubscriber;
 use GitWrapper\GitWrapper;
+use Monolog\Handler\StreamHandler;
+use Monolog\Level;
+use Monolog\Logger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,24 +22,6 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class ArtifactCommand extends Command
 {
-
-    /**
-     * Construct for command.
-     *
-     * @param GitWrapper $gitWrapper
-     *   Git wrapper.
-     * @param Filesystem $fileSystem
-     *   File system.
-     * @param string|null $name
-     *   Command name.
-     */
-    public function __construct(
-        protected GitWrapper $gitWrapper,
-        protected Filesystem $fileSystem,
-        ?string $name = null,
-    ) {
-        parent::__construct($name);
-    }
 
   /**
    * Configure command.
@@ -107,7 +93,15 @@ class ArtifactCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $artifact = new Artifact($this->gitWrapper, $this->fileSystem, $output);
+        $gitWrapper = new GitWrapper();
+        $optionDebug = $input->getOption('debug');
+        if (($optionDebug || $output->isDebug())) {
+            $logger = new Logger('git');
+            $logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
+            $gitWrapper->addLoggerEventSubscriber(new GitLoggerEventSubscriber($logger));
+        }
+        $fileSystem = new Filesystem();
+        $artifact = new Artifact($gitWrapper, $fileSystem, $output);
         $remote = $input->getArgument('remote');
         // @phpstan-ignore-next-line
         $artifact->artifact($remote, $input->getOptions());
