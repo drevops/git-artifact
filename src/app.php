@@ -8,11 +8,11 @@
 use GitWrapper\GitWrapper;
 use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use Symfony\Component\Console\Application;
-use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Filesystem as FileSystem;
 
 $application = new Application();
 $gitWrapper = new GitWrapper();
-$fileSystem = new Filesystem();
+$fileSystem = new FileSystem();
 $command = new ArtifactCommand($gitWrapper, $fileSystem);
 $application->add($command);
 $application->setDefaultCommand((string) $command->getName(), true);

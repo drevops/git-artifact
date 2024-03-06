@@ -86,6 +86,9 @@ jobs:
       - name: Install dependencies
         run: composer install
 
+      - name: Check composer version
+        run: composer --version
+
       - name: Build PHAR
         run: composer build
 
