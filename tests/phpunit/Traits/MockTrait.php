@@ -2,9 +2,6 @@
 
 namespace DrevOps\GitArtifact\Tests\Traits;
 
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\MockObject\Stub\Stub;
-
 /**
  * Trait MockTrait.
  *

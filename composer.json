@@ -39,7 +39,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DrevOps\\GitArtifact\\Tests\\": "tests"
+            "DrevOps\\GitArtifact\\Tests\\": "tests/phpunit"
         }
     },
     "config": {
