@@ -96,7 +96,7 @@ trait CommandTrait
         }
         $this->fs->mkdir($path);
 
-        $this->runGitCommand('init', $path);
+        $this->runGitCommand('init -b master', $path);
     }
 
     /**
