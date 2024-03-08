@@ -141,7 +141,7 @@ class Artifact {
   }
 
   /**
-   * Push artifact of current repository to remote git repository.
+   * Assemble a code artifact from your codebase.
    *
    * @param string $remote
    *   Path to the remote git repository.

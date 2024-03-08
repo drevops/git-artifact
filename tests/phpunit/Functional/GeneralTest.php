@@ -17,7 +17,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
   public function testHelp(): void {
     $output = $this->runGitArtifactCommand('--help');
     $this->assertStringContainsString('artifact [options] [--] <remote>', implode(PHP_EOL, $output));
-    $this->assertStringContainsString('Push artifact of current repository to remote git repository.', implode(PHP_EOL, $output));
+    $this->assertStringContainsString('Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.', implode(PHP_EOL, $output));
   }
 
   public function testCompulsoryParameter(): void {

@@ -26,7 +26,7 @@
 
 ## What is it?
 
-A tool to assemble a code artifact from your codebase, eliminate unwanted files,
+A tool to assemble a code artifact from your codebase, remove unnecessary files,
 and push it into a separate Git repository.
 
 ## Why?
@@ -150,7 +150,7 @@ fully-configured [example in the DrevOps project](https://github.com/drevops/dre
       -v|vv|vvv, --verbose                 Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 
     Help:
-      Push artifact of current repository to remote git repository.
+      Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.
 
 ### Adding dependencies
 
