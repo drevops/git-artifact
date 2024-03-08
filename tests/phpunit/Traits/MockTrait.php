@@ -7,8 +7,7 @@ namespace DrevOps\GitArtifact\Tests\Traits;
  *
  * This trait provides a method to prepare class mock.
  */
-trait MockTrait
-{
+trait MockTrait {
 
   /**
    * Helper to prepare class or trait mock.
@@ -28,47 +27,52 @@ trait MockTrait
    *
    * @throws \ReflectionException
    */
-    protected function prepareMock(string $class, array $methodsMap = [], array $args = [])
-    {
-        $methods = array_keys($methodsMap);
+  protected function prepareMock(string $class, array $methodsMap = [], array $args = []) {
+    $methods = array_keys($methodsMap);
 
-        $reflectionClass = new \ReflectionClass($class);
+    $reflectionClass = new \ReflectionClass($class);
 
-        if ($reflectionClass->isAbstract()) {
-            $mock = $this->getMockForAbstractClass($class, $args, '', !empty($args), true, true, $methods);
-        } elseif ($reflectionClass->isTrait()) {
-            $mock = $this->getMockForTrait($class, [], '', true, true, true, array_keys($methodsMap));
-        } else {
-            $mockBuilder = $this->getMockBuilder($class);
-            if (!empty($args)) {
-                $mockBuilder = $mockBuilder->enableOriginalConstructor()
-                ->setConstructorArgs($args);
-            } else {
-                $mockBuilder = $mockBuilder->disableOriginalConstructor();
-            }
-          /* @todo setMethods method is not found on MockBuilder */
-          /* @phpstan-ignore-next-line */
-            $mock = $mockBuilder->setMethods($methods)
-            ->getMock();
-        }
-
-        foreach ($methodsMap as $method => $value) {
-          // Handle callback values differently.
-            if (is_object($value) && str_contains($value::class, 'Callback')) {
-                $mock->expects($this->any())
-                ->method($method)
-                ->will($value);
-            } elseif (is_object($value) && str_contains($value::class, 'Closure')) {
-                $mock->expects($this->any())
-                ->method($method)
-                ->will($this->returnCallback($value));
-            } else {
-                $mock->expects($this->any())
-                ->method($method)
-                ->willReturn($value);
-            }
-        }
-
-        return $mock;
+    if ($reflectionClass->isAbstract()) {
+      $mock = $this->getMockForAbstractClass($class, $args, '', !empty($args), TRUE, TRUE, $methods);
     }
+    elseif ($reflectionClass->isTrait()) {
+      $mock = $this->getMockForTrait($class, [], '', TRUE, TRUE, TRUE, array_keys($methodsMap));
+    }
+    else {
+      $mockBuilder = $this->getMockBuilder($class);
+      if (!empty($args)) {
+        $mockBuilder = $mockBuilder->enableOriginalConstructor()
+          ->setConstructorArgs($args);
+      }
+      else {
+        $mockBuilder = $mockBuilder->disableOriginalConstructor();
+      }
+      /* @todo setMethods method is not found on MockBuilder */
+      /* @phpstan-ignore-next-line */
+      $mock = $mockBuilder->setMethods($methods)
+        ->getMock();
+    }
+
+    foreach ($methodsMap as $method => $value) {
+      // Handle callback values differently.
+      if (is_object($value) && str_contains($value::class, 'Callback')) {
+        $mock->expects($this->any())
+          ->method($method)
+          ->will($value);
+      }
+      elseif (is_object($value) && str_contains($value::class, 'Closure')) {
+        $mock->expects($this->any())
+          ->method($method)
+          ->will($this->returnCallback($value));
+      }
+      else {
+        $mock->expects($this->any())
+          ->method($method)
+          ->willReturn($value);
+      }
+    }
+
+    return $mock;
+  }
+
 }

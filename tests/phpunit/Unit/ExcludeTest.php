@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Unit;
 
@@ -11,177 +11,172 @@ namespace DrevOps\GitArtifact\Tests\Unit;
  *
  * @covers \DrevOps\GitArtifact\Artifact
  */
-class ExcludeTest extends AbstractUnitTestCase
-{
+class ExcludeTest extends AbstractUnitTestCase {
 
-    /**
-     * @throws \ReflectionException
-     */
-    public function testExcludeExists(): void
-    {
-        $this->createFixtureExcludeFile();
+  /**
+   * @throws \ReflectionException
+   */
+  public function testExcludeExists(): void {
+    $this->createFixtureExcludeFile();
 
-        $actual = $this->callProtectedMethod($this->mock, 'localExcludeExists', [$this->fixtureDir]);
+    $actual = $this->callProtectedMethod($this->mock, 'localExcludeExists', [$this->fixtureDir]);
 
-        $this->assertTrue($actual);
-    }
+    $this->assertTrue($actual);
+  }
 
+  /**
+   * @param array<string> $lines
+   *   Lines.
+   * @param bool $strict
+   *   Strict.
+   * @param bool $expected
+   *   Expected.
+   *
+   *
+   * @dataProvider dataProviderExcludeEmpty
+   *
+   * @throws \ReflectionException
+   */
+  public function testExcludeEmpty(array $lines, bool $strict, bool $expected): void {
+    $this->createFixtureExcludeFile(implode(PHP_EOL, $lines));
 
-    /**
-     * @param array<string> $lines
-     *   Lines.
-     * @param bool $strict
-     *   Strict.
-     * @param bool $expected
-     *   Expected.
-     *
-     *
-     * @dataProvider dataProviderExcludeEmpty
-     *
-     * @throws \ReflectionException
-     */
-    public function testExcludeEmpty(array $lines, bool $strict, bool $expected): void
-    {
-        $this->createFixtureExcludeFile(implode(PHP_EOL, $lines));
+    $actual = $this->callProtectedMethod($this->mock, 'localExcludeEmpty', [$this->fixtureDir, $strict]);
 
-        $actual = $this->callProtectedMethod($this->mock, 'localExcludeEmpty', [$this->fixtureDir, $strict]);
+    $this->assertEquals($expected, $actual);
+  }
 
-        $this->assertEquals($expected, $actual);
-    }
+  /**
+   * @return array<mixed>
+   *   Data provider.
+   *
+   * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+   */
+  public static function dataProviderExcludeEmpty(): array {
+    return [
+          // Empty file.
+          [
+              [], TRUE, TRUE,
+          ],
+          [
+              [], FALSE, TRUE,
+          ],
 
-    /**
-     * @return array<mixed>
-     *   Data provider.
-     *
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-     */
-    public static function dataProviderExcludeEmpty(): array
-    {
-        return [
-            // Empty file.
-            [
-                [], true, true,
-            ],
-            [
-                [], false, true,
-            ],
+          // Spaces single line.
+          [
+              [
+                '  ',
+              ], TRUE, FALSE,
+          ],
 
-            // Spaces single line.
-            [
-                [
-                    '  ',
-                ], true, false,
-            ],
+          [
+              [
+                '  ',
+              ], FALSE, TRUE,
+          ],
 
-            [
-                [
-                    '  ',
-                ], false, true,
-            ],
+          // Spaces.
+          [
+              [
+                '  ',
+                '  ',
+              ], TRUE, FALSE,
+          ],
 
-            // Spaces.
-            [
-                [
-                    '  ',
-                    '  ',
-                ], true, false,
-            ],
+          [
+              [
+                '  ',
+                '  ',
+              ], FALSE, TRUE,
+          ],
 
-            [
-                [
-                    '  ',
-                    '  ',
-                ], false, true,
-            ],
+          // Spaces, comments.
+          [
+              [
+                '  ',
+                '#comment  ',
+                '  ',
+              ], TRUE, FALSE,
+          ],
 
-            // Spaces, comments.
-            [
-                [
-                    '  ',
-                    '#comment  ',
-                    '  ',
-                ], true, false,
-            ],
+          [
+              [
+                '  ',
+                '#comment  ',
+                '  ',
+              ], FALSE, TRUE,
+          ],
 
-            [
-                [
-                    '  ',
-                    '#comment  ',
-                    '  ',
-                ], false, true,
-            ],
+          // Spaces, padded comments.
+          [
+              [
+                '  ',
+                '   #comment  ',
+                '  ',
+              ], TRUE, FALSE,
+          ],
 
-            // Spaces, padded comments.
-            [
-                [
-                    '  ',
-                    '   #comment  ',
-                    '  ',
-                ], true, false,
-            ],
+          [
+              [
+                '  ',
+                '   #comment  ',
+                '  ',
+              ], FALSE, TRUE,
+          ],
 
-            [
-                [
-                    '  ',
-                    '   #comment  ',
-                    '  ',
-                ], false, true,
-            ],
+          // Spaces, comments and valid content.
+          [
+              [
+                '  ',
+                '#comment  ',
+                'valid',
+                '  ',
+              ], TRUE, FALSE,
+          ],
 
-            // Spaces, comments and valid content.
-            [
-                [
-                    '  ',
-                    '#comment  ',
-                    'valid',
-                    '  ',
-                ], true, false,
-            ],
+          [
+              [
+                '  ',
+                '#comment  ',
+                'valid',
+                '  ',
+              ], FALSE, FALSE,
+          ],
 
-            [
-                [
-                    '  ',
-                    '#comment  ',
-                    'valid',
-                    '  ',
-                ], false, false,
-            ],
+          // Spaces, inline comments and valid content.
+          [
+              [
+                '  ',
+                '#comment  ',
+                'valid',
+                'valid # other comment',
+                '  ',
+              ], TRUE, FALSE,
+          ],
 
-            // Spaces, inline comments and valid content.
-            [
-                [
-                    '  ',
-                    '#comment  ',
-                    'valid',
-                    'valid # other comment',
-                    '  ',
-                ], true, false,
-            ],
+          [
+              [
+                '  ',
+                '#comment  ',
+                'valid',
+                'valid # other comment',
+                '  ',
+              ], FALSE, FALSE,
+          ],
 
-            [
-                [
-                    '  ',
-                    '#comment  ',
-                    'valid',
-                    'valid # other comment',
-                    '  ',
-                ], false, false,
-            ],
+    ];
+  }
 
-        ];
-    }
+  /**
+   * Helper to create an exclude file.
+   *
+   * @param string $contents
+   *   Optional file contents.
+   *
+   * @return string
+   *   Created file name.
+   */
+  protected function createFixtureExcludeFile(string $contents = ''): string {
+    return $this->gitCreateFixtureFile($this->fixtureDir . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info', 'exclude', $contents);
+  }
 
-    /**
-     * Helper to create an exclude file.
-     *
-     * @param string $contents
-     *   Optional file contents.
-     *
-     * @return string
-     *   Created file name.
-     */
-    protected function createFixtureExcludeFile(string $contents = ''): string
-    {
-        return $this->gitCreateFixtureFile($this->fixtureDir.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'info', 'exclude', $contents);
-    }
 }

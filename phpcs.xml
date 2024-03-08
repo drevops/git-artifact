@@ -3,8 +3,8 @@
     <description>Custom PHPCS standard.</description>
 
     <!-- Coding standard. -->
-    <rule ref="Symfony">
-        <exclude name="Symfony.Commenting.FunctionComment.SpacingAfterParamType" />
+    <rule ref="Drupal">
+        <exclude name="Drupal.Commenting.ClassComment.Short" />
     </rule>
 
     <!-- Show sniff codes in all reports -->
@@ -13,37 +13,26 @@
     <arg value="p"/>
     <arg name="colors"/>
 
-    <!--
-    PHP_CodeSniffer does not support scanning of files without extensions, so
-    we have to use the ugly workaround to copy the file into a file with a 'php'
-    extension, scan that file, and then delete it.
-    @see https://github.com/squizlabs/PHP_CodeSniffer/issues/2916
-    -->
     <file>src</file>
     <file>tests/phpunit</file>
 
-    <rule ref="Symfony.Commenting.License.Warning">
-        <exclude-pattern>*.*</exclude-pattern>
-    </rule>
-    <rule ref="Symfony.Functions.Arguments.Invalid">
-        <exclude-pattern>*.*</exclude-pattern>
-    </rule>
-    <rule ref="Symfony.ControlStructure.YodaConditions.Invalid">
-        <exclude-pattern>*.*</exclude-pattern>
+    <!-- Allow long array lines in tests. -->
+    <rule ref="Drupal.Arrays.Array.LongLineDeclaration">
+        <exclude-pattern>*.Test\.php</exclude-pattern>
+        <exclude-pattern>*.TestCase\.php</exclude-pattern>
+        <exclude-pattern>*.test</exclude-pattern>
     </rule>
 
-    <rule ref="PSR1">
-        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace" />
+    <!-- Allow missing function comments in tests. -->
+    <rule ref="Drupal.Commenting.FunctionComment.Missing">
+        <exclude-pattern>*.Test\.php</exclude-pattern>
+        <exclude-pattern>*.TestCase\.php</exclude-pattern>
+        <exclude-pattern>*.test</exclude-pattern>
     </rule>
-
-    <!--Allow uncommented functions in tests as they usually provide enough
-    information from their names.-->
-    <rule ref="Symfony.Commenting.FunctionComment.Missing">
-        <exclude-pattern>tests/*.Test\.php</exclude-pattern>
-        <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
-    </rule>
-    <rule ref="Symfony.Commenting.FunctionComment.MissingParamTag">
-        <exclude-pattern>tests/*.Test\.php</exclude-pattern>
-        <exclude-pattern>tests/*.TestCase\.php</exclude-pattern>
+    <!-- Allow missing function comment short descriptions in tests. -->
+    <rule ref="Drupal.Commenting.DocComment.MissingShort">
+        <exclude-pattern>*.Test\.php</exclude-pattern>
+        <exclude-pattern>*.TestCase\.php</exclude-pattern>
+        <exclude-pattern>*.test</exclude-pattern>
     </rule>
 </ruleset>

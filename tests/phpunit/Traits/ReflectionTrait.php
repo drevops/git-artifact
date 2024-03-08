@@ -7,8 +7,7 @@ namespace DrevOps\GitArtifact\Tests\Traits;
  *
  * Provides methods to work with class reflection.
  */
-trait ReflectionTrait
-{
+trait ReflectionTrait {
 
   /**
    * Call protected methods on the class.
@@ -24,43 +23,42 @@ trait ReflectionTrait
    * @return mixed
    *   Method result.
    */
-    protected static function callProtectedMethod(object|string $object, string $name, array $args = [])
-    {
-        $objectOrClass = is_object($object) ? $object::class : $object;
+  protected static function callProtectedMethod(object|string $object, string $name, array $args = []) {
+    $objectOrClass = is_object($object) ? $object::class : $object;
 
-        if (!class_exists($objectOrClass)) {
-            throw new \InvalidArgumentException(sprintf('Class %s does not exist', $objectOrClass));
-        }
-
-        $class = new \ReflectionClass($objectOrClass);
-
-        if (!$class->hasMethod($name)) {
-            throw new \InvalidArgumentException(sprintf('Method %s does not exist', $name));
-        }
-
-        $method = $class->getMethod($name);
-
-        $originalAccessibility = $method->isPublic();
-
-      // Set method accessibility to true, so it can be invoked.
-        $method->setAccessible(true);
-
-      // If the method is static, we won't pass an object instance to invokeArgs()
-      // Otherwise, we ensure to pass the object instance.
-        $invokeObject = $method->isStatic() ? null : (is_object($object) ? $object : null);
-
-      // Ensure we have an object for non-static methods.
-        if (!$method->isStatic() && $invokeObject === null) {
-            throw new \InvalidArgumentException("An object instance is required for non-static methods");
-        }
-
-        $result = $method->invokeArgs($invokeObject, $args);
-
-      // Reset the method's accessibility to its original state.
-        $method->setAccessible($originalAccessibility);
-
-        return $result;
+    if (!class_exists($objectOrClass)) {
+      throw new \InvalidArgumentException(sprintf('Class %s does not exist', $objectOrClass));
     }
+
+    $class = new \ReflectionClass($objectOrClass);
+
+    if (!$class->hasMethod($name)) {
+      throw new \InvalidArgumentException(sprintf('Method %s does not exist', $name));
+    }
+
+    $method = $class->getMethod($name);
+
+    $originalAccessibility = $method->isPublic();
+
+    // Set method accessibility to true, so it can be invoked.
+    $method->setAccessible(TRUE);
+
+    // If the method is static, we won't pass an object instance to invokeArgs()
+    // Otherwise, we ensure to pass the object instance.
+    $invokeObject = $method->isStatic() ? NULL : (is_object($object) ? $object : NULL);
+
+    // Ensure we have an object for non-static methods.
+    if (!$method->isStatic() && $invokeObject === NULL) {
+      throw new \InvalidArgumentException("An object instance is required for non-static methods");
+    }
+
+    $result = $method->invokeArgs($invokeObject, $args);
+
+    // Reset the method's accessibility to its original state.
+    $method->setAccessible($originalAccessibility);
+
+    return $result;
+  }
 
   /**
    * Set protected property value.
@@ -72,14 +70,13 @@ trait ReflectionTrait
    * @param mixed $value
    *   Value to set to the property.
    */
-    protected static function setProtectedValue($object, $property, mixed $value): void
-    {
-        $class = new \ReflectionClass($object::class);
-        $property = $class->getProperty($property);
-        $property->setAccessible(true);
+  protected static function setProtectedValue($object, $property, mixed $value): void {
+    $class = new \ReflectionClass($object::class);
+    $property = $class->getProperty($property);
+    $property->setAccessible(TRUE);
 
-        $property->setValue($object, $value);
-    }
+    $property->setValue($object, $value);
+  }
 
   /**
    * Get protected value from the object.
@@ -92,12 +89,12 @@ trait ReflectionTrait
    * @return mixed
    *   Protected property value.
    */
-    protected static function getProtectedValue($object, $property)
-    {
-        $class = new \ReflectionClass($object::class);
-        $property = $class->getProperty($property);
-        $property->setAccessible(true);
+  protected static function getProtectedValue($object, $property) {
+    $class = new \ReflectionClass($object::class);
+    $property = $class->getProperty($property);
+    $property->setAccessible(TRUE);
 
-        return $property->getValue($class);
-    }
+    return $property->getValue($class);
+  }
+
 }

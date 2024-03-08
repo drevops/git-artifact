@@ -1,192 +1,183 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Functional;
 
 use DrevOps\GitArtifact\Tests\AbstractTestCase;
 
 /**
- * Class AbstractTestCase
+ * Class AbstractTestCase.
  */
-abstract class AbstractFunctionalTestCase extends AbstractTestCase
-{
+abstract class AbstractFunctionalTestCase extends AbstractTestCase {
 
-    /**
-     * Current branch.
-     *
-     * @var string
-     */
-    protected $currentBranch;
+  /**
+   * Current branch.
+   *
+   * @var string
+   */
+  protected $currentBranch;
 
-    /**
-     * Artifact branch.
-     *
-     * @var string
-     */
-    protected $artifactBranch;
+  /**
+   * Artifact branch.
+   *
+   * @var string
+   */
+  protected $artifactBranch;
 
-    /**
-     * Remote name.
-     *
-     * @var string
-     */
-    protected $remote;
+  /**
+   * Remote name.
+   *
+   * @var string
+   */
+  protected $remote;
 
-    /**
-     * Mode in which the build will run.
-     *
-     * Passed as a value of the --mode option.
-     *
-     * @var string
-     */
-    protected $mode;
+  /**
+   * Mode in which the build will run.
+   *
+   * Passed as a value of the --mode option.
+   *
+   * @var string
+   */
+  protected $mode;
 
-    /**
-     * Current timestamp to run commands with.
-     *
-     * Used for generating internal tokens that could be based on time.
-     *
-     * @var int
-     */
-    protected $now;
+  /**
+   * Current timestamp to run commands with.
+   *
+   * Used for generating internal tokens that could be based on time.
+   *
+   * @var int
+   */
+  protected $now;
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    parent::setUp();
 
-        $this->now = time();
-        $this->currentBranch = 'master';
-        $this->artifactBranch = 'master-artifact';
-        $this->remote = 'dst';
+    $this->now = time();
+    $this->currentBranch = 'master';
+    $this->artifactBranch = 'master-artifact';
+    $this->remote = 'dst';
+  }
+
+  /**
+   * Build the artifact and assert success.
+   *
+   * @param string $args
+   *   Optional string of arguments to pass to the build.
+   * @param string $branch
+   *   Optional --branch value. Defaults to 'testbranch'.
+   * @param string $commit
+   *   Optional commit string. Defaults to 'Deployment commit'.
+   *
+   * @return string
+   *   Command output.
+   */
+  protected function assertBuildSuccess(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
+    $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
+    $this->assertStringNotContainsString('[error]', $output);
+    $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+    $this->assertStringContainsString('Deployment finished successfully.', $output);
+    $this->assertStringNotContainsString('Deployment failed.', $output);
+
+    return $output;
+  }
+
+  /**
+   * Build the artifact and assert failure.
+   *
+   * @param string $args
+   *   Optional string of arguments to pass to the build.
+   * @param string $branch
+   *   Optional --branch value. Defaults to 'testbranch'.
+   * @param string $commit
+   *   Optional commit string. Defaults to 'Deployment commit'.
+   *
+   * @return string
+   *   Command output.
+   */
+  protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
+    $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), TRUE);
+    $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
+    $this->assertStringNotContainsString('Deployment finished successfully.', $output);
+    $this->assertStringContainsString('Deployment failed.', $output);
+
+    return $output;
+  }
+
+  /**
+   * Run artifact build.
+   *
+   * @param string $args
+   *   Additional arguments or options as a string.
+   * @param bool $expectFail
+   *   Expect on fail.
+   *
+   * @return string
+   *   Output string.
+   */
+  protected function runBuild(string $args = '', bool $expectFail = FALSE): string {
+    if ($this->mode) {
+      $args .= ' --mode=' . $this->mode;
     }
 
-    /**
-     * Build the artifact and assert success.
-     *
-     * @param string $args
-     *   Optional string of arguments to pass to the build.
-     * @param string $branch
-     *   Optional --branch value. Defaults to 'testbranch'.
-     * @param string $commit
-     *   Optional commit string. Defaults to 'Deployment commit'.
-     *
-     * @return string
-     *   Command output.
-     */
-    protected function assertBuildSuccess(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string
-    {
-        $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
-        $this->assertStringNotContainsString('[error]', $output);
-        $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
-        $this->assertStringContainsString('Deployment finished successfully.', $output);
-        $this->assertStringNotContainsString('Deployment failed.', $output);
+    $output = $this->runGitArtifactCommandTimestamped(sprintf('--src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
 
-        return $output;
+    if ($this->isDebug()) {
+      print str_pad('', 80, '+') . PHP_EOL;
+      print implode(PHP_EOL, $output) . PHP_EOL;
+      print str_pad('', 80, '+') . PHP_EOL;
     }
 
-    /**
-     * Build the artifact and assert failure.
-     *
-     * @param string $args
-     *   Optional string of arguments to pass to the build.
-     * @param string $branch
-     *   Optional --branch value. Defaults to 'testbranch'.
-     * @param string $commit
-     *   Optional commit string. Defaults to 'Deployment commit'.
-     *
-     * @return string
-     *   Command output.
-     */
-    protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string
-    {
-        $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
-        $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
-        $this->assertStringNotContainsString('Deployment finished successfully.', $output);
-        $this->assertStringContainsString('Deployment failed.', $output);
+    return implode(PHP_EOL, $output);
+  }
 
-        return $output;
-    }
+  /**
+   * Run command with current timestamp attached to artifact commands.
+   *
+   * @param string $command
+   *   Command string to run.
+   * @param bool $expectFail
+   *   Flag to state that the command should fail.
+   *
+   * @return array<string>
+   *   Array of output lines.
+   */
+  protected function runGitArtifactCommandTimestamped(string $command, bool $expectFail = FALSE): array {
+    // Add --now option to all 'artifact' commands.
+    $command .= ' --now=' . $this->now;
 
-    /**
-     * Run artifact build.
-     *
-     * @param string $args
-     *   Additional arguments or options as a string.
-     * @param bool $expectFail
-     *   Expect on fail.
-     *
-     * @return string
-     *   Output string.
-     */
-    protected function runBuild(string $args = '', bool $expectFail = false): string
-    {
-        if ($this->mode) {
-            $args .= ' --mode='.$this->mode;
-        }
+    return $this->commandRunGitArtifactCommand($command, $expectFail);
+  }
 
-        $output = $this->runGitArtifactCommandTimestamped(sprintf('--src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
+  /**
+   * Assert current git branch.
+   *
+   * @param string $path
+   *   Path to repository.
+   * @param string $branch
+   *   Branch name to assert.
+   */
+  protected function assertGitCurrentBranch(string $path, string $branch): void {
+    $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
 
-        if ($this->isDebug()) {
-            print str_pad('', 80, '+').PHP_EOL;
-            print implode(PHP_EOL, $output).PHP_EOL;
-            print str_pad('', 80, '+').PHP_EOL;
-        }
+    $this->assertStringContainsString($branch, implode('', $currentBranch), sprintf('Current branch is "%s"', $branch));
+  }
 
-        return implode(PHP_EOL, $output);
-    }
+  /**
+   * Assert that there is no remote specified in git repository.
+   *
+   * @param string $path
+   *   Path to repository.
+   * @param string $remote
+   *   Remote name to assert.
+   */
+  protected function assertGitNoRemote(string $path, string $remote): void {
+    $remotes = $this->runGitCommand('remote', $path);
 
-    /**
-     * Run command with current timestamp attached to artifact commands.
-     *
-     * @param string $command
-     *   Command string to run.
-     * @param bool $expectFail
-     *   Flag to state that the command should fail.
-     *
-     * @return array<string>
-     *   Array of output lines.
-     */
-    protected function runGitArtifactCommandTimestamped(string $command, bool $expectFail = false): array
-    {
-        // Add --now option to all 'artifact' commands.
-        $command .= ' --now='.$this->now;
+    $this->assertStringNotContainsString($remote, implode('', $remotes), sprintf('Remote "%s" is not present"', $remote));
+  }
 
-        return $this->commandRunGitArtifactCommand($command, $expectFail);
-    }
-
-    /**
-     * Assert current git branch.
-     *
-     * @param string $path
-     *   Path to repository.
-     *
-     * @param string $branch
-     *   Branch name to assert.
-     */
-    protected function assertGitCurrentBranch(string $path, string $branch): void
-    {
-        $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
-
-        $this->assertStringContainsString($branch, implode('', $currentBranch), sprintf('Current branch is "%s"', $branch));
-    }
-
-    /**
-     * Assert that there is no remote specified in git repository.
-     *
-     * @param string $path
-     *   Path to repository.
-     *
-     * @param string $remote
-     *   Remote name to assert.
-     */
-    protected function assertGitNoRemote(string $path, string $remote): void
-    {
-        $remotes = $this->runGitCommand('remote', $path);
-
-        $this->assertStringNotContainsString($remote, implode('', $remotes), sprintf('Remote "%s" is not present"', $remote));
-    }
 }
