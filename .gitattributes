@@ -5,6 +5,7 @@
 /.gitattributes  export-ignore
 /.github         export-ignore
 /.gitignore      export-ignore
+/box.json        export-ignore
 /tests           export-ignore
 /phpcs.xml       export-ignore
 /phpmd.xml       export-ignore

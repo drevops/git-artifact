@@ -92,7 +92,7 @@ jobs:
       - run:
           name: Deployment 1
           command: |
-            vendor/bin/robo artifact \
+            ./git-artifact \
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--force-push--circleci--[branch] \
               --mode=force-push \
@@ -117,7 +117,7 @@ jobs:
       - run:
           name: Deployment 2
           command: |
-            vendor/bin/robo artifact \
+            ./git-artifact \
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--force-push--circleci--[branch] \
               --mode=force-push \
@@ -166,7 +166,7 @@ jobs:
       - run:
           name: Deployment 1
           command: |
-            vendor/bin/robo artifact \
+            ./git-artifact \
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
               --mode=branch \
@@ -183,7 +183,7 @@ jobs:
       - run:
           name: Deployment 2 - same branch
           command: |
-            vendor/bin/robo artifact \
+            ./git-artifact \
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
               --mode=branch \
@@ -203,7 +203,7 @@ jobs:
       - run:
           name: Deployment 2 - new branch
           command: |
-            vendor/bin/robo artifact \
+            ./git-artifact \
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i-s] \
               --mode=branch \

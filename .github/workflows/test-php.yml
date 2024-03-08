@@ -66,9 +66,41 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  build-php:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Check composer version
+        run: composer --version
+
+      - name: Build PHAR
+        run: composer build
+
+      - name: Test PHAR
+        run: ./.build/git-artifact --help || exit 1
+  #;> PHP_PHAR
+
   # Demonstration of deployment in 'force-push' mode.
   deploy-force-push:
-    needs: test-php
+    needs:
+      - test-php
+      - build-php
 
     runs-on: ubuntu-latest
 
@@ -123,7 +155,7 @@ jobs:
 
       - name: Deployment 1
         run: |
-          vendor/bin/robo artifact \
+          ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--force-push--gha--[branch] \
             --mode=force-push \
@@ -146,7 +178,7 @@ jobs:
 
       - name: Deployment 2
         run: |
-          vendor/bin/robo artifact \
+          ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--force-push--gha--[branch] \
             --mode=force-push \
@@ -164,7 +196,9 @@ jobs:
   # of the second push. This is because the mode is intended to create a new
   # branch per artifact deployment.
   deploy-branch:
-    needs: test-php
+    needs:
+      - test-php
+      - build-php
 
     runs-on: ubuntu-latest
 
@@ -223,7 +257,7 @@ jobs:
 
       - name: Deployment 1
         run: |
-          vendor/bin/robo artifact \
+          ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i] \
             --mode=branch \
@@ -246,7 +280,7 @@ jobs:
 
       - name: Deployment 2 - same branch
         run: |
-          vendor/bin/robo artifact \
+          ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i] \
             --mode=branch \
@@ -257,7 +291,7 @@ jobs:
 
       - name: Deployment 2 - new branch
         run: |
-          vendor/bin/robo artifact \
+          ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i-s] \
             --mode=branch \

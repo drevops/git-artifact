@@ -2,9 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Functional;
+namespace DrevOps\GitArtifact\Tests\Functional;
 
-use DrevOps\Robo\Tests\AbstractTestCase;
+use DrevOps\GitArtifact\Tests\AbstractTestCase;
 
 /**
  * Class AbstractTestCase
@@ -104,7 +104,6 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
     protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string
     {
         $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), true);
-        $this->assertStringContainsString('[error]', $output);
         $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
         $this->assertStringNotContainsString('Deployment finished successfully.', $output);
         $this->assertStringContainsString('Deployment failed.', $output);
@@ -129,7 +128,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
             $args .= ' --mode='.$this->mode;
         }
 
-        $output = $this->runRoboCommandTimestamped(sprintf('artifact --src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
+        $output = $this->runGitArtifactCommandTimestamped(sprintf('--src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
 
         if ($this->isDebug()) {
             print str_pad('', 80, '+').PHP_EOL;
@@ -141,7 +140,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
     }
 
     /**
-     * Run Robo command with current timestamp attached to artifact commands.
+     * Run command with current timestamp attached to artifact commands.
      *
      * @param string $command
      *   Command string to run.
@@ -151,14 +150,12 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
      * @return array<string>
      *   Array of output lines.
      */
-    protected function runRoboCommandTimestamped(string $command, bool $expectFail = false): array
+    protected function runGitArtifactCommandTimestamped(string $command, bool $expectFail = false): array
     {
         // Add --now option to all 'artifact' commands.
-        if (str_starts_with($command, 'artifact')) {
-            $command .= ' --now='.$this->now;
-        }
+        $command .= ' --now='.$this->now;
 
-        return $this->commandRunRoboCommand($command, $expectFail);
+        return $this->commandRunGitArtifactCommand($command, $expectFail);
     }
 
     /**

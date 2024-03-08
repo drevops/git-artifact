@@ -2,34 +2,29 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Functional;
+namespace DrevOps\GitArtifact\Tests\Functional;
 
 /**
  * Class GeneralTest.
  *
  * @group integration
  *
- * @covers \DrevOps\Robo\ArtifactTrait
- * @covers \DrevOps\Robo\FilesystemTrait
+ * @covers \DrevOps\GitArtifact\Artifact
+ * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
 class GeneralTest extends AbstractFunctionalTestCase
 {
 
-    public function testPresence(): void
-    {
-        $output = $this->runRoboCommand('list');
-        $this->assertStringContainsString('artifact', implode(PHP_EOL, $output));
-    }
-
     public function testHelp(): void
     {
-        $output = $this->runRoboCommand('--help artifact');
+        $output = $this->runGitArtifactCommand('--help');
         $this->assertStringContainsString('artifact [options] [--] <remote>', implode(PHP_EOL, $output));
+        $this->assertStringContainsString('Push artifact of current repository to remote git repository.', implode(PHP_EOL, $output));
     }
 
     public function testCompulsoryParameter(): void
     {
-        $output = $this->runRoboCommand('artifact', true);
+        $output = $this->runGitArtifactCommand('', true);
 
         $this->assertStringContainsString('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
     }
@@ -99,7 +94,6 @@ class GeneralTest extends AbstractFunctionalTestCase
         $output = $this->runBuild('--debug');
 
         $this->assertStringContainsString('Debug messages enabled', $output);
-        $this->assertStringContainsString('[Exec]', $output);
 
         $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
@@ -111,7 +105,6 @@ class GeneralTest extends AbstractFunctionalTestCase
         $output = $this->runBuild();
 
         $this->assertStringNotContainsString('Debug messages enabled', $output);
-        $this->assertStringNotContainsString('[Exec]', $output);
 
         $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
         $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);

@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo;
+namespace DrevOps\GitArtifact;
 
 /**
  * Trait TokenTrait.

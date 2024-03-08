@@ -9,7 +9,6 @@ parameters:
   paths:
     - src
     - tests
-    - RoboFile.php
 
   excludePaths:
     - vendor/*

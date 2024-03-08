@@ -1,26 +1,23 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
-namespace DrevOps\Robo;
+namespace DrevOps\GitArtifact;
 
-use Robo\Exception\AbortTasksException;
-use Symfony\Component\Console\Input\InputOption;
+use GitWrapper\GitWrapper;
+use SplFileInfo;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
 /**
- * Class Artifact.
+ * Class to handle git artifact function.
  *
- * Robo task to package current repository with all dependencies and send it
- * to the remote repository.
+ * @SuppressWarnings(PHPMD.TooManyMethods)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
-trait ArtifactTrait
+class Artifact
 {
-
-    use FilesystemTrait {
-        FilesystemTrait::__construct as private __artifactFsConstruct;
-    }
     use GitTrait;
     use TokenTrait;
 
@@ -126,12 +123,22 @@ trait ArtifactTrait
      */
     protected $now;
 
-    /**
+  /**
      * Artifact constructor.
+     * @param GitWrapper $gitWrapper
+     *   Git wrapper.
+     * @param Filesystem $fsFileSystem
+     *   File system.
+     * @param OutputInterface $output
+     *   Output.
      */
-    public function __construct()
-    {
-        $this->__artifactFsConstruct();
+    public function __construct(
+        GitWrapper $gitWrapper,
+        Filesystem $fsFileSystem,
+        protected OutputInterface $output,
+    ) {
+        $this->fsFileSystem = $fsFileSystem;
+        $this->gitWrapper = $gitWrapper;
     }
 
     /**
@@ -159,7 +166,6 @@ trait ArtifactTrait
      * @option $src Directory where source repository is located. If not
      *   specified, root directory is used.
      *
-     * @throws AbortTasksException
      * @throws \Exception
      *
      * @phpstan-ignore-next-line
@@ -167,16 +173,16 @@ trait ArtifactTrait
     public function artifact(string $remote, array $opts = [
         'branch' => '[branch]',
         'debug' => false,
-        'gitignore' => InputOption::VALUE_REQUIRED,
+        'gitignore' => '',
         'message' => 'Deployment commit',
         'mode' => 'force-push',
         'no-cleanup' => false,
-        'now' => InputOption::VALUE_REQUIRED,
+        'now' => '',
         'push' => false,
-        'report' => InputOption::VALUE_REQUIRED,
-        'root' => InputOption::VALUE_REQUIRED,
+        'report' => '',
+        'root' => '',
         'show-changes' => false,
-        'src' => InputOption::VALUE_REQUIRED,
+        'src' => '',
     ]): void
     {
         try {
@@ -215,8 +221,41 @@ trait ArtifactTrait
             $this->say('Deployment finished successfully.');
         } else {
             $this->say('Deployment failed.');
-            throw new AbortTasksException((string) $error);
+            throw new \Exception((string) $error);
         }
+    }
+
+    /**
+     * Branch mode.
+     *
+     * @return string
+     *   Branch mode name.
+     */
+    public static function modeBranch(): string
+    {
+        return 'branch';
+    }
+
+    /**
+     * Force-push mode.
+     *
+     * @return string
+     *   Force-push mode name.
+     */
+    public static function modeForcePush(): string
+    {
+        return 'force-push';
+    }
+
+    /**
+     * Diff mode.
+     *
+     * @return string
+     *   Diff mode name.
+     */
+    public static function modeDiff(): string
+    {
+        return 'diff';
     }
 
     /**
@@ -244,7 +283,7 @@ trait ArtifactTrait
         $result = $this->gitCommit($this->src, $this->message);
 
         if ($this->showChanges) {
-            $this->say(sprintf('Added changes: %s', $result->getMessage()));
+            $this->say(sprintf('Added changes: %s', $result));
         }
     }
 
@@ -273,19 +312,25 @@ trait ArtifactTrait
         }
 
         try {
-            $result = $this->gitPush($this->src, $this->artifactBranch, $this->remoteName, $this->dstBranch, $this->mode === self::modeForcePush());
-            $this->result = $result->wasSuccessful();
+            $this->gitPush(
+                $this->src,
+                $this->artifactBranch,
+                $this->remoteName,
+                $this->dstBranch,
+                $this->mode === self::modeForcePush()
+            );
+            $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
         } catch (\Exception $exception) {
             // Re-throw the message with additional context.
-            throw new \Exception(sprintf('Error occurred while pushing branch "%s": %s', $this->dstBranch, $exception->getMessage()), $exception->getCode(), $exception);
-        }
-
-        if ($this->result) {
-            $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
-        } else {
-            // We should never reach this - any problems with git push should
-            // throw an exception, that we catching above.
-            throw new \Exception(sprintf('Error occurred while pushing branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
+            throw new \Exception(
+                sprintf(
+                    'Error occurred while pushing branch "%s" with commit message "%s"',
+                    $this->dstBranch,
+                    $this->message
+                ),
+                $exception->getCode(),
+                $exception
+            );
         }
     }
 
@@ -339,17 +384,18 @@ trait ArtifactTrait
      */
     protected function showInfo(): void
     {
-        $this->writeln('----------------------------------------------------------------------');
-        $this->writeln(' Artifact information');
-        $this->writeln('----------------------------------------------------------------------');
-        $this->writeln(' Build timestamp:       '.date('Y/m/d H:i:s', $this->now));
-        $this->writeln(' Mode:                  '.$this->mode);
-        $this->writeln(' Source repository:     '.$this->src);
-        $this->writeln(' Remote repository:     '.$this->dst);
-        $this->writeln(' Remote branch:         '.$this->dstBranch);
-        $this->writeln(' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
-        $this->writeln(' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
-        $this->writeln('----------------------------------------------------------------------');
+        $lines[] = ('----------------------------------------------------------------------');
+        $lines[] = (' Artifact information');
+        $lines[] = ('----------------------------------------------------------------------');
+        $lines[] = (' Build timestamp:       '.date('Y/m/d H:i:s', $this->now));
+        $lines[] = (' Mode:                  '.$this->mode);
+        $lines[] = (' Source repository:     '.$this->src);
+        $lines[] = (' Remote repository:     '.$this->dst);
+        $lines[] = (' Remote branch:         '.$this->dstBranch);
+        $lines[] = (' Gitignore file:        '.($this->gitignoreFile ? $this->gitignoreFile : 'No'));
+        $lines[] = (' Will push:             '.($this->needsPush ? 'Yes' : 'No'));
+        $lines[] = ('----------------------------------------------------------------------');
+        $this->output->writeln($lines);
     }
 
     /**
@@ -394,7 +440,9 @@ trait ArtifactTrait
 
             case self::modeBranch():
                 if (!$this->hasToken($options['branch'])) {
-                    $this->say('WARNING! Provided branch name does not have a token. Pushing of the artifact into this branch will fail on second and follow up pushes to remote. Consider adding tokens with unique values to the branch name.');
+                    $this->say('WARNING! Provided branch name does not have a token.
+                    Pushing of the artifact into this branch will fail on second and follow up pushes to remote.
+                    Consider adding tokens with unique values to the branch name.');
                 }
                 break;
 
@@ -410,39 +458,6 @@ trait ArtifactTrait
         }
 
         $this->mode = $mode;
-    }
-
-    /**
-     * Branch mode.
-     *
-     * @return string
-     *   Branch mode name.
-     */
-    public static function modeBranch(): string
-    {
-        return 'branch';
-    }
-
-    /**
-     * Force-push mode.
-     *
-     * @return string
-     *   Force-push mode name.
-     */
-    public static function modeForcePush(): string
-    {
-        return 'force-push';
-    }
-
-    /**
-     * Diff mode.
-     *
-     * @return string
-     *   Diff mode name.
-     */
-    public static function modeDiff(): string
-    {
-        return 'diff';
     }
 
     /**
@@ -468,7 +483,7 @@ trait ArtifactTrait
         if ($branch === 'HEAD') {
             $branch = null;
             $result = $this->gitCommandRun($location, 'branch');
-            $branchList = preg_split('/\R/', $result->getMessage());
+            $branchList = preg_split('/\R/', $result);
             if ($branchList) {
                 $branchList = array_filter($branchList);
                 foreach ($branchList as $branch) {
@@ -673,10 +688,10 @@ trait ArtifactTrait
     {
         $result = $this->gitCommandRun(
             $location,
-            'add -A'
+            'add -A',
         );
 
-        $this->printDebug(sprintf("Added all files:\n%s", $result->getMessage()));
+        $this->printDebug(sprintf("Added all files:\n%s", $result));
     }
 
     /**
@@ -698,7 +713,7 @@ trait ArtifactTrait
         foreach ($files as $file) {
             $this->gitCommandRun(
                 $location,
-                sprintf('update-index --info-only --add "%s"', $file)
+                sprintf('update-index --info-only --add "%s"', $file),
             );
             $this->printDebug(sprintf('Updated index for file "%s"', $file));
         }
@@ -717,7 +732,7 @@ trait ArtifactTrait
      */
     protected function removeIgnoredFiles(string $location, string $gitignorePath = null): void
     {
-        $gitignorePath = $gitignorePath ? $gitignorePath : $location.DIRECTORY_SEPARATOR.'.gitignore';
+        $gitignorePath = $gitignorePath ?: $location.DIRECTORY_SEPARATOR.'.gitignore';
 
         $gitignoreContent = file_get_contents($gitignorePath);
         if (!$gitignoreContent) {
@@ -727,10 +742,13 @@ trait ArtifactTrait
             $this->printDebug($gitignoreContent);
             $this->printDebug('-----.gitignore---------');
         }
-
         $command = sprintf('ls-files --directory -i -c --exclude-from=%s %s', $gitignorePath, $location);
-        $result = $this->gitCommandRun($location, $command, 'Unable to remove ignored files', true);
-        $files = preg_split('/\R/', $result->getMessage());
+        $result = $this->gitCommandRun(
+            $location,
+            $command,
+            'Unable to remove ignored files',
+        );
+        $files = preg_split('/\R/', $result);
         if (!empty($files)) {
             $files = array_filter($files);
             foreach ($files as $file) {
@@ -757,8 +775,12 @@ trait ArtifactTrait
     protected function removeOtherFiles(string $location): void
     {
         $command = 'ls-files --others --exclude-standard';
-        $result = $this->gitCommandRun($location, $command, 'Unable to remove other files', true);
-        $files = preg_split('/\R/', $result->getMessage());
+        $result = $this->gitCommandRun(
+            $location,
+            $command,
+            'Unable to remove other files',
+        );
+        $files = preg_split('/\R/', $result);
         if (!empty($files)) {
             $files = array_filter($files);
             foreach ($files as $file) {
@@ -844,6 +866,43 @@ trait ArtifactTrait
     }
 
     /**
+     * Check if running in debug mode.
+     *
+     * @return bool
+     *   Check is debugging mode or not.
+     */
+    protected function isDebug(): bool
+    {
+        return $this->debug || $this->output->isDebug();
+    }
+
+    /**
+     * Write line as yell style.
+     *
+     * @param string $text
+     *   Text yell.
+     */
+    protected function yell(string $text): void
+    {
+        $color = 'green';
+        $char = $this->decorationCharacter('>', '➜');
+        $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
+        $this->writeln(sprintf($format, $char, $text));
+    }
+
+    /**
+     * Write line as say style.
+     *
+     * @param string $text
+     *   Text.
+     */
+    protected function say(string $text): void
+    {
+        $char = $this->decorationCharacter('>', '➜');
+        $this->writeln(sprintf('%s  %s', $char, $text));
+    }
+
+    /**
      * Print success message.
      *
      * Usually used to explicitly state that some action was successfully
@@ -868,11 +927,42 @@ trait ArtifactTrait
      */
     protected function printDebug(mixed ...$args): void
     {
-        if (!$this->debug) {
+        if (!$this->isDebug()) {
             return;
         }
         $message = array_shift($args);
         /* @phpstan-ignore-next-line */
         $this->writeln(vsprintf($message, $args));
+    }
+
+    /**
+     * Write output.
+     *
+     * @param string $text
+     *   Text.
+     */
+    protected function writeln(string $text): void
+    {
+        $this->output->writeln($text);
+    }
+
+    /**
+     * Decoration character.
+     *
+     * @param string $nonDecorated
+     *   Non decorated.
+     * @param string $decorated
+     *   Decorated.
+     *
+     * @return string
+     *   The decoration character.
+     */
+    protected function decorationCharacter(string $nonDecorated, string $decorated): string
+    {
+        if (!$this->output->isDecorated() || (strncasecmp(PHP_OS, 'WIN', 3) === 0)) {
+            return $nonDecorated;
+        }
+
+        return $decorated;
     }
 }

@@ -2,18 +2,23 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo;
+namespace DrevOps\GitArtifact;
 
-use Robo\Collection\CollectionBuilder;
-use Robo\Contract\VerbosityThresholdInterface;
-use Robo\Result;
-use Robo\Task\Base\Exec;
+use GitWrapper\GitCommand;
+use GitWrapper\GitWrapper;
 
 /**
  * Trait GitTrait.
  */
 trait GitTrait
 {
+
+    use FilesystemTrait;
+
+    /**
+     * Git Wrapper.
+     */
+    protected GitWrapper $gitWrapper;
 
     /**
      * Path to the source repository.
@@ -69,13 +74,13 @@ trait GitTrait
      * @param string $remote
      *   Path or remote URI of the repository to add remote for.
      *
-     * @return \Robo\Result
-     *   Result object.
+     * @return string
+     *   stdout.
      *
      * @throws \Exception
      *   If unable to add a remote.
      */
-    protected function gitAddRemote(string $location, string $name, string $remote): Result
+    protected function gitAddRemote(string $location, string $name, string $remote): string
     {
         return $this->gitCommandRun(
             $location,
@@ -104,10 +109,9 @@ trait GitTrait
             $location,
             'remote',
             'Unable to list remotes',
-            true
         );
 
-        $lines = preg_split('/\R/', $result->getMessage());
+        $lines = preg_split('/\R/', (string) $result);
 
         if (empty($lines)) {
             return false;
@@ -127,16 +131,18 @@ trait GitTrait
      *   Optional flag to also create a branch before switching. Defaults to
      *   false.
      *
-     * @return \Robo\Result
-     *   Result object.
+     * @return string
+     *   stdout.
      *
      * @throws \Exception
      */
-    protected function gitSwitchToBranch(string $location, string $branch, bool $createNew = false): Result
+    protected function gitSwitchToBranch(string $location, string $branch, bool $createNew = false): string
     {
+        $command = $createNew ? sprintf('checkout -b %s', $branch) : sprintf('checkout %s', $branch);
+
         return $this->gitCommandRun(
             $location,
-            sprintf('checkout %s %s', $createNew ? '-b' : '', $branch)
+            $command,
         );
     }
 
@@ -148,16 +154,16 @@ trait GitTrait
      * @param string $branch
      *   Branch name.
      *
-     * @return \Robo\Result
-     *   Result object.
+     * @return string
+     *   stdout.
      *
      * @throws \Exception
      */
-    protected function gitRemoveBranch($location, $branch): Result
+    protected function gitRemoveBranch($location, $branch): string
     {
         return $this->gitCommandRun(
             $location,
-            sprintf('branch -D %s', $branch)
+            sprintf('branch -D %s', $branch),
         );
     }
 
@@ -176,7 +182,7 @@ trait GitTrait
         if ($this->gitRemoteExists($location, $remote)) {
             $this->gitCommandRun(
                 $location,
-                sprintf('remote rm %s', $remote)
+                sprintf('remote rm %s', $remote),
             );
         }
     }
@@ -195,17 +201,33 @@ trait GitTrait
      * @param bool $force
      *   Force push.
      *
-     * @return \Robo\Result
-     *   Result object.
+     * @return string
+     *   Stdout.
      *
      * @throws \Exception
      */
-    protected function gitPush(string $location, string $localBranch, string $remoteName, string $remoteBranch, bool $force = false): Result
-    {
+    protected function gitPush(
+        string $location,
+        string $localBranch,
+        string $remoteName,
+        string $remoteBranch,
+        bool $force = false
+    ): string {
         return $this->gitCommandRun(
             $location,
-            sprintf('push %s refs/heads/%s:refs/heads/%s%s', $remoteName, $localBranch, $remoteBranch, $force ? ' --force' : ''),
-            sprintf('Unable to push local branch "%s" to "%s" remote branch "%s"', $localBranch, $remoteName, $remoteBranch)
+            sprintf(
+                'push %s refs/heads/%s:refs/heads/%s%s',
+                $remoteName,
+                $localBranch,
+                $remoteBranch,
+                $force ? ' --force' : ''
+            ),
+            sprintf(
+                'Unable to push local branch "%s" to "%s" remote branch "%s"',
+                $localBranch,
+                $remoteName,
+                $remoteBranch
+            )
         );
     }
 
@@ -217,22 +239,24 @@ trait GitTrait
      * @param string $message
      *   Commit message.
      *
-     * @return \Robo\Result
-     *   Result object.
+     * @return string
+     *   Stdout.
      *
      * @throws \Exception
      */
-    protected function gitCommit(string $location, string $message): Result
+    protected function gitCommit(string $location, string $message): string
     {
         $this->gitCommandRun(
             $location,
-            'add -A'
+            'add -A',
         );
+        $command = new GitCommand('commit', [
+            'allow-empty' => true,
+            'm' => $message,
+        ]);
+        $command->setDirectory($location);
 
-        return $this->gitCommandRun(
-            $location,
-            sprintf('commit --allow-empty -m "%s"', $message)
-        );
+        return $this->gitWrapper->run($command);
     }
 
     /**
@@ -243,6 +267,7 @@ trait GitTrait
      *
      * @return string
      *   Current branch.
+     *
      * @throws \Exception
      *  If unable to get the branch.
      */
@@ -252,10 +277,9 @@ trait GitTrait
             $location,
             'rev-parse --abbrev-ref HEAD',
             'Unable to get current repository branch',
-            true
         );
 
-        return trim($result->getMessage());
+        return trim((string) $result);
     }
 
     /**
@@ -276,9 +300,8 @@ trait GitTrait
             $location,
             'tag -l --points-at HEAD',
             'Unable to retrieve tags',
-            true
         );
-        $tags = preg_split('/\R/', $result->getMessage());
+        $tags = preg_split('/\R/', (string) $result);
         if (empty($tags)) {
             return [];
         }
@@ -289,75 +312,32 @@ trait GitTrait
     /**
      * Run git command.
      *
-     * We cannot use Robo's git stack here as it does not support specifying
-     * current git working dir.
-     * Instead, we are using Robo's exec stack and our own wrapper.
-     *
      * @param string $location
      *   Repository location path or URI.
      * @param string $command
      *   Command to run.
-     * @param string|null $errorMessage
+     * @param string $errorMessage
      *   Optional error message.
-     * @param bool $noDebug
-     *   Flag to enforce no-debug mode. Used by commands that use output for
-     *   values.
      *
-     * @return \Robo\Result
-     *   Result object.
+     * @return string
+     *   Stdout.
      *
      * @throws \Exception If command did not finish successfully.
      */
-    protected function gitCommandRun(string $location, string $command, string $errorMessage = null, bool $noDebug = false): Result
-    {
-        $git = $this->gitCommand($location, $noDebug);
-        /* @phpstan-ignore-next-line */
-        $git->rawArg($command);
-        $result = $git->run();
-
-        if (!$result->wasSuccessful()) {
-            $message = $errorMessage ? sprintf('%s: %s', $errorMessage, $result->getMessage()) : $result->getMessage();
-            throw new \Exception($message);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get unified git command.
-     *
-     * @param string|null $location
-     *   Optional repository location.
-     * @param bool $noDebug
-     *   Flag to enforce no-debug mode. Used by commands that use output for
-     *   values.
-     *
-     * @return \Robo\Task\Base\Exec|\Robo\Collection\CollectionBuilder
-     *   Exec task.
-     */
-    protected function gitCommand(string $location = null, bool $noDebug = false): object
-    {
-        /* @phpstan-ignore-next-line */
-        $git = $this->taskExec('git')
-            ->printOutput(false)
-            ->arg('--no-pager');
-
-        if ($this->debug) {
-            $git->env('GIT_SSH_COMMAND', 'ssh -vvv');
-            if (!$noDebug) {
-                $git->printOutput(true);
+    protected function gitCommandRun(
+        string $location,
+        string $command,
+        string $errorMessage = '',
+    ): string {
+        $command = '--no-pager '.$command;
+        try {
+            return $this->gitWrapper->git($command, $location);
+        } catch (\Exception $exception) {
+            if ($errorMessage !== '') {
+                throw new \Exception($errorMessage, $exception->getCode(), $exception);
             }
-            $git->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_NORMAL);
-        } else {
-            $git->setVerbosityThreshold(VerbosityThresholdInterface::VERBOSITY_DEBUG);
+            throw $exception;
         }
-
-        if (!empty($location)) {
-            $git->arg('--git-dir='.$location.'/.git');
-            $git->arg('--work-tree='.$location);
-        }
-
-        return $git;
     }
 
     /**

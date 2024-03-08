@@ -2,16 +2,16 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Functional;
+namespace DrevOps\GitArtifact\Tests\Functional;
 
 /**
  * Class BranchTest.
  *
  * @group integration
  *
- * @covers \DrevOps\Robo\GitTrait
- * @covers \DrevOps\Robo\ArtifactTrait
- * @covers \DrevOps\Robo\FilesystemTrait
+ * @covers \DrevOps\GitArtifact\GitTrait
+ * @covers \DrevOps\GitArtifact\Artifact
+ * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
 class BranchTest extends AbstractFunctionalTestCase
 {

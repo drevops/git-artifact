@@ -2,16 +2,16 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests\Functional;
+namespace DrevOps\GitArtifact\Tests\Functional;
 
-use DrevOps\Robo\TokenTrait;
+use DrevOps\GitArtifact\TokenTrait;
 
 /**
  * Class ForcePushTest.
  *
  * @group integration
  *
- * @covers \DrevOps\Robo\TokenTrait
+ * @covers \DrevOps\GitArtifact\TokenTrait
  */
 class TokenTest extends AbstractFunctionalTestCase
 {

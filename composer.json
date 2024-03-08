@@ -1,6 +1,6 @@
 {
     "name": "drevops/git-artifact",
-    "type": "robo-tasks",
+    "type": "package",
     "description": "Build artifact from your codebase in CI and push it to a separate git repo.",
     "license": "GPL-2.0-or-later",
     "authors": [
@@ -16,9 +16,14 @@
     },
     "require": {
         "php": ">=8.1",
-        "consolidation/robo": "^4"
+        "cpliakas/git-wrapper": "^3.1",
+        "symfony/console": "^6",
+        "symfony/finder": "^6",
+        "symfony/filesystem": "^6",
+        "monolog/monolog": "^3.5"
     },
     "require-dev": {
+        "bamarni/composer-bin-plugin": "^1.8",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "escapestudios/symfony2-coding-standard": "^3",
         "phpmd/phpmd": "^2.15",
@@ -29,16 +34,17 @@
     },
     "autoload": {
         "psr-4": {
-            "DrevOps\\Robo\\": "src"
+            "DrevOps\\GitArtifact\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "DrevOps\\Robo\\Tests\\": "tests"
+            "DrevOps\\GitArtifact\\Tests\\": "tests"
         }
     },
     "config": {
         "allow-plugins": {
+            "bamarni/composer-bin-plugin": true,
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
@@ -59,5 +65,8 @@
             "box validate",
             "box compile"
         ]
-    }
+    },
+    "bin": [
+        "git-artifact"
+    ]
 }

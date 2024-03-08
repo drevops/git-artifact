@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace DrevOps\Robo\Tests;
+namespace DrevOps\GitArtifact\Tests;
 
-use DrevOps\Robo\Tests\Traits\CommandTrait;
-use DrevOps\Robo\Tests\Traits\MockTrait;
-use DrevOps\Robo\Tests\Traits\ReflectionTrait;
+use DrevOps\GitArtifact\Tests\Traits\CommandTrait;
+use DrevOps\GitArtifact\Tests\Traits\MockTrait;
+use DrevOps\GitArtifact\Tests\Traits\ReflectionTrait;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -21,7 +21,7 @@ abstract class AbstractTestCase extends TestCase
     use CommandTrait {
         CommandTrait::setUp as protected commandTraitSetUp;
         CommandTrait::tearDown as protected commandTraitTearDown;
-        CommandTrait::runRoboCommand as public commandRunRoboCommand;
+        CommandTrait::runGitArtifactCommand as public commandRunGitArtifactCommand;
     }
 
     use ReflectionTrait;
@@ -50,7 +50,7 @@ abstract class AbstractTestCase extends TestCase
 
         $this->fs = new Filesystem();
 
-        $this->fixtureDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'robo_git_artifact';
+        $this->fixtureDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.'git_artifact';
         $this->fs->mkdir($this->fixtureDir);
 
         $this->commandTraitSetUp(

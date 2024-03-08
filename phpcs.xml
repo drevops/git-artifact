@@ -20,7 +20,6 @@
     @see https://github.com/squizlabs/PHP_CodeSniffer/issues/2916
     -->
     <file>src</file>
-    <file>RoboFile.php</file>
     <file>tests</file>
 
     <rule ref="Symfony.Commenting.License.Warning">
