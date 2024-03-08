@@ -20,7 +20,7 @@
     @see https://github.com/squizlabs/PHP_CodeSniffer/issues/2916
     -->
     <file>src</file>
-    <file>tests</file>
+    <file>tests/phpunit</file>
 
     <rule ref="Symfony.Commenting.License.Warning">
         <exclude-pattern>*.*</exclude-pattern>

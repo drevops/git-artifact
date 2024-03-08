@@ -8,7 +8,7 @@ parameters:
 
   paths:
     - src
-    - tests
+    - tests/phpunit
 
   excludePaths:
     - vendor/*
