@@ -27,8 +27,11 @@ class ArtifactCommand extends Command {
    */
   protected function configure(): void {
     $this->setName('artifact');
-    $this->setDescription('Push artifact of current repository to remote git repository.');
+
+    $this->setDescription('Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.');
+
     $this->addArgument('remote', InputArgument::REQUIRED, 'Path to the remote git repository.');
+
     $this
       ->addOption('branch', NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.', '[branch]')
       ->addOption('debug', NULL, InputOption::VALUE_NONE, 'Print debug information.')
@@ -91,15 +94,19 @@ class ArtifactCommand extends Command {
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
     $gitWrapper = new GitWrapper();
+
     $optionDebug = $input->getOption('debug');
+
     if (($optionDebug || $output->isDebug())) {
       $logger = new Logger('git');
       $logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
       $gitWrapper->addLoggerEventSubscriber(new GitLoggerEventSubscriber($logger));
     }
+
     $fileSystem = new Filesystem();
     $artifact = new Artifact($gitWrapper, $fileSystem, $output);
     $remote = $input->getArgument('remote');
+
     // @phpstan-ignore-next-line
     $artifact->artifact($remote, $input->getOptions());
 
