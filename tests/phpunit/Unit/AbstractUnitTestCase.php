@@ -11,27 +11,26 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * Class AbstractUnitTestCase.
  */
-abstract class AbstractUnitTestCase extends AbstractTestCase
-{
+abstract class AbstractUnitTestCase extends AbstractTestCase {
 
-    /**
-     * Mock of the class.
-     *
-     * @var \PHPUnit\Framework\MockObject\MockObject
-     */
-    protected $mock;
+  /**
+   * Mock of the class.
+   *
+   * @var \PHPUnit\Framework\MockObject\MockObject
+   */
+  protected $mock;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+  protected function setUp(): void {
+    parent::setUp();
 
-        $mockBuilder = $this->getMockBuilder(Artifact::class);
-        $fileSystem = new Filesystem();
-        $gitWrapper = new GitWrapper();
-        $output = new ConsoleOutput();
+    $mockBuilder = $this->getMockBuilder(Artifact::class);
+    $fileSystem = new Filesystem();
+    $gitWrapper = new GitWrapper();
+    $output = new ConsoleOutput();
 
-        $mockBuilder->setConstructorArgs([$gitWrapper, $fileSystem, $output]);
-        $this->mock = $mockBuilder->getMock();
-        $this->callProtectedMethod($this->mock, 'fsSetRootDir', [$this->fixtureDir]);
-    }
+    $mockBuilder->setConstructorArgs([$gitWrapper, $fileSystem, $output]);
+    $this->mock = $mockBuilder->getMock();
+    $this->callProtectedMethod($this->mock, 'fsSetRootDir', [$this->fixtureDir]);
+  }
+
 }

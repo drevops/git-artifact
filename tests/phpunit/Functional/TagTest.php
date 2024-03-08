@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Functional;
 
@@ -13,30 +13,28 @@ namespace DrevOps\GitArtifact\Tests\Functional;
  * @covers \DrevOps\GitArtifact\Artifact
  * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
-class TagTest extends AbstractFunctionalTestCase
-{
+class TagTest extends AbstractFunctionalTestCase {
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp(): void
-    {
-        $this->mode = 'force-push';
-        parent::setUp();
-    }
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
+    $this->mode = 'force-push';
+    parent::setUp();
+  }
 
-    public function testDetachedTag(): void
-    {
-        $this->gitCreateFixtureCommits(2);
-        $this->gitAddTag($this->src, 'tag1');
-        $this->gitCheckout($this->src, 'tag1');
-        $srcBranches = $this->runGitCommand('branch');
+  public function testDetachedTag(): void {
+    $this->gitCreateFixtureCommits(2);
+    $this->gitAddTag($this->src, 'tag1');
+    $this->gitCheckout($this->src, 'tag1');
+    $srcBranches = $this->runGitCommand('branch');
 
-        $output = $this->assertBuildSuccess();
-        $this->assertStringContainsString('Mode:                  force-push', $output);
-        $this->assertStringContainsString('Will push:             Yes', $output);
+    $output = $this->assertBuildSuccess();
+    $this->assertStringContainsString('Mode:                  force-push', $output);
+    $this->assertStringContainsString('Will push:             Yes', $output);
 
-        $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
-        $this->assertEquals($srcBranches, $this->runGitCommand('branch'), 'Cleanup has correctly returned to the previous branch.');
-    }
+    $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->assertEquals($srcBranches, $this->runGitCommand('branch'), 'Cleanup has correctly returned to the previous branch.');
+  }
+
 }
