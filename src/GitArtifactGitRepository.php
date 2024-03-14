@@ -86,6 +86,7 @@ class GitArtifactGitRepository extends GitRepository {
     $this->addAllChanges();
 
     return $this->execute('commit', [
+      '--allow-empty' => TRUE,
       '-m' => $message,
     ]);
   }
