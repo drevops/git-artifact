@@ -49,6 +49,29 @@ class GitArtifactGitRepository extends GitRepository {
   }
 
   /**
+   * Remove branch.
+   *
+   * @param string $name
+   *   Branch name.
+   * @param bool $force
+   *   Force remove or not.
+   *
+   * @return GitArtifactGitRepository
+   *   Git repository
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function removeBranch($name, bool $force = FALSE): GitArtifactGitRepository {
+    if (!$force) {
+      return parent::removeBranch($name);
+    }
+
+    $this->run('branch', ['-D' => $name]);
+
+    return $this;
+  }
+
+  /**
    * Commit all files to git repo.
    *
    * @param string $message
