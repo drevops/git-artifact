@@ -112,16 +112,16 @@ class Artifact {
   /**
    * Path to report file.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $reportFile;
+  protected ?string $reportFile = NULL;
 
   /**
    * Flag to show changes made to the repo by the build in the output.
    *
    * @var bool
    */
-  protected bool $showChanges;
+  protected bool $showChanges = FALSE;
 
   /**
    * Artifact build result.

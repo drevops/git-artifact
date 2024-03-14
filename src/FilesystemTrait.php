@@ -57,7 +57,7 @@ trait FilesystemTrait {
    *   script was started from or current working directory.
    */
   protected function fsGetRootDir(): string {
-    if ($this->fsRootDir) {
+    if (isset($this->fsRootDir)) {
       return $this->fsRootDir;
     }
 
