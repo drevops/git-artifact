@@ -106,6 +106,9 @@ class ArtifactCommand extends Command {
 
     $fileSystem = new Filesystem();
     $git = new GitArtifactGit();
+//    $repo = $git->open('.');
+//    $repo->setRemoteUrl('aaaa' , 'asd');
+//    die;
     $artifact = new Artifact($git, $fileSystem, $output);
     $remote = $input->getArgument('remote');
 

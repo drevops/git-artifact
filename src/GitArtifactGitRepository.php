@@ -109,6 +109,23 @@ class GitArtifactGitRepository extends GitRepository {
   }
 
   /**
+   * Remove remote by name.
+   * We need override this method because parent method does not work.
+   *
+   * @param string $name
+   *   Remote name.
+   *
+   * @return GitArtifactGitRepository
+   *   Git repo.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function removeRemote($name): GitArtifactGitRepository {
+    $this->run('remote', 'remove', $name);
+    return $this;
+  }
+
+  /**
    * Get remote list.
    *
    * @return array<string>|null
