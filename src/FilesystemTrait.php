@@ -17,7 +17,7 @@ trait FilesystemTrait {
    *
    * @var string
    */
-  protected $fsRootDir;
+  protected string $fsRootDir;
 
   /**
    * File system for custom commands.
@@ -33,7 +33,7 @@ trait FilesystemTrait {
    *
    * @var array<string>
    */
-  protected $fsOriginalCwdStack = [];
+  protected array $fsOriginalCwdStack = [];
 
   /**
    * Set root directory path.

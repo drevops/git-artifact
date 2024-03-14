@@ -16,11 +16,11 @@
     },
     "require": {
         "php": ">=8.1",
-        "cpliakas/git-wrapper": "^3.1",
         "monolog/monolog": "^3.5",
         "symfony/console": "^6.3 || ^7",
         "symfony/filesystem": "^6.3 || ^7",
-        "symfony/finder": "^6.3 || ^7"
+        "symfony/finder": "^6.3 || ^7",
+        "czproject/git-php": "^4.2"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8",

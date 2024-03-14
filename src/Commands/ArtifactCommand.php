@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Commands;
 
+use CzProject\GitPhp\Git;
 use DrevOps\GitArtifact\Artifact;
+use DrevOps\GitArtifact\GitArtifactGit;
+use DrevOps\GitArtifact\GitArtifactGitRepository;
 use GitWrapper\EventSubscriber\GitLoggerEventSubscriber;
 use GitWrapper\GitWrapper;
 use Monolog\Handler\StreamHandler;
@@ -93,18 +96,17 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    $gitWrapper = new GitWrapper();
 
-    $optionDebug = $input->getOption('debug');
-
-    if (($optionDebug || $output->isDebug())) {
-      $logger = new Logger('git');
-      $logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
-      $gitWrapper->addLoggerEventSubscriber(new GitLoggerEventSubscriber($logger));
-    }
+//    $optionDebug = $input->getOption('debug');
+//
+//    if (($optionDebug || $output->isDebug())) {
+//      $logger = new Logger('git');
+//      $logger->pushHandler(new StreamHandler('php://stdout', Level::Debug));
+//    }
 
     $fileSystem = new Filesystem();
-    $artifact = new Artifact($gitWrapper, $fileSystem, $output);
+    $git = new GitArtifactGit();
+    $artifact = new Artifact($git, $fileSystem, $output);
     $remote = $input->getArgument('remote');
 
     // @phpstan-ignore-next-line
