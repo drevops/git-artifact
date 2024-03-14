@@ -84,9 +84,9 @@ class Artifact {
    *
    * If not set, the current `.gitignore` will be used, if any.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $gitignoreFile;
+  protected ?string $gitignoreFile = NULL;
 
   /**
    * Commit message with optional tokens.
