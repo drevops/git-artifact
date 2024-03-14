@@ -343,7 +343,7 @@ class Artifact {
 
     $this
       ->gitRepository
-      ->removeBranch($this->artifactBranch);
+      ->removeBranch($this->artifactBranch, TRUE);
 
     $this
       ->gitRepository
