@@ -47,37 +47,37 @@ class Artifact {
   /**
    * Original branch in current repository.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $originalBranch;
+  protected ?string $originalBranch = NULL;
 
   /**
    * Destination branch with optional tokens.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $destinationBranch;
+  protected ?string $destinationBranch = NULL;
 
   /**
    * Local branch where artifact will be built.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $artifactBranch;
+  protected ?string $artifactBranch = NULL;
 
   /**
    * Remote name.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $remoteName;
+  protected ?string $remoteName = NULL;
 
   /**
    * Remote URL includes uri or local path.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $remoteUrl;
+  protected ?string $remoteUrl = NULL;
 
   /**
    * Gitignore file to be used during artifact creation.
@@ -91,23 +91,23 @@ class Artifact {
   /**
    * Commit message with optional tokens.
    *
-   * @var string
+   * @var string|null
    */
-  protected string $message;
+  protected ?string $message = NULL;
 
   /**
    * Flag to specify if push is required or should be using dry run.
    *
    * @var bool
    */
-  protected bool $needsPush;
+  protected bool $needsPush = FALSE;
 
   /**
    * Flag to specify if cleanup is required to run after the build.
    *
    * @var bool
    */
-  protected bool $needCleanup;
+  protected bool $needCleanup = TRUE;
 
   /**
    * Path to report file.

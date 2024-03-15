@@ -3,6 +3,7 @@
 namespace DrevOps\GitArtifact\Tests\Unit;
 
 use DrevOps\GitArtifact\Artifact;
+use DrevOps\GitArtifact\GitArtifactGit;
 use DrevOps\GitArtifact\Tests\AbstractTestCase;
 use GitWrapper\GitWrapper;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -25,7 +26,7 @@ abstract class AbstractUnitTestCase extends AbstractTestCase {
 
     $mockBuilder = $this->getMockBuilder(Artifact::class);
     $fileSystem = new Filesystem();
-    $gitWrapper = new GitWrapper();
+    $gitWrapper = new GitArtifactGit();
     $output = new ConsoleOutput();
 
     $mockBuilder->setConstructorArgs([$gitWrapper, $fileSystem, $output]);

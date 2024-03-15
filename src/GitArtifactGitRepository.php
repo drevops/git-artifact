@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- *
+ * Artifact git repository.
  */
 class GitArtifactGitRepository extends GitRepository {
 
@@ -124,38 +124,6 @@ class GitArtifactGitRepository extends GitRepository {
   public function removeRemote($name): GitArtifactGitRepository {
     $this->run('remote', 'remove', $name);
     return $this;
-  }
-
-  /**
-   * Get remote list.
-   *
-   * @return array<string>|null
-   *   Remotes.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function getRemotes(): ?array {
-    return $this->extractFromCommand(['remote']);
-  }
-
-  /**
-   * Check remote is existing or not by remote name.
-   *
-   * @param string $remoteName
-   *   Remote name to check.
-   *
-   * @return bool
-   *   Exist or not.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function isRemoteExists(string $remoteName): bool {
-    $remotes = $this->getRemotes();
-    if (empty($remotes)) {
-      return FALSE;
-    }
-
-    return in_array($remoteName, $remotes);
   }
 
   /**

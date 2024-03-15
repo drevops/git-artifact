@@ -29,7 +29,6 @@ class GeneralTest extends AbstractFunctionalTestCase {
   public function testInfo(): void {
     $this->gitCreateFixtureCommits(1);
     $output = $this->runBuild();
-
     $this->assertStringContainsString('Artifact information', $output);
     $this->assertStringContainsString('Mode:                  force-push', $output);
     $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
