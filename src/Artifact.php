@@ -13,6 +13,7 @@ use Symfony\Component\Finder\Finder;
  *
  * @SuppressWarnings(PHPMD.TooManyMethods)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class Artifact {
 
@@ -22,125 +23,91 @@ class Artifact {
   const GIT_REMOTE_NAME = 'dst';
 
   /**
-   * Git runner.
-   *
-   * @var GitArtifactGit
-   */
-  protected GitArtifactGit $git;
-
-  /**
    * Represent to current repository.
-   *
-   * @var GitArtifactGitRepository
    */
   protected GitArtifactGitRepository $gitRepository;
+
+  /**
+   * Source path of git repository.
+   */
+  protected string $sourcePathGitRepository = '';
 
   /**
    * Mode in which current build is going to run.
    *
    * Available modes: branch, force-push, diff.
-   *
-   * @var string
    */
   protected string $mode;
 
   /**
    * Original branch in current repository.
-   *
-   * @var string|null
    */
-  protected ?string $originalBranch = NULL;
+  protected string $originalBranch = '';
 
   /**
    * Destination branch with optional tokens.
-   *
-   * @var string|null
    */
-  protected ?string $destinationBranch = NULL;
+  protected string $destinationBranch = '';
 
   /**
    * Local branch where artifact will be built.
-   *
-   * @var string|null
    */
-  protected ?string $artifactBranch = NULL;
+  protected string $artifactBranch = '';
 
   /**
    * Remote name.
-   *
-   * @var string|null
    */
-  protected ?string $remoteName = NULL;
+  protected string $remoteName = '';
 
   /**
    * Remote URL includes uri or local path.
-   *
-   * @var string|null
    */
-  protected ?string $remoteUrl = NULL;
+  protected string $remoteUrl = '';
 
   /**
    * Gitignore file to be used during artifact creation.
    *
    * If not set, the current `.gitignore` will be used, if any.
-   *
-   * @var string|null
    */
   protected ?string $gitignoreFile = NULL;
 
   /**
    * Commit message with optional tokens.
-   *
-   * @var string|null
    */
-  protected ?string $message = NULL;
+  protected string $message = '';
 
   /**
    * Flag to specify if push is required or should be using dry run.
-   *
-   * @var bool
    */
   protected bool $needsPush = FALSE;
 
   /**
    * Flag to specify if cleanup is required to run after the build.
-   *
-   * @var bool
    */
   protected bool $needCleanup = TRUE;
 
   /**
    * Path to report file.
-   *
-   * @var string|null
    */
-  protected ?string $reportFile = NULL;
+  protected string $reportFile = '';
 
   /**
    * Flag to show changes made to the repo by the build in the output.
-   *
-   * @var bool
    */
   protected bool $showChanges = FALSE;
 
   /**
    * Artifact build result.
-   *
-   * @var bool
    */
   protected bool $result = FALSE;
 
   /**
    * Flag to print debug information.
-   *
-   * @var bool
    */
   protected bool $debug = FALSE;
 
   /**
    * Internal option to set current timestamp.
-   *
-   * @var int
    */
   protected int $now;
 
@@ -155,12 +122,14 @@ class Artifact {
    *   Output.
    */
   public function __construct(
-        GitArtifactGit $git,
+        /**
+         * Git runner.
+         */
+        protected GitArtifactGit $git,
         Filesystem $fsFileSystem,
         protected OutputInterface $output,
     ) {
     $this->fsFileSystem = $fsFileSystem;
-    $this->git = $git;
   }
 
   /**
@@ -208,9 +177,9 @@ class Artifact {
   ]): void {
     try {
       $error = NULL;
-
       $this->checkRequirements();
       $this->resolveOptions($remote, $opts);
+
       // Now we have all what we need.
       // Let process artifact function.
       $this->printDebug('Debug messages enabled');
@@ -232,7 +201,7 @@ class Artifact {
       $error = $exception->getMessage();
     }
 
-    if ($this->reportFile) {
+    if (!empty($this->reportFile)) {
       $this->dumpReport();
     }
 
@@ -247,6 +216,16 @@ class Artifact {
       $this->say('Deployment failed.');
       throw new \Exception((string) $error);
     }
+  }
+
+  /**
+   * Get source path git repository.
+   *
+   * @return string
+   *   Source path.
+   */
+  public function getSourcePathGitRepository(): string {
+    return $this->sourcePathGitRepository;
   }
 
   /**
@@ -290,7 +269,7 @@ class Artifact {
     // Remove sub-repositories.
     $this->removeSubReposInGitRepository();
     // Disable local exclude.
-    $this->disableLocalExclude($this->gitRepository->getRepositoryPath());
+    $this->disableLocalExclude($this->getSourcePathGitRepository());
     // Add files.
     $this->addAllFilesInGitRepository();
     // Remove other files.
@@ -339,13 +318,12 @@ class Artifact {
     if (!empty($this->gitignoreFile)) {
       $this->replaceGitignoreInGitRepository($this->gitignoreFile);
       $this->gitRepository->addAllChanges();
-      $this->removeIgnoredFiles($this->gitRepository->getRepositoryPath());
+      $this->removeIgnoredFiles($this->getSourcePathGitRepository());
     }
     else {
       $this->gitRepository->addAllChanges();
     }
   }
-
 
   /**
    * Cleanup after build.
@@ -354,7 +332,7 @@ class Artifact {
    */
   protected function cleanup(): void {
     $this
-      ->restoreLocalExclude($this->gitRepository->getRepositoryPath());
+      ->restoreLocalExclude($this->getSourcePathGitRepository());
 
     $this
       ->gitRepository
@@ -377,7 +355,7 @@ class Artifact {
   protected function doPush(): void {
     try {
       $options = $this->mode === self::modeForcePush() ? ['--force'] : [];
-      $refSpec = "refs/heads/$this->artifactBranch:refs/heads/$this->destinationBranch";
+      $refSpec = sprintf('refs/heads/%s:refs/heads/%s', $this->artifactBranch, $this->destinationBranch);
       $this
         ->gitRepository
         ->push([$this->remoteName, $refSpec], $options);
@@ -401,10 +379,12 @@ class Artifact {
   /**
    * Resolve and validate CLI options values into internal values.
    *
+   * @param string $remote
+   *   Remote URL.
    * @param array $options
    *   Array of CLI options.
    *
-   * @throws \Exception
+   * @throws \CzProject\GitPhp\GitException
    *
    * @phpstan-ignore-next-line
    */
@@ -416,7 +396,7 @@ class Artifact {
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->needsPush = !empty($options['push']);
-    $this->reportFile = empty($options['report']) ? NULL : $options['report'];
+    $this->reportFile = empty($options['report']) ? '' : $options['report'];
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
     $this->debug = !empty($options['debug']);
     $this->remoteName = self::GIT_REMOTE_NAME;
@@ -424,8 +404,8 @@ class Artifact {
     $this->setMode($options['mode'], $options);
 
     // Handle some complex options.
-    // Get git repository source from option.
     $srcPath = empty($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
+    $this->sourcePathGitRepository = $srcPath;
     // Setup Git repository from source path.
     $this->initGitRepository($srcPath);
     // Set original, destination, artifact branch name.
@@ -468,7 +448,7 @@ class Artifact {
     $lines[] = ('----------------------------------------------------------------------');
     $lines[] = (' Build timestamp:       ' . date('Y/m/d H:i:s', $this->now));
     $lines[] = (' Mode:                  ' . $this->mode);
-    $lines[] = (' Source repository:     ' . $this->gitRepository->getRepositoryPath());
+    $lines[] = (' Source repository:     ' . $this->getSourcePathGitRepository());
     $lines[] = (' Remote repository:     ' . $this->remoteUrl);
     $lines[] = (' Remote branch:         ' . $this->destinationBranch);
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
@@ -486,7 +466,7 @@ class Artifact {
     $lines[] = '----------------------------------------------------------------------';
     $lines[] = ' Build timestamp:   ' . date('Y/m/d H:i:s', $this->now);
     $lines[] = ' Mode:              ' . $this->mode;
-    $lines[] = ' Source repository: ' . $this->gitRepository->getRepositoryPath();
+    $lines[] = ' Source repository: ' . $this->getSourcePathGitRepository();
     $lines[] = ' Remote repository: ' . $this->remoteUrl;
     $lines[] = ' Remote branch:     ' . $this->destinationBranch;
     $lines[] = ' Gitignore file:    ' . ($this->gitignoreFile ?: 'No');
@@ -631,7 +611,7 @@ class Artifact {
    *   Path to new gitignore to replace current file with.
    */
   protected function replaceGitignoreInGitRepository(string $filename): void {
-    $path = $this->gitRepository->getRepositoryPath();
+    $path = $this->getSourcePathGitRepository();
     $this->printDebug('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename);
     $this->fsFileSystem->copy($filename, $path . DIRECTORY_SEPARATOR . '.gitignore', TRUE);
     $this->fsFileSystem->remove($filename);
@@ -746,7 +726,7 @@ class Artifact {
    *   If removal command finished with an error.
    */
   protected function removeIgnoredFiles(string $location, string $gitignorePath = NULL): void {
-    $location = $this->gitRepository->getRepositoryPath();
+    $location = $this->getSourcePathGitRepository();
     $gitignorePath = $gitignorePath ?: $location . DIRECTORY_SEPARATOR . '.gitignore';
 
     $gitignoreContent = file_get_contents($gitignorePath);
@@ -761,7 +741,7 @@ class Artifact {
 
     $files = $this
       ->gitRepository
-      ->lsFiles(['--directory', '-i', '-c', "--exclude-from=$gitignorePath"]);
+      ->lsFiles(['--directory', '-i', '-c', '--exclude-from=' . $gitignorePath]);
 
     if (!empty($files)) {
       $files = array_filter($files);
@@ -788,7 +768,7 @@ class Artifact {
     if (!empty($files)) {
       $files = array_filter($files);
       foreach ($files as $file) {
-        $fileName = $this->gitRepository->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
+        $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
         $this->printDebug('Removing other file %s', $fileName);
         $this->fsFileSystem->remove($fileName);
       }
@@ -806,7 +786,7 @@ class Artifact {
       ->ignoreDotFiles(FALSE)
       ->ignoreVCS(FALSE)
       ->depth('>0')
-      ->in($this->gitRepository->getRepositoryPath());
+      ->in($this->getSourcePathGitRepository());
 
     $dirs = iterator_to_array($dirs->directories());
 

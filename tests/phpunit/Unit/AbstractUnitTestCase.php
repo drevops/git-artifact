@@ -5,7 +5,6 @@ namespace DrevOps\GitArtifact\Tests\Unit;
 use DrevOps\GitArtifact\Artifact;
 use DrevOps\GitArtifact\GitArtifactGit;
 use DrevOps\GitArtifact\Tests\AbstractTestCase;
-use GitWrapper\GitWrapper;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Filesystem\Filesystem;
 

@@ -14,8 +14,6 @@ trait FilesystemTrait {
 
   /**
    * Current directory where call originated.
-   *
-   * @var string
    */
   protected string $fsRootDir;
 

@@ -15,15 +15,11 @@ class GitArtifactGitRepository extends GitRepository {
 
   /**
    * Filesystem.
-   *
-   * @var \Symfony\Component\Filesystem\Filesystem
    */
   protected Filesystem $fileSystem;
 
   /**
    * Logger.
-   *
-   * @var \Psr\Log\LoggerInterface
    */
   protected LoggerInterface $logger;
 
@@ -62,6 +58,10 @@ class GitArtifactGitRepository extends GitRepository {
    * @throws \CzProject\GitPhp\GitException
    */
   public function removeBranch($name, bool $force = FALSE): GitArtifactGitRepository {
+    if (empty($name)) {
+      return $this;
+    }
+
     if (!$force) {
       return parent::removeBranch($name);
     }
@@ -111,6 +111,7 @@ class GitArtifactGitRepository extends GitRepository {
 
   /**
    * Remove remote by name.
+   *
    * We need override this method because parent method does not work.
    *
    * @param string $name
@@ -122,8 +123,43 @@ class GitArtifactGitRepository extends GitRepository {
    * @throws \CzProject\GitPhp\GitException
    */
   public function removeRemote($name): GitArtifactGitRepository {
-    $this->run('remote', 'remove', $name);
+    if ($this->isRemoteExists($name)) {
+      $this->run('remote', 'remove', $name);
+    }
+
     return $this;
+  }
+
+  /**
+   * Get remote list.
+   *
+   * @return array<string>|null
+   *   Remotes.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function getRemotes(): ?array {
+    return $this->extractFromCommand(['remote']);
+  }
+
+  /**
+   * Check remote is existing or not by remote name.
+   *
+   * @param string $remoteName
+   *   Remote name to check.
+   *
+   * @return bool
+   *   Exist or not.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function isRemoteExists(string $remoteName): bool {
+    $remotes = $this->getRemotes();
+    if (empty($remotes)) {
+      return FALSE;
+    }
+
+    return in_array($remoteName, $remotes);
   }
 
   /**
