@@ -286,28 +286,47 @@ class Artifact {
    */
   protected function prepareArtifact(): void {
     // Switch to artifact branch.
-    $this
-      ->gitRepository
-      ->switchToBranch($this->artifactBranch, TRUE);
-    // Remove sub repositories.
+    $this->switchToArtifactBranchInGitRepository();
+    // Remove sub-repositories.
     $this->removeSubReposInGitRepository();
-
     // Disable local exclude.
     $this->disableLocalExclude($this->gitRepository->getRepositoryPath());
     // Add files.
     $this->addAllFilesInGitRepository();
     // Remove other files.
     $this->removeOtherFilesInGitRepository();
-
     // Commit all changes.
-    $result = $this
-      ->gitRepository
-      ->commitAllChanges($this->message);
-
+    $result = $this->commitAllChangesInGitRepository();
     // Show all changes if needed.
     if ($this->showChanges) {
       $this->say(sprintf('Added changes: %s', implode("\n", $result)));
     }
+  }
+
+  /**
+   * Switch to artifact branch.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  protected function switchToArtifactBranchInGitRepository(): void {
+    $this
+      ->gitRepository
+      ->switchToBranch($this->artifactBranch, TRUE);
+  }
+
+  /**
+   * Commit all changes.
+   *
+   * @return string[]
+   *   The files committed.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  protected function commitAllChangesInGitRepository(): array {
+    return $this
+      ->gitRepository
+      ->commitAllChanges($this->message);
+
   }
 
   /**

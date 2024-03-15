@@ -85,6 +85,7 @@ class GitArtifactGitRepository extends GitRepository {
   public function commitAllChanges(string $message): array {
     $this->addAllChanges();
 
+    // We do not use commit method because we need return the output.
     return $this->execute('commit', '--allow-empty', [
       '-m' => $message,
     ]);
