@@ -24,6 +24,70 @@ class GitArtifactGitRepository extends GitRepository {
   protected LoggerInterface $logger;
 
   /**
+   * Get commits.
+   *
+   * @param array<mixed> $options
+   *   Options.
+   * @param string $revisionRange
+   *   Revision range.
+   * @param string[] $paths
+   *   File paths.
+   *
+   * @return string[]
+   *   Command output.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function getCommits(array $options = [], string $revisionRange = '', array $paths = []): array {
+    $argsCommand = ['log', $options];
+    if (!empty($revisionRange)) {
+      $argsCommand = array_merge($argsCommand, [$revisionRange]);
+    }
+    $argsCommand = array_merge($argsCommand, ['--end-of-options'], $paths);
+    $output = $this->extractFromCommand($argsCommand);
+
+    if (is_null($output)) {
+      return [];
+    }
+
+    return $output;
+  }
+
+  /**
+   * Reset command.
+   *
+   * @param array<mixed> $options
+   *   Options.
+   *
+   * @return $this
+   *   Git repo.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function reset(array $options = []): GitArtifactGitRepository {
+    $this->run('reset', $options);
+
+    return $this;
+  }
+
+  /**
+   * Clean command.
+   *
+   * @param array<mixed> $options
+   *   Options.
+   *
+   * @return $this
+   *   Git repo.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function clean(array $options = []): GitArtifactGitRepository {
+    $this->run('clean', $options);
+
+    return $this;
+  }
+
+  /**
    * Switch to new branch.
    *
    * @param string $branchName
@@ -107,6 +171,51 @@ class GitArtifactGitRepository extends GitRepository {
   public function lsFiles(array $options = [], array $files = []): ?array {
     $commandArgs = array_merge(['ls-files', $options, '--end-of-options'], $files);
     return $this->extractFromCommand($commandArgs);
+  }
+
+  /**
+   * Git ls-tree command.
+   *
+   * @param array<mixed> $options
+   *   Options.
+   * @param string $path
+   *   Path.
+   *
+   * @return string[]
+   *   List the contents of a tree object.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function lsTree(array $options = [], string $path = ''): array {
+    $commandArgs = ['ls-tree', $options];
+    if (!empty($path)) {
+      $commandArgs = array_merge($commandArgs, [$path]);
+    }
+
+    $output = $this->extractFromCommand($commandArgs);
+
+    if (is_null($output)) {
+      return [];
+    }
+
+    return $output;
+  }
+
+  /**
+   * Git config command.
+   *
+   * @param array<mixed> $options
+   *   Options.
+   *
+   * @return GitArtifactGitRepository
+   *   Git repo.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function config(array $options = []): GitArtifactGitRepository {
+    $this->extractFromCommand(['config', $options]);
+
+    return $this;
   }
 
   /**

@@ -58,7 +58,6 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $output = $this->runBuild('--no-cleanup');
 
     $this->assertGitCurrentBranch($this->src, $this->artifactBranch);
-
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
