@@ -11,6 +11,8 @@ use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Artifact git repository.
+ *
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class GitArtifactGitRepository extends GitRepository {
 
@@ -25,65 +27,105 @@ class GitArtifactGitRepository extends GitRepository {
   protected LoggerInterface $logger;
 
   /**
-   * Get commits.
+   * Force pushing.
    *
-   * @param array<mixed> $options
-   *   Options.
-   * @param string $revisionRange
-   *   Revision range.
-   * @param string[] $paths
-   *   File paths.
+   * @param string $remote
+   *   Remote name.
+   * @param string $refSpec
+   *   Specify what destination ref to update with what source object.
    *
-   * @return string[]
-   *   Command output.
+   * @return GitArtifactGitRepository
+   *   Git repo.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function getCommits(array $options = [], string $revisionRange = '', array $paths = []): array {
-    $argsCommand = ['log', $options];
-    if (!empty($revisionRange)) {
-      $argsCommand = array_merge($argsCommand, [$revisionRange]);
-    }
-    $argsCommand = array_merge($argsCommand, ['--end-of-options'], $paths);
-    $output = $this->extractFromCommand($argsCommand);
-
-    if (is_null($output)) {
-      return [];
-    }
-
-    return $output;
+  public function pushForce(string $remote, string $refSpec): GitArtifactGitRepository {
+    return parent::push([$remote, $refSpec], ['--force']);
   }
 
   /**
-   * Reset command.
+   * List ignored files from git ignore file.
    *
-   * @param array<mixed> $options
-   *   Options.
+   * @param string $gitIgnoreFilePath
+   *   Git ignore file path.
+   *
+   * @return string[]
+   *   Files.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function listIgnoredFilesFromGitIgnoreFile(string $gitIgnoreFilePath): array {
+    $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $gitIgnoreFilePath]);
+    if (!$files) {
+      return [];
+    }
+
+    return $files;
+  }
+
+  /**
+   * List 'Other' files.
+   *
+   * 'Other' files are files that are neither staged nor tracked in git.
+   *
+   * @return string[]
+   *   Files.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function listOtherFiles(): array {
+    $files = $this->extractFromCommand(['ls-files', '--other', '--exclude-standard']);
+    if (!$files) {
+      return [];
+    }
+
+    return $files;
+  }
+
+  /**
+   * Get commits.
+   *
+   * @param string $format
+   *   Commit format.
+   *
+   * @return string[]
+   *   Commits.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function getCommits(string $format = '%s'): array {
+    $commits = $this->extractFromCommand(['log', '--format=' . $format]);
+    if (!$commits) {
+      return [];
+    }
+
+    return $commits;
+  }
+
+  /**
+   * Reset hard.
    *
    * @return $this
    *   Git repo.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function reset(array $options = []): GitArtifactGitRepository {
-    $this->run('reset', $options);
+  public function resetHard(): GitArtifactGitRepository {
+    $this->run('reset', ['--hard']);
 
     return $this;
   }
 
   /**
-   * Clean command.
-   *
-   * @param array<mixed> $options
-   *   Options.
+   * Clean repo.
    *
    * @return $this
    *   Git repo.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function clean(array $options = []): GitArtifactGitRepository {
-    $this->run('clean', $options);
+  public function cleanForce(): GitArtifactGitRepository {
+    $this->run('clean', ['-dfx']);
 
     return $this;
   }
@@ -157,64 +199,73 @@ class GitArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Git ls-files command.
+   * List committed files.
    *
-   * @param array<mixed> $options
-   *   Options.
-   * @param array<string> $files
-   *   Files to show.
-   *
-   * @return string[]|null
+   * @return string[]
    *   Files.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function lsFiles(array $options = [], array $files = []): ?array {
-    $commandArgs = array_merge(['ls-files', $options, '--end-of-options'], $files);
-    return $this->extractFromCommand($commandArgs);
+  public function listCommittedFiles(): array {
+    $files = [];
+
+    $result = $this->extractFromCommand(['ls-tree', '--name-only', '-r', 'HEAD']);
+    if ($result) {
+      $files = $result;
+    }
+
+    return $files;
   }
 
   /**
-   * Git ls-tree command.
+   * Set config receive.denyCurrentBranch is ignored.
    *
-   * @param array<mixed> $options
-   *   Options.
-   * @param string $path
-   *   Path.
-   *
-   * @return string[]
-   *   List the contents of a tree object.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function lsTree(array $options = [], string $path = ''): array {
-    $commandArgs = ['ls-tree', $options];
-    if (!empty($path)) {
-      $commandArgs = array_merge($commandArgs, [$path]);
-    }
-
-    $output = $this->extractFromCommand($commandArgs);
-
-    if (is_null($output)) {
-      return [];
-    }
-
-    return $output;
-  }
-
-  /**
-   * Git config command.
-   *
-   * @param array<mixed> $options
-   *   Options.
-   *
-   * @return GitArtifactGitRepository
+   * @return $this
    *   Git repo.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function config(array $options = []): GitArtifactGitRepository {
-    $this->extractFromCommand(['config', $options]);
+  public function setConfigReceiveDenyCurrentBranchIgnore(): GitArtifactGitRepository {
+    $this->extractFromCommand(['config', ['receive.denyCurrentBranch', 'ignore']]);
+
+    return $this;
+  }
+
+  /**
+   * Create an annotated tag.
+   *
+   * @param string $name
+   *   Name.
+   * @param string $message
+   *   Message.
+   *
+   * @return $this
+   *   Git repo.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function createAnnotatedTag(string $name, string $message): GitArtifactGitRepository {
+    $this->createTag($name, [
+      '--message=' . $message,
+      '-a',
+    ]);
+
+    return $this;
+  }
+
+  /**
+   * Create an annotated tag.
+   *
+   * @param string $name
+   *   Name.
+   *
+   * @return $this
+   *   Git repo.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function createLightweightTag(string $name): GitArtifactGitRepository {
+    $this->createTag($name);
 
     return $this;
   }

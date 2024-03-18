@@ -71,7 +71,7 @@ trait CommandTrait {
     $remoteRepo = $this->gitInitRepo($this->dst);
     // Allow pushing into already checked out branch. We need this to
     // avoid additional management of fixture repository.
-    $remoteRepo->config(['receive.denyCurrentBranch', 'ignore']);
+    $remoteRepo->setConfigReceiveDenyCurrentBranchIgnore();
   }
 
   /**
@@ -100,7 +100,7 @@ trait CommandTrait {
     }
     $this->fs->mkdir($path);
     /** @var \DrevOps\GitArtifact\GitArtifactGitRepository $repo */
-    $repo = $this->git->init($path, ['-b' => 'master']);
+    $repo = $this->git->initWithInitialBranch($path, 'master');
 
     return $repo;
   }
@@ -121,7 +121,7 @@ trait CommandTrait {
   protected function gitGetAllCommits(string $path, string $format = '%s'): array {
     $commits = [];
     try {
-      $commits = $this->git->open($path)->getCommits(['--format=' . $format]);
+      $commits = $this->git->open($path)->getCommits($format);
     }
     catch (\Exception $exception) {
       $output = ($exception->getPrevious() instanceof \Throwable) ? $exception->getPrevious()->getMessage() : '';
@@ -180,7 +180,7 @@ trait CommandTrait {
     return $this
       ->git
       ->open($path)
-      ->lsTree(['--full-tree', '--name-only', '-r', 'HEAD']);
+      ->listCommittedFiles();
   }
 
   /**
@@ -276,8 +276,8 @@ trait CommandTrait {
    */
   protected function gitReset($path): void {
     $repo = $this->git->open($path);
-    $repo->reset(['--hard']);
-    $repo->clean(['-dfx']);
+    $repo->resetHard();
+    $repo->cleanForce();
   }
 
   /**
@@ -339,13 +339,11 @@ trait CommandTrait {
   protected function gitAddTag(string $path, string $name, bool $annotate = FALSE): void {
     $repo = $this->git->open($path);
     if ($annotate) {
-      $repo->createTag($name, [
-        '--message=Annotation for tag ' . $name,
-        '-a',
-      ]);
+      $message = 'Annotation for tag ' . $name;
+      $repo->createAnnotatedTag($name, $message);
     }
     else {
-      $repo->createTag($name);
+      $repo->createLightweightTag($name);
     }
   }
 

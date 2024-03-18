@@ -354,11 +354,15 @@ class Artifact {
    */
   protected function doPush(): void {
     try {
-      $options = $this->mode === self::modeForcePush() ? ['--force'] : [];
       $refSpec = sprintf('refs/heads/%s:refs/heads/%s', $this->artifactBranch, $this->destinationBranch);
-      $this
-        ->gitRepository
-        ->push([$this->remoteName, $refSpec], $options);
+      if ($this->mode === self::modeForcePush()) {
+        $this
+          ->gitRepository
+          ->pushForce($this->remoteName, $refSpec);
+      }
+      else {
+        $this->gitRepository->push([$this->remoteName, $refSpec]);
+      }
 
       $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
     }
@@ -741,7 +745,7 @@ class Artifact {
 
     $files = $this
       ->gitRepository
-      ->lsFiles(['--directory', '-i', '-c', '--exclude-from=' . $gitignorePath]);
+      ->listIgnoredFilesFromGitIgnoreFile($gitignorePath);
 
     if (!empty($files)) {
       $files = array_filter($files);
@@ -764,7 +768,7 @@ class Artifact {
    *   If removal command finished with an error.
    */
   protected function removeOtherFilesInGitRepository(): void {
-    $files = $this->gitRepository->lsFiles(['--others', '--exclude-standard']);
+    $files = $this->gitRepository->listOtherFiles();
     if (!empty($files)) {
       $files = array_filter($files);
       foreach ($files as $file) {
