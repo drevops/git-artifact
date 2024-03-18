@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact;
 
 use CzProject\GitPhp\GitRepository;
+use CzProject\GitPhp\RunnerResult;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -269,6 +270,24 @@ class GitArtifactGitRepository extends GitRepository {
     }
 
     return in_array($remoteName, $remotes);
+  }
+
+  /**
+   * Override run method to add --no-pager option to all command.
+   *
+   * @param mixed ...$args
+   *   Command args.
+   *
+   * @return \CzProject\GitPhp\RunnerResult
+   *   Runner result.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  protected function run(...$args): RunnerResult {
+    $command = array_shift($args);
+    array_unshift($args, '--no-pager', $command);
+
+    return parent::run(...$args);
   }
 
   /**
