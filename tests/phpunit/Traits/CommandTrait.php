@@ -220,7 +220,7 @@ trait CommandTrait {
     $repo = $this->git->open($path);
     $repo->addFile($filename);
     $message = 'Commit number ' . $index;
-    $repo->commit($message, ['-a']);
+    $repo->commitAllChanges($message);
     $lastCommit = $repo->getLastCommit();
 
     return $lastCommit->getId()->toString();

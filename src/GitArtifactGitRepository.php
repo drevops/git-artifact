@@ -207,11 +207,9 @@ class GitArtifactGitRepository extends GitRepository {
    * @throws \CzProject\GitPhp\GitException
    */
   public function listCommittedFiles(): array {
-    $files = [];
-
-    $result = $this->extractFromCommand(['ls-tree', '--name-only', '-r', 'HEAD']);
-    if ($result) {
-      $files = $result;
+    $files = $this->extractFromCommand(['ls-tree', '--name-only', '-r', 'HEAD']);
+    if (!$files) {
+      return [];
     }
 
     return $files;
@@ -294,13 +292,18 @@ class GitArtifactGitRepository extends GitRepository {
   /**
    * Get remote list.
    *
-   * @return array<string>|null
+   * @return array<string>
    *   Remotes.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function getRemotes(): ?array {
-    return $this->extractFromCommand(['remote']);
+  public function getRemotes(): array {
+    $remotes = $this->extractFromCommand(['remote']);
+    if (!$remotes) {
+      return [];
+    }
+
+    return $remotes;
   }
 
   /**
