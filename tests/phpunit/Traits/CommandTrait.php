@@ -100,7 +100,7 @@ trait CommandTrait {
     }
     $this->fs->mkdir($path);
     /** @var \DrevOps\GitArtifact\GitArtifactGitRepository $repo */
-    $repo = $this->git->initWithInitialBranch($path, 'master');
+    $repo = $this->git->init($path, ['-b' => 'master']);
 
     return $repo;
   }

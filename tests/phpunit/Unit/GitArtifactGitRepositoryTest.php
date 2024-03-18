@@ -140,6 +140,9 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
     $this->assertEquals(['branch1', 'branch2'], $sourceRepo->getBranches());
     $sourceRepo->removeBranch('branch2', TRUE);
     $this->assertEquals(['branch1'], $sourceRepo->getBranches());
+
+    $sourceRepo->removeBranch('', TRUE);
+    $this->assertEquals(['branch1'], $sourceRepo->getBranches());
   }
 
   /**
@@ -259,6 +262,30 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
     return [
       [TRUE, 'git@github.com:foo/git-foo.git', 'uri', TRUE],
       [TRUE, 'git@github.com:foo/git-foo.git', 'any', TRUE],
+    ];
+  }
+
+  /**
+   * Test is valid remote url.
+   *
+   * @throws \Exception
+   */
+  #[DataProvider('dataProviderIsValidBranchName')]
+  public function testIsValidBranchName(bool $expected, string $branchName): void {
+    $this->assertEquals($expected, GitArtifactGitRepository::isValidBranchName($branchName));
+  }
+
+  /**
+   * Data provider.
+   *
+   * @return array<mixed>
+   *   Data provider.
+   */
+  public static function dataProviderIsValidBranchName(): array {
+    return [
+      [TRUE, 'branch'],
+      [FALSE, '*/branch'],
+      [FALSE, '*.branch'],
     ];
   }
 
