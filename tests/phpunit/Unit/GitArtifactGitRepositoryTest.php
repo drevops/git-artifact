@@ -240,7 +240,7 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
    */
   #[DataProvider('dataProviderIsValidRemoteUrl')]
   public function testIsValidRemoteUrl(bool $expected, string $pathOrUri, string $type, bool $pass): void {
-    if ($pass) {
+    if (!$pass) {
       $this->expectException(\InvalidArgumentException::class);
       GitArtifactGitRepository::isValidRemoteUrl($pathOrUri, $type);
     }
