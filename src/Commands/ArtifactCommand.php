@@ -126,9 +126,14 @@ class ArtifactCommand extends Command {
   protected OutputInterface $output;
 
   /**
+   * Git wrapper.
+   */
+  protected GitArtifactGit $git;
+
+  /**
    * Artifact constructor.
    *
-   * @param \DrevOps\GitArtifact\GitArtifactGit $git
+   * @param \DrevOps\GitArtifact\GitArtifactGit $gitWrapper
    *   Git wrapper.
    * @param \Symfony\Component\Filesystem\Filesystem $fsFileSystem
    *   File system.
@@ -136,12 +141,13 @@ class ArtifactCommand extends Command {
    *   Command name.
    */
   public function __construct(
-    protected GitArtifactGit $git,
-    Filesystem $fsFileSystem,
+    GitArtifactGit $gitWrapper = NULL,
+    Filesystem $fsFileSystem = NULL,
     ?string $name = NULL
   ) {
     parent::__construct($name);
-    $this->fsFileSystem = $fsFileSystem;
+    $this->fsFileSystem = is_null($fsFileSystem) ? new Filesystem() : $fsFileSystem;
+    $this->git = is_null($gitWrapper) ? new GitArtifactGit() : $gitWrapper;
   }
 
   /**
