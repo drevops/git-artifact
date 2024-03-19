@@ -1008,6 +1008,7 @@ class ArtifactCommand extends Command {
    */
   protected function printDebug(mixed ...$args): void {
     $message = array_shift($args);
+    /* @phpstan-ignore-next-line */
     $this->logDebug(vsprintf($message, $args));
   }
 

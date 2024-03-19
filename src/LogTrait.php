@@ -53,6 +53,11 @@ trait LogTrait {
 
   /**
    * Log debug.
+   *
+   * @param string|\Stringable $message
+   *   Message.
+   * @param array<mixed> $context
+   *   Context.
    */
   public function logDebug(string|\Stringable $message, array $context = []): void {
     $this->logger->debug($message, $context);
