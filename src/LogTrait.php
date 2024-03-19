@@ -43,7 +43,7 @@ trait LogTrait {
     ];
     $verbosity = $output->getVerbosity();
     $level = $verbosityMapping[$verbosity] ?? Level::Debug;
-    $handler = new StreamHandler(__DIR__ . DIRECTORY_SEPARATOR . 'hello-log.log', $level);
+    $handler = new StreamHandler(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'hello-log.log', $level);
     $logger->pushHandler($handler);
     $handler = new ConsoleHandler($output);
     $logger->pushHandler($handler);
