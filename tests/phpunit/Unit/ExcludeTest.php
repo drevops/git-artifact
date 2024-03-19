@@ -9,7 +9,7 @@ namespace DrevOps\GitArtifact\Tests\Unit;
  *
  * @group unit
  *
- * @covers \DrevOps\GitArtifact\Artifact
+ * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
  */
 class ExcludeTest extends AbstractUnitTestCase {
 

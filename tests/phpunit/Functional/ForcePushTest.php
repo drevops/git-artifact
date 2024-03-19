@@ -12,7 +12,7 @@ namespace DrevOps\GitArtifact\Tests\Functional;
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  *
  * @covers \DrevOps\GitArtifact\GitTrait
- * @covers \DrevOps\GitArtifact\Artifact
+ * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
  * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
 class ForcePushTest extends AbstractFunctionalTestCase {
