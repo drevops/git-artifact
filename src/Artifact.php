@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact;
 
-use GitWrapper\GitWrapper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -14,117 +13,108 @@ use Symfony\Component\Finder\Finder;
  *
  * @SuppressWarnings(PHPMD.TooManyMethods)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class Artifact {
-  use GitTrait;
+
   use TokenTrait;
+  use FilesystemTrait;
+
+  const GIT_REMOTE_NAME = 'dst';
+
+  /**
+   * Represent to current repository.
+   */
+  protected GitArtifactGitRepository $gitRepository;
+
+  /**
+   * Source path of git repository.
+   */
+  protected string $sourcePathGitRepository = '';
 
   /**
    * Mode in which current build is going to run.
    *
    * Available modes: branch, force-push, diff.
-   *
-   * @var string
    */
-  protected $mode;
+  protected string $mode;
 
   /**
    * Original branch in current repository.
-   *
-   * @var string|null
    */
-  protected $originalBranch;
+  protected string $originalBranch = '';
 
   /**
    * Destination branch with optional tokens.
-   *
-   * @var string
    */
-  protected $dstBranch;
+  protected string $destinationBranch = '';
 
   /**
    * Local branch where artifact will be built.
-   *
-   * @var string
    */
-  protected $artifactBranch;
+  protected string $artifactBranch = '';
 
   /**
    * Remote name.
-   *
-   * @var string
    */
-  protected $remoteName;
+  protected string $remoteName = '';
+
+  /**
+   * Remote URL includes uri or local path.
+   */
+  protected string $remoteUrl = '';
 
   /**
    * Gitignore file to be used during artifact creation.
    *
    * If not set, the current `.gitignore` will be used, if any.
-   *
-   * @var string
    */
-  protected $gitignoreFile;
+  protected ?string $gitignoreFile = NULL;
 
   /**
    * Commit message with optional tokens.
-   *
-   * @var string
    */
-  protected $message;
+  protected string $message = '';
 
   /**
    * Flag to specify if push is required or should be using dry run.
-   *
-   * @var bool
    */
-  protected $needsPush;
+  protected bool $needsPush = FALSE;
 
   /**
    * Flag to specify if cleanup is required to run after the build.
-   *
-   * @var bool
    */
-  protected $needCleanup;
+  protected bool $needCleanup = TRUE;
 
   /**
    * Path to report file.
-   *
-   * @var string
    */
-  protected $report;
+  protected string $reportFile = '';
 
   /**
    * Flag to show changes made to the repo by the build in the output.
-   *
-   * @var bool
    */
-  protected $showChanges;
+  protected bool $showChanges = FALSE;
 
   /**
    * Artifact build result.
-   *
-   * @var bool
    */
-  protected $result = FALSE;
+  protected bool $result = FALSE;
 
   /**
    * Flag to print debug information.
-   *
-   * @var bool
    */
-  protected $debug = FALSE;
+  protected bool $debug = FALSE;
 
   /**
    * Internal option to set current timestamp.
-   *
-   * @var int
    */
-  protected $now;
+  protected int $now;
 
   /**
    * Artifact constructor.
    *
-   * @param \GitWrapper\GitWrapper $gitWrapper
+   * @param GitArtifactGit $git
    *   Git wrapper.
    * @param \Symfony\Component\Filesystem\Filesystem $fsFileSystem
    *   File system.
@@ -132,12 +122,14 @@ class Artifact {
    *   Output.
    */
   public function __construct(
-        GitWrapper $gitWrapper,
+        /**
+         * Git runner.
+         */
+        protected GitArtifactGit $git,
         Filesystem $fsFileSystem,
         protected OutputInterface $output,
     ) {
     $this->fsFileSystem = $fsFileSystem;
-    $this->gitWrapper = $gitWrapper;
   }
 
   /**
@@ -185,14 +177,14 @@ class Artifact {
   ]): void {
     try {
       $error = NULL;
-
       $this->checkRequirements();
-      $this->resolveOptions($opts);
+      $this->resolveOptions($remote, $opts);
 
+      // Now we have all what we need.
+      // Let process artifact function.
       $this->printDebug('Debug messages enabled');
 
-      $this->gitSetDst($remote);
-
+      $this->setupRemoteForRepository();
       $this->showInfo();
       $this->prepareArtifact();
 
@@ -209,7 +201,7 @@ class Artifact {
       $error = $exception->getMessage();
     }
 
-    if ($this->report) {
+    if (!empty($this->reportFile)) {
       $this->dumpReport();
     }
 
@@ -224,6 +216,16 @@ class Artifact {
       $this->say('Deployment failed.');
       throw new \Exception((string) $error);
     }
+  }
+
+  /**
+   * Get source path git repository.
+   *
+   * @return string
+   *   Source path.
+   */
+  public function getSourcePathGitRepository(): string {
+    return $this->sourcePathGitRepository;
   }
 
   /**
@@ -262,26 +264,64 @@ class Artifact {
    * @throws \Exception
    */
   protected function prepareArtifact(): void {
-    $this->gitSwitchToBranch($this->src, $this->artifactBranch, TRUE);
+    // Switch to artifact branch.
+    $this->switchToArtifactBranchInGitRepository();
+    // Remove sub-repositories.
+    $this->removeSubReposInGitRepository();
+    // Disable local exclude.
+    $this->disableLocalExclude($this->getSourcePathGitRepository());
+    // Add files.
+    $this->addAllFilesInGitRepository();
+    // Remove other files.
+    $this->removeOtherFilesInGitRepository();
+    // Commit all changes.
+    $result = $this->commitAllChangesInGitRepository();
+    // Show all changes if needed.
+    if ($this->showChanges) {
+      $this->say(sprintf('Added changes: %s', implode("\n", $result)));
+    }
+  }
 
-    $this->removeSubRepos($this->src);
-    $this->disableLocalExclude($this->src);
+  /**
+   * Switch to artifact branch.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  protected function switchToArtifactBranchInGitRepository(): void {
+    $this
+      ->gitRepository
+      ->switchToBranch($this->artifactBranch, TRUE);
+  }
 
+  /**
+   * Commit all changes.
+   *
+   * @return string[]
+   *   The files committed.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  protected function commitAllChangesInGitRepository(): array {
+    return $this
+      ->gitRepository
+      ->commitAllChanges($this->message);
+
+  }
+
+  /**
+   * Add all files in current git repository.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   * @throws \Exception
+   */
+  protected function addAllFilesInGitRepository(): void {
     if (!empty($this->gitignoreFile)) {
-      $this->replaceGitignore($this->gitignoreFile, $this->src);
-      $this->gitAddAll($this->src);
-      $this->removeIgnoredFiles($this->src);
+      $this->replaceGitignoreInGitRepository($this->gitignoreFile);
+      $this->gitRepository->addAllChanges();
+      $this->removeIgnoredFiles($this->getSourcePathGitRepository());
     }
     else {
-      $this->gitAddAll($this->src);
-    }
-
-    $this->removeOtherFiles($this->src);
-
-    $result = $this->gitCommit($this->src, $this->message);
-
-    if ($this->showChanges) {
-      $this->say(sprintf('Added changes: %s', $result));
+      $this->gitRepository->addAllChanges();
     }
   }
 
@@ -291,10 +331,20 @@ class Artifact {
    * @throws \Exception
    */
   protected function cleanup(): void {
-    $this->restoreLocalExclude($this->src);
-    $this->gitSwitchToBranch($this->src, (string) $this->originalBranch);
-    $this->gitRemoveBranch($this->src, $this->artifactBranch);
-    $this->gitRemoveRemote($this->src, $this->remoteName);
+    $this
+      ->restoreLocalExclude($this->getSourcePathGitRepository());
+
+    $this
+      ->gitRepository
+      ->switchToBranch($this->originalBranch);
+
+    $this
+      ->gitRepository
+      ->removeBranch($this->artifactBranch, TRUE);
+
+    $this
+      ->gitRepository
+      ->removeRemote($this->remoteName);
   }
 
   /**
@@ -303,26 +353,25 @@ class Artifact {
    * @throws \Exception
    */
   protected function doPush(): void {
-    if (!$this->gitRemoteExists($this->src, $this->remoteName)) {
-      $this->gitAddRemote($this->src, $this->remoteName, $this->dst);
-    }
-
     try {
-      $this->gitPush(
-            $this->src,
-            $this->artifactBranch,
-            $this->remoteName,
-            $this->dstBranch,
-            $this->mode === self::modeForcePush()
-        );
-      $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->dstBranch, $this->message));
+      $refSpec = sprintf('refs/heads/%s:refs/heads/%s', $this->artifactBranch, $this->destinationBranch);
+      if ($this->mode === self::modeForcePush()) {
+        $this
+          ->gitRepository
+          ->pushForce($this->remoteName, $refSpec);
+      }
+      else {
+        $this->gitRepository->push([$this->remoteName, $refSpec]);
+      }
+
+      $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
     }
     catch (\Exception $exception) {
       // Re-throw the message with additional context.
       throw new \Exception(
             sprintf(
                 'Error occurred while pushing branch "%s" with commit message "%s"',
-                $this->dstBranch,
+                $this->destinationBranch,
                 $this->message
             ),
             $exception->getCode(),
@@ -334,45 +383,64 @@ class Artifact {
   /**
    * Resolve and validate CLI options values into internal values.
    *
+   * @param string $remote
+   *   Remote URL.
    * @param array $options
    *   Array of CLI options.
    *
-   * @throws \Exception
+   * @throws \CzProject\GitPhp\GitException
    *
    * @phpstan-ignore-next-line
    */
-  protected function resolveOptions(array $options): void {
-    $this->now = empty($options['now']) ? time() : (int) $options['now'];
-
-    $this->debug = !empty($options['debug']);
-
-    $this->remoteName = 'dst';
-
+  protected function resolveOptions(string $remote, array $options): void {
+    // First handle root for filesystem.
     $this->fsSetRootDir($options['root']);
 
-    // Default source to the root directory.
+    // Resolve some basic options into properties.
+    $this->showChanges = !empty($options['show-changes']);
+    $this->needCleanup = empty($options['no-cleanup']);
+    $this->needsPush = !empty($options['push']);
+    $this->reportFile = empty($options['report']) ? '' : $options['report'];
+    $this->now = empty($options['now']) ? time() : (int) $options['now'];
+    $this->debug = !empty($options['debug']);
+    $this->remoteName = self::GIT_REMOTE_NAME;
+    $this->remoteUrl = $remote;
+    $this->setMode($options['mode'], $options);
+
+    // Handle some complex options.
     $srcPath = empty($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
-    $this->gitSetSrcRepo($srcPath);
-
-    $this->originalBranch = $this->resolveOriginalBranch($this->src);
+    $this->sourcePathGitRepository = $srcPath;
+    // Setup Git repository from source path.
+    $this->initGitRepository($srcPath);
+    // Set original, destination, artifact branch name.
+    $this->originalBranch = $this->resolveOriginalBranch();
     $this->setDstBranch($options['branch']);
-    $this->artifactBranch = $this->dstBranch . '-artifact';
-
+    $this->artifactBranch = $this->destinationBranch . '-artifact';
+    // Set commit message.
     $this->setMessage($options['message']);
-
+    // Set git ignore file path.
     if (!empty($options['gitignore'])) {
       $this->setGitignoreFile($options['gitignore']);
     }
 
-    $this->showChanges = !empty($options['show-changes']);
+  }
 
-    $this->needCleanup = empty($options['no-cleanup']);
+  /**
+   * Setup git repository.
+   *
+   * @param string $sourcePath
+   *   Source path.
+   *
+   * @return GitArtifactGitRepository
+   *   Current git repository.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   * @throws \Exception
+   */
+  protected function initGitRepository(string $sourcePath): GitArtifactGitRepository {
+    $this->gitRepository = $this->git->open($sourcePath);
 
-    $this->needsPush = !empty($options['push']);
-
-    $this->report = empty($options['report']) ? NULL : $options['report'];
-
-    $this->setMode($options['mode'], $options);
+    return $this->gitRepository;
   }
 
   /**
@@ -384,10 +452,10 @@ class Artifact {
     $lines[] = ('----------------------------------------------------------------------');
     $lines[] = (' Build timestamp:       ' . date('Y/m/d H:i:s', $this->now));
     $lines[] = (' Mode:                  ' . $this->mode);
-    $lines[] = (' Source repository:     ' . $this->src);
-    $lines[] = (' Remote repository:     ' . $this->dst);
-    $lines[] = (' Remote branch:         ' . $this->dstBranch);
-    $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ? $this->gitignoreFile : 'No'));
+    $lines[] = (' Source repository:     ' . $this->getSourcePathGitRepository());
+    $lines[] = (' Remote repository:     ' . $this->remoteUrl);
+    $lines[] = (' Remote branch:         ' . $this->destinationBranch);
+    $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->needsPush ? 'Yes' : 'No'));
     $lines[] = ('----------------------------------------------------------------------');
     $this->output->writeln($lines);
@@ -402,15 +470,15 @@ class Artifact {
     $lines[] = '----------------------------------------------------------------------';
     $lines[] = ' Build timestamp:   ' . date('Y/m/d H:i:s', $this->now);
     $lines[] = ' Mode:              ' . $this->mode;
-    $lines[] = ' Source repository: ' . $this->src;
-    $lines[] = ' Remote repository: ' . $this->dst;
-    $lines[] = ' Remote branch:     ' . $this->dstBranch;
-    $lines[] = ' Gitignore file:    ' . ($this->gitignoreFile ? $this->gitignoreFile : 'No');
+    $lines[] = ' Source repository: ' . $this->getSourcePathGitRepository();
+    $lines[] = ' Remote repository: ' . $this->remoteUrl;
+    $lines[] = ' Remote branch:     ' . $this->destinationBranch;
+    $lines[] = ' Gitignore file:    ' . ($this->gitignoreFile ?: 'No');
     $lines[] = ' Commit message:    ' . $this->message;
     $lines[] = ' Push result:       ' . ($this->result ? 'Success' : 'Failure');
     $lines[] = '----------------------------------------------------------------------';
 
-    $this->fsFileSystem->dumpFile($this->report, implode(PHP_EOL, $lines));
+    $this->fsFileSystem->dumpFile($this->reportFile, implode(PHP_EOL, $lines));
   }
 
   /**
@@ -458,28 +526,23 @@ class Artifact {
    *
    * Usually, repository become detached when a tag is checked out.
    *
-   * @param string $location
-   *   Path to repository.
-   *
-   * @return null|string
+   * @return string
    *   Branch or detachment source.
    *
    * @throws \Exception
    *   If neither branch nor detachment source is not found.
    */
-  protected function resolveOriginalBranch(string $location): ?string {
-    $branch = $this->gitGetCurrentBranch($location);
-
+  protected function resolveOriginalBranch(): string {
+    $branch = $this->gitRepository->getCurrentBranchName();
     // Repository could be in detached state. If this the case - we need to
-    // capture the source of detachment, if exist.
-    if ($branch === 'HEAD') {
+    // capture the source of detachment, if it exists.
+    if (str_contains($branch, 'HEAD detached')) {
       $branch = NULL;
-      $result = $this->gitCommandRun($location, 'branch');
-      $branchList = preg_split('/\R/', $result);
+      $branchList = $this->gitRepository->getBranches();
       if ($branchList) {
         $branchList = array_filter($branchList);
         foreach ($branchList as $branch) {
-          if (preg_match('/\* \(.*detached .* ([^\)]+)\)/', $branch, $matches)) {
+          if (preg_match('/\(.*detached .* ([^\)]+)\)/', $branch, $matches)) {
             $branch = $matches[1];
             break;
           }
@@ -502,10 +565,10 @@ class Artifact {
   protected function setDstBranch(string $branch): void {
     $branch = (string) $this->tokenProcess($branch);
 
-    if (!self::gitIsValidBranch($branch)) {
+    if (!GitArtifactGitRepository::isValidBranchName($branch)) {
       throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch', $branch));
     }
-    $this->dstBranch = $branch;
+    $this->destinationBranch = $branch;
   }
 
   /**
@@ -550,10 +613,9 @@ class Artifact {
    *
    * @param string $filename
    *   Path to new gitignore to replace current file with.
-   * @param string $path
-   *   Path to repository.
    */
-  protected function replaceGitignore(string $filename, string $path): void {
+  protected function replaceGitignoreInGitRepository(string $filename): void {
+    $path = $this->getSourcePathGitRepository();
     $this->printDebug('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename);
     $this->fsFileSystem->copy($filename, $path . DIRECTORY_SEPARATOR . '.gitignore', TRUE);
     $this->fsFileSystem->remove($filename);
@@ -657,47 +719,6 @@ class Artifact {
   }
 
   /**
-   * Update index for all files.
-   *
-   * @param string $location
-   *   Path to repository.
-   *
-   * @throws \Exception
-   */
-  protected function gitAddAll(string $location): void {
-    $result = $this->gitCommandRun(
-          $location,
-          'add -A',
-      );
-
-    $this->printDebug(sprintf("Added all files:\n%s", $result));
-  }
-
-  /**
-   * Update index for all files.
-   *
-   * @param string $location
-   *   Path to repository.
-   *
-   * @throws \Exception
-   */
-  protected function gitUpdateIndex(string $location): void {
-    $finder = new Finder();
-    $files = $finder
-      ->in($location)
-      ->ignoreDotFiles(FALSE)
-      ->files();
-
-    foreach ($files as $file) {
-      $this->gitCommandRun(
-            $location,
-            sprintf('update-index --info-only --add "%s"', $file),
-        );
-      $this->printDebug(sprintf('Updated index for file "%s"', $file));
-    }
-  }
-
-  /**
    * Remove ignored files.
    *
    * @param string $location
@@ -709,6 +730,7 @@ class Artifact {
    *   If removal command finished with an error.
    */
   protected function removeIgnoredFiles(string $location, string $gitignorePath = NULL): void {
+    $location = $this->getSourcePathGitRepository();
     $gitignorePath = $gitignorePath ?: $location . DIRECTORY_SEPARATOR . '.gitignore';
 
     $gitignoreContent = file_get_contents($gitignorePath);
@@ -720,13 +742,11 @@ class Artifact {
       $this->printDebug($gitignoreContent);
       $this->printDebug('-----.gitignore---------');
     }
-    $command = sprintf('ls-files --directory -i -c --exclude-from=%s %s', $gitignorePath, $location);
-    $result = $this->gitCommandRun(
-          $location,
-          $command,
-          'Unable to remove ignored files',
-      );
-    $files = preg_split('/\R/', $result);
+
+    $files = $this
+      ->gitRepository
+      ->listIgnoredFilesFromGitIgnoreFile($gitignorePath);
+
     if (!empty($files)) {
       $files = array_filter($files);
       foreach ($files as $file) {
@@ -744,24 +764,15 @@ class Artifact {
    *
    * 'Other' files are files that are neither staged nor tracked in git.
    *
-   * @param string $location
-   *   Path to repository.
-   *
    * @throws \Exception
    *   If removal command finished with an error.
    */
-  protected function removeOtherFiles(string $location): void {
-    $command = 'ls-files --others --exclude-standard';
-    $result = $this->gitCommandRun(
-          $location,
-          $command,
-          'Unable to remove other files',
-      );
-    $files = preg_split('/\R/', $result);
+  protected function removeOtherFilesInGitRepository(): void {
+    $files = $this->gitRepository->listOtherFiles();
     if (!empty($files)) {
       $files = array_filter($files);
       foreach ($files as $file) {
-        $fileName = $location . DIRECTORY_SEPARATOR . $file;
+        $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
         $this->printDebug('Removing other file %s', $fileName);
         $this->fsFileSystem->remove($fileName);
       }
@@ -770,11 +781,8 @@ class Artifact {
 
   /**
    * Remove any repositories within current repository.
-   *
-   * @param string $path
-   *   Path to current repository.
    */
-  protected function removeSubRepos(string $path): void {
+  protected function removeSubReposInGitRepository(): void {
     $finder = new Finder();
     $dirs = $finder
       ->directories()
@@ -782,7 +790,7 @@ class Artifact {
       ->ignoreDotFiles(FALSE)
       ->ignoreVCS(FALSE)
       ->depth('>0')
-      ->in($path);
+      ->in($this->getSourcePathGitRepository());
 
     $dirs = iterator_to_array($dirs->directories());
 
@@ -804,7 +812,9 @@ class Artifact {
    * @throws \Exception
    */
   protected function getTokenBranch(): string {
-    return $this->gitGetCurrentBranch($this->src);
+    return $this
+      ->gitRepository
+      ->getCurrentBranchName();
   }
 
   /**
@@ -819,8 +829,10 @@ class Artifact {
    * @throws \Exception
    */
   protected function getTokenTags(string $delimiter = NULL): string {
-    $delimiter = $delimiter ? $delimiter : '-';
-    $tags = $this->gitGetTags($this->src);
+    $delimiter = $delimiter ?: '-';
+    $tags = $this
+      ->gitRepository
+      ->getTags();
 
     return implode($delimiter, $tags);
   }
@@ -930,6 +942,22 @@ class Artifact {
     }
 
     return $decorated;
+  }
+
+  /**
+   * Setup remote for current repository.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   * @throws \Exception
+   */
+  protected function setupRemoteForRepository(): void {
+    $remoteName = $this->remoteName;
+    $remoteUrl = $this->remoteUrl;
+    if (!GitArtifactGitRepository::isValidRemoteUrl($remoteUrl)) {
+      throw new \Exception(sprintf('Invalid remote URL: %s', $remoteUrl));
+    }
+
+    $this->gitRepository->addRemote($remoteName, $remoteUrl);
   }
 
 }
