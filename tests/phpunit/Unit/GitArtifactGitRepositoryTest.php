@@ -242,7 +242,7 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
    * @throws \Exception
    */
   #[DataProvider('dataProviderIsValidRemoteUrl')]
-  public function testIsValidRemoteUrl(bool $expected, string $pathOrUri, string $type, bool $pass): void {
+  public function testIsValidRemoteUrl(?bool $expected, string $pathOrUri, string $type, bool $pass): void {
     if (!$pass) {
       $this->expectException(\InvalidArgumentException::class);
       GitArtifactGitRepository::isValidRemoteUrl($pathOrUri, $type);
@@ -261,7 +261,11 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
   public static function dataProviderIsValidRemoteUrl(): array {
     return [
       [TRUE, 'git@github.com:foo/git-foo.git', 'uri', TRUE],
+      [FALSE, 'git@github.com:foo/git-foo.git', 'local', TRUE],
       [TRUE, 'git@github.com:foo/git-foo.git', 'any', TRUE],
+      [FALSE, '/no-existing/path', 'any', TRUE],
+      [FALSE, '/no-existing/path', 'local', TRUE],
+      [NULL, '/no-existing/path', 'custom', FALSE],
     ];
   }
 
