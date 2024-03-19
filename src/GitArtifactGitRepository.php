@@ -169,6 +169,14 @@ class GitArtifactGitRepository extends GitRepository {
       return $this;
     }
 
+    $branches = $this->getBranches();
+    if (empty($branches)) {
+      return $this;
+    }
+    if (!in_array($name, $branches)) {
+      return $this;
+    }
+
     if (!$force) {
       return parent::removeBranch($name);
     }

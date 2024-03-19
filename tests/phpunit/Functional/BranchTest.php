@@ -10,7 +10,7 @@ namespace DrevOps\GitArtifact\Tests\Functional;
  * @group integration
  *
  * @covers \DrevOps\GitArtifact\GitTrait
- * @covers \DrevOps\GitArtifact\Artifact
+ * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
  * @covers \DrevOps\GitArtifact\FilesystemTrait
  */
 class BranchTest extends AbstractFunctionalTestCase {
