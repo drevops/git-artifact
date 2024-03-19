@@ -7,6 +7,7 @@ namespace DrevOps\GitArtifact\Commands;
 use DrevOps\GitArtifact\FilesystemTrait;
 use DrevOps\GitArtifact\GitArtifactGit;
 use DrevOps\GitArtifact\GitArtifactGitRepository;
+use DrevOps\GitArtifact\LogTrait;
 use DrevOps\GitArtifact\TokenTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -28,6 +29,7 @@ class ArtifactCommand extends Command {
 
   use TokenTrait;
   use FilesystemTrait;
+  use LogTrait;
 
   const GIT_REMOTE_NAME = 'dst';
 
@@ -221,7 +223,11 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
+    if ($input->getOption('debug')) {
+      $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+    }
     $this->output = $output;
+    $this->logger = self::createLogger((string) $this->getName(), $output);
     try {
       $this->checkRequirements();
       $remote = $input->getArgument('remote');
@@ -230,7 +236,6 @@ class ArtifactCommand extends Command {
     }
     catch (\Exception $exception) {
       $output->writeln('<error>' . $exception->getMessage() . '</error>');
-
       return Command::FAILURE;
     }
 
@@ -956,16 +961,6 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Check if running in debug mode.
-   *
-   * @return bool
-   *   Check is debugging mode or not.
-   */
-  protected function isDebug(): bool {
-    return $this->debug || $this->output->isDebug();
-  }
-
-  /**
    * Write line as yell style.
    *
    * @param string $text
@@ -1012,12 +1007,8 @@ class ArtifactCommand extends Command {
    *   The args.
    */
   protected function printDebug(mixed ...$args): void {
-    if (!$this->isDebug()) {
-      return;
-    }
     $message = array_shift($args);
-    /* @phpstan-ignore-next-line */
-    $this->writeln(vsprintf($message, $args));
+    $this->logDebug(vsprintf($message, $args));
   }
 
   /**
