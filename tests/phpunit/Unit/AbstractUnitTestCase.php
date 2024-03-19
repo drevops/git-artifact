@@ -2,10 +2,9 @@
 
 namespace DrevOps\GitArtifact\Tests\Unit;
 
-use DrevOps\GitArtifact\Artifact;
+use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\GitArtifactGit;
 use DrevOps\GitArtifact\Tests\AbstractTestCase;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -14,23 +13,17 @@ use Symfony\Component\Filesystem\Filesystem;
 abstract class AbstractUnitTestCase extends AbstractTestCase {
 
   /**
-   * Mock of the class.
-   *
-   * @var \PHPUnit\Framework\MockObject\MockObject
+   * Artifact command.
    */
-  protected $mock;
+  protected ArtifactCommand $command;
 
   protected function setUp(): void {
     parent::setUp();
 
-    $mockBuilder = $this->getMockBuilder(Artifact::class);
     $fileSystem = new Filesystem();
     $gitWrapper = new GitArtifactGit();
-    $output = new ConsoleOutput();
-
-    $mockBuilder->setConstructorArgs([$gitWrapper, $fileSystem, $output]);
-    $this->mock = $mockBuilder->getMock();
-    $this->callProtectedMethod($this->mock, 'fsSetRootDir', [$this->fixtureDir]);
+    $this->command = new ArtifactCommand($gitWrapper, $fileSystem);
+    $this->callProtectedMethod($this->command, 'fsSetRootDir', [$this->fixtureDir]);
   }
 
 }
