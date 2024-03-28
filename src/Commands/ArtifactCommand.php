@@ -422,8 +422,7 @@ class ArtifactCommand extends Command {
       $this->gitRepository->addAllChanges();
     }
 
-    // We do not want to add the log file.
-    if (!empty($this->logFile)) {
+    if ($this->logFile) {
       $this->gitRepository->unstageFile($this->logFile);
     }
   }
@@ -880,6 +879,11 @@ class ArtifactCommand extends Command {
       $files = array_filter($files);
       foreach ($files as $file) {
         $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
+        // We do not want to remove log file if someone set log file in repo.
+        if (!empty($this->logFile) && $this->logFile === $fileName) {
+          continue;
+        }
+
         $this->logDebug(sprintf('Removing other file %s', $fileName));
         $this->fsFileSystem->remove($fileName);
       }
