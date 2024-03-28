@@ -68,7 +68,7 @@ trait LogTrait {
   }
 
   /**
-   * Log debug.
+   * Log notice.
    *
    * @param string|\Stringable $message
    *   Message.
@@ -77,6 +77,18 @@ trait LogTrait {
    */
   public function logNotice(string|\Stringable $message, array $context = []): void {
     $this->logger->notice($message, $context);
+  }
+
+  /**
+   * Log error.
+   *
+   * @param string|\Stringable $message
+   *   Message.
+   * @param array<mixed> $context
+   *   Context.
+   */
+  public function logError(string|\Stringable $message, array $context = []): void {
+    $this->logger->error($message, $context);
   }
 
 }

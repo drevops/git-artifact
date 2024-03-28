@@ -274,7 +274,7 @@ class ArtifactCommand extends Command {
   protected function processArtifact(): void {
     try {
       $error = NULL;
-      $this->printDebug('Debug messages enabled');
+      $this->logDebug('Debug messages enabled');
 
       $this->setupRemoteForRepository();
       $this->showInfo();
@@ -689,12 +689,11 @@ class ArtifactCommand extends Command {
    */
   protected function checkRequirements(): void {
     // @todo Refactor this into more generic implementation.
-    $this->say('Checking requirements');
     $this->logNotice('Checking requirements');
     if (!$this->fsIsCommandAvailable('git')) {
       throw new \RuntimeException('At least one of the script running requirements was not met');
     }
-    $this->sayOkay('All requirements were met');
+    $this->logNotice('All requirements were met');
   }
 
   /**
@@ -705,7 +704,7 @@ class ArtifactCommand extends Command {
    */
   protected function replaceGitignoreInGitRepository(string $filename): void {
     $path = $this->getSourcePathGitRepository();
-    $this->printDebug('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename);
+    $this->logDebug(sprintf('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename));
     $this->fsFileSystem->copy($filename, $path . DIRECTORY_SEPARATOR . '.gitignore', TRUE);
     $this->fsFileSystem->remove($filename);
   }
@@ -787,7 +786,7 @@ class ArtifactCommand extends Command {
     $filename = $this->getLocalExcludeFileName($path);
     $filenameDisabled = $filename . '.bak';
     if ($this->fsFileSystem->exists($filename)) {
-      $this->printDebug('Disabling local exclude');
+      $this->logDebug('Disabling local exclude');
       $this->fsFileSystem->rename($filename, $filenameDisabled);
     }
   }
@@ -802,7 +801,7 @@ class ArtifactCommand extends Command {
     $filename = $this->getLocalExcludeFileName($path);
     $filenameDisabled = $filename . '.bak';
     if ($this->fsFileSystem->exists($filenameDisabled)) {
-      $this->printDebug('Restoring local exclude');
+      $this->logDebug('Restoring local exclude');
       $this->fsFileSystem->rename($filenameDisabled, $filename);
     }
   }
@@ -824,12 +823,12 @@ class ArtifactCommand extends Command {
 
     $gitignoreContent = file_get_contents($gitignorePath);
     if (!$gitignoreContent) {
-      $this->printDebug('Unable to load ' . $gitignoreContent);
+      $this->logDebug('Unable to load ' . $gitignoreContent);
     }
     else {
-      $this->printDebug('-----.gitignore---------');
-      $this->printDebug($gitignoreContent);
-      $this->printDebug('-----.gitignore---------');
+      $this->logDebug('-----.gitignore---------');
+      $this->logDebug($gitignoreContent);
+      $this->logDebug('-----.gitignore---------');
     }
 
     $files = $this
@@ -840,7 +839,7 @@ class ArtifactCommand extends Command {
       $files = array_filter($files);
       foreach ($files as $file) {
         $fileName = $location . DIRECTORY_SEPARATOR . $file;
-        $this->printDebug('Removing excluded file %s', $fileName);
+        $this->logDebug(sprintf('Removing excluded file %s', $fileName));
         if ($this->fsFileSystem->exists($fileName)) {
           $this->fsFileSystem->remove($fileName);
         }
@@ -862,7 +861,7 @@ class ArtifactCommand extends Command {
       $files = array_filter($files);
       foreach ($files as $file) {
         $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
-        $this->printDebug('Removing other file %s', $fileName);
+        $this->logDebug(sprintf('Removing other file %s', $fileName));
         $this->fsFileSystem->remove($fileName);
       }
     }
@@ -888,7 +887,7 @@ class ArtifactCommand extends Command {
         $dir = $dir->getPathname();
       }
       $this->fsFileSystem->remove($dir);
-      $this->printDebug('Removing sub-repository "%s"', (string) $dir);
+      $this->logDebug(sprintf('Removing sub-repository "%s"', (string) $dir));
     }
   }
 
@@ -977,18 +976,6 @@ class ArtifactCommand extends Command {
     $char = $this->decorationCharacter('V', '✔');
     $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
     $this->writeln(sprintf($format, $char, $text));
-  }
-
-  /**
-   * Print debug information.
-   *
-   * @param mixed ...$args
-   *   The args.
-   */
-  protected function printDebug(mixed ...$args): void {
-    $message = array_shift($args);
-    /* @phpstan-ignore-next-line */
-    $this->logDebug(vsprintf($message, $args));
   }
 
   /**
