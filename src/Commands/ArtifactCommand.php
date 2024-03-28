@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -128,6 +129,11 @@ class ArtifactCommand extends Command {
   protected GitArtifactGit $git;
 
   /**
+   * Symfony style.
+   */
+  protected SymfonyStyle $io;
+
+  /**
    * Artifact constructor.
    *
    * @param \DrevOps\GitArtifact\GitArtifactGit $gitWrapper
@@ -217,9 +223,10 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
+    $this->io = new SymfonyStyle($input, $output);
+    $this->output = $output;
+    $remote = $input->getArgument('remote');
     try {
-      $this->output = $output;
-      $remote = $input->getArgument('remote');
       // Resolve options first.
       // @phpstan-ignore-next-line
       $this->resolveOptions($remote, $input->getOptions());
@@ -232,12 +239,12 @@ class ArtifactCommand extends Command {
       $this->processArtifact();
     }
     catch (\Exception $exception) {
-      $this->say('Deployment failed.');
-      $output->writeln('<error>' . $exception->getMessage() . '</error>');
+      $this->io->error('Deployment failed.');
+      $this->io->error($exception->getMessage());
       return Command::FAILURE;
     }
 
-    $this->say('Deployment finished successfully.');
+    $this->io->success('Deployment finished successfully.');
 
     return Command::SUCCESS;
   }
