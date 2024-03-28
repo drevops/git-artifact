@@ -579,7 +579,9 @@ class ArtifactCommand extends Command {
     $lines[] = ' Push result:       ' . ($this->result ? 'Success' : 'Failure');
     $lines[] = '----------------------------------------------------------------------';
 
-    $this->fsFileSystem->dumpFile($this->logFile, implode(PHP_EOL, $lines));
+    foreach ($lines as $line) {
+      $this->logNotice($line);
+    }
   }
 
   /**
