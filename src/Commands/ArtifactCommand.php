@@ -546,7 +546,10 @@ class ArtifactCommand extends Command {
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->needsPush ? 'Yes' : 'No'));
     $lines[] = ('----------------------------------------------------------------------');
-    $this->output->writeln($lines);
+
+    foreach ($lines as $line) {
+      $this->logNotice($line);
+    }
   }
 
   /**
