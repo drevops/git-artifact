@@ -557,6 +557,7 @@ class ArtifactCommand extends Command {
     $lines[] = (' Will push:             ' . ($this->needsPush ? 'Yes' : 'No'));
     $lines[] = ('----------------------------------------------------------------------');
 
+    $this->io->text($lines);
     foreach ($lines as $line) {
       $this->logNotice($line);
     }
@@ -595,7 +596,6 @@ class ArtifactCommand extends Command {
    * @phpstan-ignore-next-line
    */
   protected function setMode(string $mode, array $options): void {
-    $this->io->writeln(sprintf('<info>Running in "%s" mode</info>', $mode));
     switch ($mode) {
       case self::modeForcePush():
         // Intentionally empty.
