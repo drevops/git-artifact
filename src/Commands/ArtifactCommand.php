@@ -285,9 +285,7 @@ class ArtifactCommand extends Command {
       $error = $exception->getMessage();
     }
 
-    if (!empty($this->logFile)) {
-      $this->dumpReport();
-    }
+    $this->dumpReport();
 
     if ($this->needCleanup) {
       $this->cleanup();
