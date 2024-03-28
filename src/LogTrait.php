@@ -32,21 +32,25 @@ trait LogTrait {
    * @return \Psr\Log\LoggerInterface
    *   Logger.
    */
-  public static function createLogger(string $name, OutputInterface $output): LoggerInterface {
+  public static function createLogger(string $name, OutputInterface $output, string $logFile): LoggerInterface {
     $logger = new Logger($name);
-    $verbosityMapping = [
-      OutputInterface::VERBOSITY_QUIET => Level::Error,
-      OutputInterface::VERBOSITY_NORMAL => Level::Warning,
-      OutputInterface::VERBOSITY_VERBOSE => Level::Notice,
-      OutputInterface::VERBOSITY_VERY_VERBOSE => Level::Info,
-      OutputInterface::VERBOSITY_DEBUG => Level::Debug,
-    ];
-    $verbosity = $output->getVerbosity();
-    $level = $verbosityMapping[$verbosity] ?? Level::Debug;
-    $handler = new StreamHandler(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'hello-log.log', $level);
-    $logger->pushHandler($handler);
+    // Console handler.
     $handler = new ConsoleHandler($output);
     $logger->pushHandler($handler);
+    // Stream handler if needed.
+    if (!empty($logFile)) {
+      $verbosityMapping = [
+        OutputInterface::VERBOSITY_QUIET => Level::Error,
+        OutputInterface::VERBOSITY_NORMAL => Level::Warning,
+        OutputInterface::VERBOSITY_VERBOSE => Level::Notice,
+        OutputInterface::VERBOSITY_VERY_VERBOSE => Level::Info,
+        OutputInterface::VERBOSITY_DEBUG => Level::Debug,
+      ];
+      $verbosity = $output->getVerbosity();
+      $level = $verbosityMapping[$verbosity] ?? Level::Debug;
+      $handler = new StreamHandler($logFile, $level);
+      $logger->pushHandler($handler);
+    }
 
     return $logger;
   }

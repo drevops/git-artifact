@@ -98,9 +98,9 @@ class ArtifactCommand extends Command {
   protected bool $needCleanup = TRUE;
 
   /**
-   * Path to report file.
+   * Path to log file.
    */
-  protected string $reportFile = '';
+  protected string $logFile = '';
 
   /**
    * Flag to show changes made to the repo by the build in the output.
@@ -182,7 +182,7 @@ class ArtifactCommand extends Command {
       ->addOption('no-cleanup', NULL, InputOption::VALUE_NONE, 'Do not cleanup after run.')
       ->addOption('now', NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('push', NULL, InputOption::VALUE_NONE, 'Push artifact to the remote repository')
-      ->addOption('report', NULL, InputOption::VALUE_REQUIRED, 'Path to the report file.')
+      ->addOption('log', NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
       ->addOption(
           'root',
           NULL,
@@ -217,11 +217,16 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    $this->output = $output;
-    $this->logger = self::createLogger((string) $this->getName(), $output);
     try {
-      $this->checkRequirements();
+      $this->output = $output;
       $remote = $input->getArgument('remote');
+      // Resolve options first.
+      // @phpstan-ignore-next-line
+      $this->resolveOptions($remote, $input->getOptions());
+      $this->logger = self::createLogger((string) $this->getName(), $output, $this->logFile);
+      // Now we have all what we need.
+      // Let process artifact function.
+      $this->checkRequirements();
       // @phpstan-ignore-next-line
       $this->processArtifact($remote, $input->getOptions());
     }
@@ -270,17 +275,13 @@ class ArtifactCommand extends Command {
     'no-cleanup' => FALSE,
     'now' => '',
     'push' => FALSE,
-    'report' => '',
+    'log' => '',
     'root' => '',
     'show-changes' => FALSE,
     'src' => '',
   ]): void {
     try {
       $error = NULL;
-      $this->resolveOptions($remote, $opts);
-
-      // Now we have all what we need.
-      // Let process artifact function.
       $this->printDebug('Debug messages enabled');
 
       $this->setupRemoteForRepository();
@@ -300,7 +301,7 @@ class ArtifactCommand extends Command {
       $error = $exception->getMessage();
     }
 
-    if (!empty($this->reportFile)) {
+    if (!empty($this->logFile)) {
       $this->dumpReport();
     }
 
@@ -500,7 +501,7 @@ class ArtifactCommand extends Command {
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->needsPush = !empty($options['push']);
-    $this->reportFile = empty($options['report']) ? '' : $options['report'];
+    $this->logFile = empty($options['log']) ? '' : $options['log'];
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
     $this->remoteName = self::GIT_REMOTE_NAME;
     $this->remoteUrl = $remote;
@@ -577,7 +578,7 @@ class ArtifactCommand extends Command {
     $lines[] = ' Push result:       ' . ($this->result ? 'Success' : 'Failure');
     $lines[] = '----------------------------------------------------------------------';
 
-    $this->fsFileSystem->dumpFile($this->reportFile, implode(PHP_EOL, $lines));
+    $this->fsFileSystem->dumpFile($this->logFile, implode(PHP_EOL, $lines));
   }
 
   /**

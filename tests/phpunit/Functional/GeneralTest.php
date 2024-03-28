@@ -66,7 +66,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $report = $this->src . DIRECTORY_SEPARATOR . 'report.txt';
 
     $this->gitCreateFixtureCommits(1);
-    $this->runBuild(sprintf('--report=%s', $report));
+    $this->runBuild(sprintf('--log=%s', $report));
 
     $this->assertFileExists($report);
     $output = file_get_contents($report);
