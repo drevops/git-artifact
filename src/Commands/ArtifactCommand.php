@@ -595,8 +595,7 @@ class ArtifactCommand extends Command {
    * @phpstan-ignore-next-line
    */
   protected function setMode(string $mode, array $options): void {
-    $this->io->info(sprintf('Running in "%s" mode', $mode));
-
+    $this->io->writeln(sprintf('<info>Running in "%s" mode</info>', $mode));
     switch ($mode) {
       case self::modeForcePush():
         // Intentionally empty.
