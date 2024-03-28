@@ -28,6 +28,8 @@ trait LogTrait {
    *   Name.
    * @param \Symfony\Component\Console\Output\OutputInterface $output
    *   Output.
+   * @param string $logFile
+   *   Log file.
    *
    * @return \Psr\Log\LoggerInterface
    *   Logger.

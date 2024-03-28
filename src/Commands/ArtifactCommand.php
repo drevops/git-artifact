@@ -223,26 +223,25 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
+    // Setup io and logger.
     $this->io = new SymfonyStyle($input, $output);
-    $this->output = $output;
-    $remote = $input->getArgument('remote');
-    // If log option was set, we set verbosity is debugging.
+    $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
+    $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
+    // If log option was set, we set verbosity is very verbose.
     if ($input->getOption('log')) {
       $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
     }
+    $remote = $input->getArgument('remote');
     try {
-      // Resolve options first.
+      // Let resolve options into properties first.
       // @phpstan-ignore-next-line
       $this->resolveOptions($remote, $input->getOptions());
-      // Set logger.
-      $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
-      $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
       // Now we have all what we need.
       // Let process artifact function.
       $this->checkRequirements();
       $this->processArtifact();
-      // Dump log file.
-      if ($this->logFile) {
+      // Dump log file and clean tmp log file.
+      if (!empty($this->logFile)) {
         $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
       }
       $this->fsFileSystem->remove($tmpLogFile);
@@ -263,37 +262,12 @@ class ArtifactCommand extends Command {
   /**
    * Assemble a code artifact from your codebase.
    *
-   * @param string $remote
-   *   Path to the remote git repository.
-   * @param array $opts
-   *   Options.
-   *
-   * @option $branch Destination branch with optional tokens.
-   * @option $debug Print debug information.
-   * @option $gitignore Path to gitignore file to replace current .gitignore.
-   * @option $message Commit message with optional tokens.
-   * @option $mode Mode of artifact build: branch, force-push or diff.
-   *   Defaults to force-push.
-   * @option $now Internal value used to set internal time.
-   * @option $no-cleanup Do not cleanup after run.
-   * @option $push Push artifact to the remote repository. Defaults to FALSE.
-   * @option $report Path to the report file.
-   * @option $root Path to the root for file path resolution. If not
-   *         specified, current directory is used.
-   * @option $show-changes Show changes made to the repo by the build in the
-   *         output.
-   * @option $src Directory where source repository is located. If not
-   *   specified, root directory is used.
-   *
    * @throws \Exception
-   *
-   * @phpstan-ignore-next-line
    */
   protected function processArtifact(): void {
     try {
       $error = NULL;
       $this->logDebug('Debug messages enabled');
-
       $this->setupRemoteForRepository();
       $this->showInfo();
       $this->prepareArtifact();
