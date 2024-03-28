@@ -226,6 +226,10 @@ class ArtifactCommand extends Command {
     $this->io = new SymfonyStyle($input, $output);
     $this->output = $output;
     $remote = $input->getArgument('remote');
+    // If log option was set, we set verbosity is debugging.
+    if ($input->getOption('log')) {
+      $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
+    }
     try {
       // Resolve options first.
       // @phpstan-ignore-next-line
