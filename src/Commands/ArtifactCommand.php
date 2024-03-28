@@ -223,9 +223,9 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    // If log option was set, we set verbosity is very verbose.
+    // If log option was set, we set verbosity is debug.
     if ($input->getOption('log')) {
-      $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
+      $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
     }
     // Setup io and logger.
     $this->io = new SymfonyStyle($input, $output);
