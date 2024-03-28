@@ -424,7 +424,7 @@ class ArtifactCommand extends Command {
 
     // We do not want to add the log file.
     if (!empty($this->logFile)) {
-      $this->fsFileSystem->remove($this->logFile);
+      $this->gitRepository->unstageFile($this->logFile);
     }
   }
 
@@ -504,7 +504,7 @@ class ArtifactCommand extends Command {
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->needsPush = !empty($options['push']);
-    $this->logFile = empty($options['log']) ? '' : $options['log'];
+    $this->logFile = empty($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
     $this->remoteName = self::GIT_REMOTE_NAME;
     $this->remoteUrl = $remote;
