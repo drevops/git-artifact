@@ -223,17 +223,21 @@ class ArtifactCommand extends Command {
       // Resolve options first.
       // @phpstan-ignore-next-line
       $this->resolveOptions($remote, $input->getOptions());
+      // Set logger.
       $this->logger = self::createLogger((string) $this->getName(), $output, $this->logFile);
+
       // Now we have all what we need.
       // Let process artifact function.
       $this->checkRequirements();
-      // @phpstan-ignore-next-line
-      $this->processArtifact($remote, $input->getOptions());
+      $this->processArtifact();
     }
     catch (\Exception $exception) {
+      $this->say('Deployment failed.');
       $output->writeln('<error>' . $exception->getMessage() . '</error>');
       return Command::FAILURE;
     }
+
+    $this->say('Deployment finished successfully.');
 
     return Command::SUCCESS;
   }
@@ -267,19 +271,7 @@ class ArtifactCommand extends Command {
    *
    * @phpstan-ignore-next-line
    */
-  protected function processArtifact(string $remote, array $opts = [
-    'branch' => '[branch]',
-    'gitignore' => '',
-    'message' => 'Deployment commit',
-    'mode' => 'force-push',
-    'no-cleanup' => FALSE,
-    'now' => '',
-    'push' => FALSE,
-    'log' => '',
-    'root' => '',
-    'show-changes' => FALSE,
-    'src' => '',
-  ]): void {
+  protected function processArtifact(): void {
     try {
       $error = NULL;
       $this->printDebug('Debug messages enabled');
@@ -309,11 +301,7 @@ class ArtifactCommand extends Command {
       $this->cleanup();
     }
 
-    if ($this->result) {
-      $this->say('Deployment finished successfully.');
-    }
-    else {
-      $this->say('Deployment failed.');
+    if (!$this->result) {
       throw new \Exception((string) $error);
     }
   }
