@@ -340,6 +340,12 @@ class GitArtifactGitRepository extends GitRepository {
     return $this;
   }
 
+  public function untrackFile(string $filePath) {
+    $this->run('rm', ['--cached'], $filePath);
+
+    return $this;
+  }
+
   /**
    * Override run method to add --no-pager option to all command.
    *

@@ -289,6 +289,11 @@ class ArtifactCommand extends Command {
       $this->showInfo();
       $this->prepareArtifact();
 
+      if ($this->logFile) {
+        $this->gitRepository->untrackFile($this->logFile);
+        $this->gitRepository->unstageFile($this->logFile);
+      }
+
       if ($this->needsPush) {
         $this->doPush();
       }
@@ -420,10 +425,6 @@ class ArtifactCommand extends Command {
     }
     else {
       $this->gitRepository->addAllChanges();
-    }
-
-    if ($this->logFile) {
-      $this->gitRepository->unstageFile($this->logFile);
     }
   }
 
