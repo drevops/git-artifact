@@ -285,7 +285,7 @@ class ArtifactCommand extends Command {
       $error = $exception->getMessage();
     }
 
-    $this->dumpReport();
+    $this->logReport();
 
     if ($this->needCleanup) {
       $this->cleanup();
@@ -547,7 +547,7 @@ class ArtifactCommand extends Command {
   /**
    * Dump artifact report to a file.
    */
-  protected function dumpReport(): void {
+  protected function logReport(): void {
     $lines[] = '----------------------------------------------------------------------';
     $lines[] = ' Artifact report';
     $lines[] = '----------------------------------------------------------------------';
