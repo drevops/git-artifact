@@ -235,7 +235,7 @@ class ArtifactCommand extends Command {
       // @phpstan-ignore-next-line
       $this->resolveOptions($remote, $input->getOptions());
       // Set logger.
-      $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . 'log.lock';
+      $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
       $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
       // Now we have all what we need.
       // Let process artifact function.
