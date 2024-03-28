@@ -239,8 +239,10 @@ class ArtifactCommand extends Command {
       $this->processArtifact();
     }
     catch (\Exception $exception) {
-      $this->io->error('Deployment failed.');
-      $this->io->error($exception->getMessage());
+      $this->io->error([
+        'Deployment failed.',
+        $exception->getMessage(),
+      ]);
       return Command::FAILURE;
     }
 
