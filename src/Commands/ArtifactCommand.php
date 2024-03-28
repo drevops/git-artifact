@@ -421,6 +421,11 @@ class ArtifactCommand extends Command {
     else {
       $this->gitRepository->addAllChanges();
     }
+
+    // We do not want to add the log file.
+    if (!empty($this->logFile)) {
+      $this->fsFileSystem->remove($this->logFile);
+    }
   }
 
   /**
