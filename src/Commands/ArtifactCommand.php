@@ -113,11 +113,6 @@ class ArtifactCommand extends Command {
   protected bool $result = FALSE;
 
   /**
-   * Flag to print debug information.
-   */
-  protected bool $debug = FALSE;
-
-  /**
    * Internal option to set current timestamp.
    */
   protected int $now;
@@ -164,7 +159,6 @@ class ArtifactCommand extends Command {
 
     $this
       ->addOption('branch', NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.', '[branch]')
-      ->addOption('debug', NULL, InputOption::VALUE_NONE, 'Print debug information.')
       ->addOption(
           'gitignore',
           NULL,
@@ -223,9 +217,6 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    if ($input->getOption('debug')) {
-      $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-    }
     $this->output = $output;
     $this->logger = self::createLogger((string) $this->getName(), $output);
     try {
@@ -273,7 +264,6 @@ class ArtifactCommand extends Command {
    */
   protected function processArtifact(string $remote, array $opts = [
     'branch' => '[branch]',
-    'debug' => FALSE,
     'gitignore' => '',
     'message' => 'Deployment commit',
     'mode' => 'force-push',
@@ -512,7 +502,6 @@ class ArtifactCommand extends Command {
     $this->needsPush = !empty($options['push']);
     $this->reportFile = empty($options['report']) ? '' : $options['report'];
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
-    $this->debug = !empty($options['debug']);
     $this->remoteName = self::GIT_REMOTE_NAME;
     $this->remoteUrl = $remote;
     $this->setMode($options['mode'], $options);

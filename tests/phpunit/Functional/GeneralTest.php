@@ -81,7 +81,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testDebug(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--debug');
+    $output = $this->runBuild('-vvv');
 
     $this->assertStringContainsString('Debug messages enabled', $output);
 
