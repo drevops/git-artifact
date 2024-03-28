@@ -7,12 +7,14 @@ namespace DrevOps\GitArtifact\Commands;
 use DrevOps\GitArtifact\FilesystemTrait;
 use DrevOps\GitArtifact\GitArtifactGit;
 use DrevOps\GitArtifact\GitArtifactGitRepository;
+use DrevOps\GitArtifact\LogTrait;
 use DrevOps\GitArtifact\TokenTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -28,6 +30,7 @@ class ArtifactCommand extends Command {
 
   use TokenTrait;
   use FilesystemTrait;
+  use LogTrait;
 
   const GIT_REMOTE_NAME = 'dst';
 
@@ -96,9 +99,9 @@ class ArtifactCommand extends Command {
   protected bool $needCleanup = TRUE;
 
   /**
-   * Path to report file.
+   * Path to log file.
    */
-  protected string $reportFile = '';
+  protected string $logFile = '';
 
   /**
    * Flag to show changes made to the repo by the build in the output.
@@ -109,11 +112,6 @@ class ArtifactCommand extends Command {
    * Artifact build result.
    */
   protected bool $result = FALSE;
-
-  /**
-   * Flag to print debug information.
-   */
-  protected bool $debug = FALSE;
 
   /**
    * Internal option to set current timestamp.
@@ -129,6 +127,11 @@ class ArtifactCommand extends Command {
    * Git wrapper.
    */
   protected GitArtifactGit $git;
+
+  /**
+   * Symfony style.
+   */
+  protected SymfonyStyle $io;
 
   /**
    * Artifact constructor.
@@ -162,7 +165,6 @@ class ArtifactCommand extends Command {
 
     $this
       ->addOption('branch', NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.', '[branch]')
-      ->addOption('debug', NULL, InputOption::VALUE_NONE, 'Print debug information.')
       ->addOption(
           'gitignore',
           NULL,
@@ -186,7 +188,7 @@ class ArtifactCommand extends Command {
       ->addOption('no-cleanup', NULL, InputOption::VALUE_NONE, 'Do not cleanup after run.')
       ->addOption('now', NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('push', NULL, InputOption::VALUE_NONE, 'Push artifact to the remote repository')
-      ->addOption('report', NULL, InputOption::VALUE_REQUIRED, 'Path to the report file.')
+      ->addOption('log', NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
       ->addOption(
           'root',
           NULL,
@@ -221,18 +223,38 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    $this->output = $output;
+    // If log option was set, we set verbosity is debug.
+    if ($input->getOption('log')) {
+      $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+    }
+    // Setup io and logger.
+    $this->io = new SymfonyStyle($input, $output);
+    $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
+    $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
+    $remote = $input->getArgument('remote');
     try {
-      $this->checkRequirements();
-      $remote = $input->getArgument('remote');
+      // Let resolve options into properties first.
       // @phpstan-ignore-next-line
-      $this->processArtifact($remote, $input->getOptions());
+      $this->resolveOptions($remote, $input->getOptions());
+      // Now we have all what we need.
+      // Let process artifact function.
+      $this->checkRequirements();
+      $this->processArtifact();
+      // Dump log file and clean tmp log file.
+      if (!empty($this->logFile)) {
+        $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
+      }
+      $this->fsFileSystem->remove($tmpLogFile);
     }
     catch (\Exception $exception) {
-      $output->writeln('<error>' . $exception->getMessage() . '</error>');
-
+      $this->io->error([
+        'Deployment failed.',
+        $exception->getMessage(),
+      ]);
       return Command::FAILURE;
     }
+
+    $this->io->success('Deployment finished successfully.');
 
     return Command::SUCCESS;
   }
@@ -240,54 +262,12 @@ class ArtifactCommand extends Command {
   /**
    * Assemble a code artifact from your codebase.
    *
-   * @param string $remote
-   *   Path to the remote git repository.
-   * @param array $opts
-   *   Options.
-   *
-   * @option $branch Destination branch with optional tokens.
-   * @option $debug Print debug information.
-   * @option $gitignore Path to gitignore file to replace current .gitignore.
-   * @option $message Commit message with optional tokens.
-   * @option $mode Mode of artifact build: branch, force-push or diff.
-   *   Defaults to force-push.
-   * @option $now Internal value used to set internal time.
-   * @option $no-cleanup Do not cleanup after run.
-   * @option $push Push artifact to the remote repository. Defaults to FALSE.
-   * @option $report Path to the report file.
-   * @option $root Path to the root for file path resolution. If not
-   *         specified, current directory is used.
-   * @option $show-changes Show changes made to the repo by the build in the
-   *         output.
-   * @option $src Directory where source repository is located. If not
-   *   specified, root directory is used.
-   *
    * @throws \Exception
-   *
-   * @phpstan-ignore-next-line
    */
-  protected function processArtifact(string $remote, array $opts = [
-    'branch' => '[branch]',
-    'debug' => FALSE,
-    'gitignore' => '',
-    'message' => 'Deployment commit',
-    'mode' => 'force-push',
-    'no-cleanup' => FALSE,
-    'now' => '',
-    'push' => FALSE,
-    'report' => '',
-    'root' => '',
-    'show-changes' => FALSE,
-    'src' => '',
-  ]): void {
+  protected function processArtifact(): void {
     try {
       $error = NULL;
-      $this->resolveOptions($remote, $opts);
-
-      // Now we have all what we need.
-      // Let process artifact function.
-      $this->printDebug('Debug messages enabled');
-
+      $this->logDebug('Debug messages enabled');
       $this->setupRemoteForRepository();
       $this->showInfo();
       $this->prepareArtifact();
@@ -296,7 +276,7 @@ class ArtifactCommand extends Command {
         $this->doPush();
       }
       else {
-        $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
+        $this->io->warning('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
       }
       $this->result = TRUE;
     }
@@ -305,19 +285,13 @@ class ArtifactCommand extends Command {
       $error = $exception->getMessage();
     }
 
-    if (!empty($this->reportFile)) {
-      $this->dumpReport();
-    }
+    $this->logReport();
 
     if ($this->needCleanup) {
       $this->cleanup();
     }
 
-    if ($this->result) {
-      $this->say('Deployment finished successfully.');
-    }
-    else {
-      $this->say('Deployment failed.');
+    if (!$this->result) {
       throw new \Exception((string) $error);
     }
   }
@@ -382,7 +356,8 @@ class ArtifactCommand extends Command {
     $result = $this->commitAllChangesInGitRepository();
     // Show all changes if needed.
     if ($this->showChanges) {
-      $this->say(sprintf('Added changes: %s', implode("\n", $result)));
+      $this->io->text(sprintf('Added changes: %s', implode("\n", $result)));
+      $this->logNotice(sprintf('Added changes: %s', implode("\n", $result)));
     }
   }
 
@@ -468,7 +443,7 @@ class ArtifactCommand extends Command {
         $this->gitRepository->push([$this->remoteName, $refSpec]);
       }
 
-      $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
+      $this->io->success(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
     }
     catch (\Exception $exception) {
       // Re-throw the message with additional context.
@@ -505,9 +480,8 @@ class ArtifactCommand extends Command {
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->needsPush = !empty($options['push']);
-    $this->reportFile = empty($options['report']) ? '' : $options['report'];
+    $this->logFile = empty($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
-    $this->debug = !empty($options['debug']);
     $this->remoteName = self::GIT_REMOTE_NAME;
     $this->remoteUrl = $remote;
     $this->setMode($options['mode'], $options);
@@ -563,13 +537,17 @@ class ArtifactCommand extends Command {
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->needsPush ? 'Yes' : 'No'));
     $lines[] = ('----------------------------------------------------------------------');
-    $this->output->writeln($lines);
+
+    $this->io->text($lines);
+    foreach ($lines as $line) {
+      $this->logNotice($line);
+    }
   }
 
   /**
    * Dump artifact report to a file.
    */
-  protected function dumpReport(): void {
+  protected function logReport(): void {
     $lines[] = '----------------------------------------------------------------------';
     $lines[] = ' Artifact report';
     $lines[] = '----------------------------------------------------------------------';
@@ -583,7 +561,9 @@ class ArtifactCommand extends Command {
     $lines[] = ' Push result:       ' . ($this->result ? 'Success' : 'Failure');
     $lines[] = '----------------------------------------------------------------------';
 
-    $this->fsFileSystem->dumpFile($this->reportFile, implode(PHP_EOL, $lines));
+    foreach ($lines as $line) {
+      $this->logNotice($line);
+    }
   }
 
   /**
@@ -597,8 +577,6 @@ class ArtifactCommand extends Command {
    * @phpstan-ignore-next-line
    */
   protected function setMode(string $mode, array $options): void {
-    $this->say(sprintf('Running in "%s" mode', $mode));
-
     switch ($mode) {
       case self::modeForcePush():
         // Intentionally empty.
@@ -606,7 +584,7 @@ class ArtifactCommand extends Command {
 
       case self::modeBranch():
         if (!$this->hasToken($options['branch'])) {
-          $this->say('WARNING! Provided branch name does not have a token.
+          $this->io->warning('WARNING! Provided branch name does not have a token.
                     Pushing of the artifact into this branch will fail on second and follow up pushes to remote.
                     Consider adding tokens with unique values to the branch name.');
         }
@@ -706,11 +684,11 @@ class ArtifactCommand extends Command {
    */
   protected function checkRequirements(): void {
     // @todo Refactor this into more generic implementation.
-    $this->say('Checking requirements');
+    $this->logNotice('Checking requirements');
     if (!$this->fsIsCommandAvailable('git')) {
       throw new \RuntimeException('At least one of the script running requirements was not met');
     }
-    $this->sayOkay('All requirements were met');
+    $this->logNotice('All requirements were met');
   }
 
   /**
@@ -721,7 +699,7 @@ class ArtifactCommand extends Command {
    */
   protected function replaceGitignoreInGitRepository(string $filename): void {
     $path = $this->getSourcePathGitRepository();
-    $this->printDebug('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename);
+    $this->logDebug(sprintf('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename));
     $this->fsFileSystem->copy($filename, $path . DIRECTORY_SEPARATOR . '.gitignore', TRUE);
     $this->fsFileSystem->remove($filename);
   }
@@ -803,7 +781,7 @@ class ArtifactCommand extends Command {
     $filename = $this->getLocalExcludeFileName($path);
     $filenameDisabled = $filename . '.bak';
     if ($this->fsFileSystem->exists($filename)) {
-      $this->printDebug('Disabling local exclude');
+      $this->logDebug('Disabling local exclude');
       $this->fsFileSystem->rename($filename, $filenameDisabled);
     }
   }
@@ -818,7 +796,7 @@ class ArtifactCommand extends Command {
     $filename = $this->getLocalExcludeFileName($path);
     $filenameDisabled = $filename . '.bak';
     if ($this->fsFileSystem->exists($filenameDisabled)) {
-      $this->printDebug('Restoring local exclude');
+      $this->logDebug('Restoring local exclude');
       $this->fsFileSystem->rename($filenameDisabled, $filename);
     }
   }
@@ -840,12 +818,12 @@ class ArtifactCommand extends Command {
 
     $gitignoreContent = file_get_contents($gitignorePath);
     if (!$gitignoreContent) {
-      $this->printDebug('Unable to load ' . $gitignoreContent);
+      $this->logDebug('Unable to load ' . $gitignoreContent);
     }
     else {
-      $this->printDebug('-----.gitignore---------');
-      $this->printDebug($gitignoreContent);
-      $this->printDebug('-----.gitignore---------');
+      $this->logDebug('-----.gitignore---------');
+      $this->logDebug($gitignoreContent);
+      $this->logDebug('-----.gitignore---------');
     }
 
     $files = $this
@@ -856,7 +834,7 @@ class ArtifactCommand extends Command {
       $files = array_filter($files);
       foreach ($files as $file) {
         $fileName = $location . DIRECTORY_SEPARATOR . $file;
-        $this->printDebug('Removing excluded file %s', $fileName);
+        $this->logDebug(sprintf('Removing excluded file %s', $fileName));
         if ($this->fsFileSystem->exists($fileName)) {
           $this->fsFileSystem->remove($fileName);
         }
@@ -878,7 +856,7 @@ class ArtifactCommand extends Command {
       $files = array_filter($files);
       foreach ($files as $file) {
         $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
-        $this->printDebug('Removing other file %s', $fileName);
+        $this->logDebug(sprintf('Removing other file %s', $fileName));
         $this->fsFileSystem->remove($fileName);
       }
     }
@@ -904,7 +882,7 @@ class ArtifactCommand extends Command {
         $dir = $dir->getPathname();
       }
       $this->fsFileSystem->remove($dir);
-      $this->printDebug('Removing sub-repository "%s"', (string) $dir);
+      $this->logDebug(sprintf('Removing sub-repository "%s"', (string) $dir));
     }
   }
 
@@ -956,71 +934,6 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Check if running in debug mode.
-   *
-   * @return bool
-   *   Check is debugging mode or not.
-   */
-  protected function isDebug(): bool {
-    return $this->debug || $this->output->isDebug();
-  }
-
-  /**
-   * Write line as yell style.
-   *
-   * @param string $text
-   *   Text yell.
-   */
-  protected function yell(string $text): void {
-    $color = 'green';
-    $char = $this->decorationCharacter('>', '➜');
-    $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
-    $this->writeln(sprintf($format, $char, $text));
-  }
-
-  /**
-   * Write line as say style.
-   *
-   * @param string $text
-   *   Text.
-   */
-  protected function say(string $text): void {
-    $char = $this->decorationCharacter('>', '➜');
-    $this->writeln(sprintf('%s  %s', $char, $text));
-  }
-
-  /**
-   * Print success message.
-   *
-   * Usually used to explicitly state that some action was successfully
-   * executed.
-   *
-   * @param string $text
-   *   Message text.
-   */
-  protected function sayOkay(string $text): void {
-    $color = 'green';
-    $char = $this->decorationCharacter('V', '✔');
-    $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
-    $this->writeln(sprintf($format, $char, $text));
-  }
-
-  /**
-   * Print debug information.
-   *
-   * @param mixed ...$args
-   *   The args.
-   */
-  protected function printDebug(mixed ...$args): void {
-    if (!$this->isDebug()) {
-      return;
-    }
-    $message = array_shift($args);
-    /* @phpstan-ignore-next-line */
-    $this->writeln(vsprintf($message, $args));
-  }
-
-  /**
    * Write output.
    *
    * @param string $text
@@ -1028,25 +941,6 @@ class ArtifactCommand extends Command {
    */
   protected function writeln(string $text): void {
     $this->output->writeln($text);
-  }
-
-  /**
-   * Decoration character.
-   *
-   * @param string $nonDecorated
-   *   Non decorated.
-   * @param string $decorated
-   *   Decorated.
-   *
-   * @return string
-   *   The decoration character.
-   */
-  protected function decorationCharacter(string $nonDecorated, string $decorated): string {
-    if (!$this->output->isDecorated() || (strncasecmp(PHP_OS, 'WIN', 3) === 0)) {
-      return $nonDecorated;
-    }
-
-    return $decorated;
   }
 
   /**

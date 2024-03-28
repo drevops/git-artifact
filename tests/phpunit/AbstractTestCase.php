@@ -78,7 +78,7 @@ abstract class AbstractTestCase extends TestCase {
    *   TRUE if is in debug mode, FALSE otherwise.
    */
   protected function isDebug(): bool {
-    return in_array('--debug', $_SERVER['argv'], TRUE);
+    return in_array('-vvv', $_SERVER['argv'], TRUE);
   }
 
 }
