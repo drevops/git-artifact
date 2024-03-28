@@ -223,14 +223,14 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    // Setup io and logger.
-    $this->io = new SymfonyStyle($input, $output);
-    $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
-    $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
     // If log option was set, we set verbosity is very verbose.
     if ($input->getOption('log')) {
       $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
     }
+    // Setup io and logger.
+    $this->io = new SymfonyStyle($input, $output);
+    $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
+    $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
     $remote = $input->getArgument('remote');
     try {
       // Let resolve options into properties first.
