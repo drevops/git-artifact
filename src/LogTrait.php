@@ -67,4 +67,16 @@ trait LogTrait {
     $this->logger->debug($message, $context);
   }
 
+  /**
+   * Log debug.
+   *
+   * @param string|\Stringable $message
+   *   Message.
+   * @param array<mixed> $context
+   *   Context.
+   */
+  public function logNotice(string|\Stringable $message, array $context = []): void {
+    $this->logger->notice($message, $context);
+  }
+
 }

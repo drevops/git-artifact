@@ -690,6 +690,7 @@ class ArtifactCommand extends Command {
   protected function checkRequirements(): void {
     // @todo Refactor this into more generic implementation.
     $this->say('Checking requirements');
+    $this->logNotice('Checking requirements');
     if (!$this->fsIsCommandAvailable('git')) {
       throw new \RuntimeException('At least one of the script running requirements was not met');
     }
