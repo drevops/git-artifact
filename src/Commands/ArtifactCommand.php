@@ -231,12 +231,17 @@ class ArtifactCommand extends Command {
       // @phpstan-ignore-next-line
       $this->resolveOptions($remote, $input->getOptions());
       // Set logger.
-      $this->logger = self::createLogger((string) $this->getName(), $output, $this->logFile);
-
+      $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . 'log.lock';
+      $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
       // Now we have all what we need.
       // Let process artifact function.
       $this->checkRequirements();
       $this->processArtifact();
+      // Dump log file.
+      if ($this->logFile) {
+        $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
+      }
+      $this->fsFileSystem->remove($tmpLogFile);
     }
     catch (\Exception $exception) {
       $this->io->error([
@@ -288,11 +293,6 @@ class ArtifactCommand extends Command {
       $this->setupRemoteForRepository();
       $this->showInfo();
       $this->prepareArtifact();
-
-      if ($this->logFile) {
-        $this->gitRepository->untrackFile($this->logFile);
-        $this->gitRepository->unstageFile($this->logFile);
-      }
 
       if ($this->needsPush) {
         $this->doPush();
@@ -880,11 +880,6 @@ class ArtifactCommand extends Command {
       $files = array_filter($files);
       foreach ($files as $file) {
         $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
-        // We do not want to remove log file if someone set log file in repo.
-        if (!empty($this->logFile) && $this->logFile === $fileName) {
-          continue;
-        }
-
         $this->logDebug(sprintf('Removing other file %s', $fileName));
         $this->fsFileSystem->remove($fileName);
       }
