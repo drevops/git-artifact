@@ -291,7 +291,7 @@ class ArtifactCommand extends Command {
         $this->doPush();
       }
       else {
-        $this->yell('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
+        $this->io->warning('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
       }
       $this->result = TRUE;
     }
@@ -373,7 +373,8 @@ class ArtifactCommand extends Command {
     $result = $this->commitAllChangesInGitRepository();
     // Show all changes if needed.
     if ($this->showChanges) {
-      $this->say(sprintf('Added changes: %s', implode("\n", $result)));
+      $this->io->info(sprintf('Added changes: %s', implode("\n", $result)));
+      $this->logNotice(sprintf('Added changes: %s', implode("\n", $result)));
     }
   }
 
@@ -459,7 +460,7 @@ class ArtifactCommand extends Command {
         $this->gitRepository->push([$this->remoteName, $refSpec]);
       }
 
-      $this->sayOkay(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
+      $this->io->success(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
     }
     catch (\Exception $exception) {
       // Re-throw the message with additional context.
@@ -590,7 +591,7 @@ class ArtifactCommand extends Command {
    * @phpstan-ignore-next-line
    */
   protected function setMode(string $mode, array $options): void {
-    $this->say(sprintf('Running in "%s" mode', $mode));
+    $this->io->info(sprintf('Running in "%s" mode', $mode));
 
     switch ($mode) {
       case self::modeForcePush():
@@ -599,7 +600,7 @@ class ArtifactCommand extends Command {
 
       case self::modeBranch():
         if (!$this->hasToken($options['branch'])) {
-          $this->say('WARNING! Provided branch name does not have a token.
+          $this->io->warning('WARNING! Provided branch name does not have a token.
                     Pushing of the artifact into this branch will fail on second and follow up pushes to remote.
                     Consider adding tokens with unique values to the branch name.');
         }
@@ -949,46 +950,6 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Write line as yell style.
-   *
-   * @param string $text
-   *   Text yell.
-   */
-  protected function yell(string $text): void {
-    $color = 'green';
-    $char = $this->decorationCharacter('>', '➜');
-    $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
-    $this->writeln(sprintf($format, $char, $text));
-  }
-
-  /**
-   * Write line as say style.
-   *
-   * @param string $text
-   *   Text.
-   */
-  protected function say(string $text): void {
-    $char = $this->decorationCharacter('>', '➜');
-    $this->writeln(sprintf('%s  %s', $char, $text));
-  }
-
-  /**
-   * Print success message.
-   *
-   * Usually used to explicitly state that some action was successfully
-   * executed.
-   *
-   * @param string $text
-   *   Message text.
-   */
-  protected function sayOkay(string $text): void {
-    $color = 'green';
-    $char = $this->decorationCharacter('V', '✔');
-    $format = sprintf('<fg=white;bg=%s;options=bold>%%s %%s</fg=white;bg=%s;options=bold>', $color, $color);
-    $this->writeln(sprintf($format, $char, $text));
-  }
-
-  /**
    * Write output.
    *
    * @param string $text
@@ -996,25 +957,6 @@ class ArtifactCommand extends Command {
    */
   protected function writeln(string $text): void {
     $this->output->writeln($text);
-  }
-
-  /**
-   * Decoration character.
-   *
-   * @param string $nonDecorated
-   *   Non decorated.
-   * @param string $decorated
-   *   Decorated.
-   *
-   * @return string
-   *   The decoration character.
-   */
-  protected function decorationCharacter(string $nonDecorated, string $decorated): string {
-    if (!$this->output->isDecorated() || (strncasecmp(PHP_OS, 'WIN', 3) === 0)) {
-      return $nonDecorated;
-    }
-
-    return $decorated;
   }
 
   /**
