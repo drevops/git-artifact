@@ -356,7 +356,7 @@ class ArtifactCommand extends Command {
     $result = $this->commitAllChangesInGitRepository();
     // Show all changes if needed.
     if ($this->showChanges) {
-      $this->io->info(sprintf('Added changes: %s', implode("\n", $result)));
+      $this->io->text(sprintf('Added changes: %s', implode("\n", $result)));
       $this->logNotice(sprintf('Added changes: %s', implode("\n", $result)));
     }
   }
