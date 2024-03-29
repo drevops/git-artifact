@@ -237,11 +237,14 @@ class ArtifactCommand extends Command {
       $this->checkRequirements();
       // @phpstan-ignore-next-line
       $this->processArtifact($remote, $input->getOptions());
+
       // Dump log file and clean tmp log file.
-      if (!empty($this->logFile)) {
-        $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
+      if ($this->fsFileSystem->exists($tmpLogFile)) {
+        if (!empty($this->logFile)) {
+          $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
+        }
+        $this->fsFileSystem->remove($tmpLogFile);
       }
-      $this->fsFileSystem->remove($tmpLogFile);
     }
     catch (\Exception $exception) {
       $this->output->writeln([
