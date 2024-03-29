@@ -56,7 +56,6 @@ abstract class AbstractTestCase extends TestCase {
     $this->commandTraitSetUp(
           $this->fixtureDir . DIRECTORY_SEPARATOR . 'git_src',
           $this->fixtureDir . DIRECTORY_SEPARATOR . 'git_remote',
-          $this->isDebug()
       );
   }
 
@@ -69,16 +68,6 @@ abstract class AbstractTestCase extends TestCase {
     if ($this->fs->exists($this->fixtureDir)) {
       $this->fs->remove($this->fixtureDir);
     }
-  }
-
-  /**
-   * Check if testing framework was ran with --debug option.
-   *
-   * @return bool
-   *   TRUE if is in debug mode, FALSE otherwise.
-   */
-  protected function isDebug(): bool {
-    return in_array('-vvv', $_SERVER['argv'], TRUE);
   }
 
 }
