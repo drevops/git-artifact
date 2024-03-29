@@ -228,7 +228,7 @@ class ArtifactCommand extends Command {
       $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
     }
     // Setup io and logger.
-    $this->io = new SymfonyStyle($input, $output);
+    $this->output = $output;
     $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
     $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
     $remote = $input->getArgument('remote');
@@ -247,14 +247,14 @@ class ArtifactCommand extends Command {
       $this->fsFileSystem->remove($tmpLogFile);
     }
     catch (\Exception $exception) {
-      $this->io->error([
-        'Deployment failed.',
-        $exception->getMessage(),
+      $this->output->writeln([
+        '<error>Deployment failed.</error>',
+        '<error>' . $exception->getMessage() . '</error>',
       ]);
       return Command::FAILURE;
     }
 
-    $this->io->success('Deployment finished successfully.');
+    $this->output->writeln('<info>Deployment finished successfully.</info>');
 
     return Command::SUCCESS;
   }
@@ -276,7 +276,7 @@ class ArtifactCommand extends Command {
         $this->doPush();
       }
       else {
-        $this->io->warning('Cowardly refusing to push to remote. Use --push option to perform an actual push.');
+        $this->output->writeln('<comment>Cowardly refusing to push to remote. Use --push option to perform an actual push.</comment>');
       }
       $this->result = TRUE;
     }
@@ -356,7 +356,7 @@ class ArtifactCommand extends Command {
     $result = $this->commitAllChangesInGitRepository();
     // Show all changes if needed.
     if ($this->showChanges) {
-      $this->io->text(sprintf('Added changes: %s', implode("\n", $result)));
+      $this->output->writeln(sprintf('Added changes: %s', implode("\n", $result)));
       $this->logNotice(sprintf('Added changes: %s', implode("\n", $result)));
     }
   }
@@ -443,7 +443,7 @@ class ArtifactCommand extends Command {
         $this->gitRepository->push([$this->remoteName, $refSpec]);
       }
 
-      $this->io->success(sprintf('Pushed branch "%s" with commit message "%s"', $this->destinationBranch, $this->message));
+      $this->output->writeln(sprintf('<info>Pushed branch "%s" with commit message "%s"</info>', $this->destinationBranch, $this->message));
     }
     catch (\Exception $exception) {
       // Re-throw the message with additional context.
@@ -538,7 +538,7 @@ class ArtifactCommand extends Command {
     $lines[] = (' Will push:             ' . ($this->needsPush ? 'Yes' : 'No'));
     $lines[] = ('----------------------------------------------------------------------');
 
-    $this->io->text($lines);
+    $this->output->writeln($lines);
     foreach ($lines as $line) {
       $this->logNotice($line);
     }
@@ -584,9 +584,9 @@ class ArtifactCommand extends Command {
 
       case self::modeBranch():
         if (!$this->hasToken($options['branch'])) {
-          $this->io->warning('WARNING! Provided branch name does not have a token.
+          $this->output->writeln('<comment>WARNING! Provided branch name does not have a token.
                     Pushing of the artifact into this branch will fail on second and follow up pushes to remote.
-                    Consider adding tokens with unique values to the branch name.');
+                    Consider adding tokens with unique values to the branch name.</comment>');
         }
         break;
 
