@@ -98,7 +98,7 @@ jobs:
               --mode=force-push \
               --log=$HOME/report--mode--force-push.txt \
               --push \
-              --debug
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
@@ -123,7 +123,7 @@ jobs:
               --mode=force-push \
               --log=$HOME/report--mode--force-push.txt \
               --push \
-              --debug
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
@@ -172,7 +172,7 @@ jobs:
               --mode=branch \
               --log=$HOME/report--mode--branch.txt \
               --push \
-              --debug
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
@@ -189,7 +189,7 @@ jobs:
               --mode=branch \
               --log=$HOME/report--mode--branch.txt \
               --push \
-              --debug \
+              -vvv \
               && { echo "Expected to fail as repeated pushes to the same branch are not allowed, but succeeded" >&2; exit 1; } || echo "Failed as expected"
 
       - run:
@@ -209,7 +209,7 @@ jobs:
               --mode=branch \
               --log=$HOME/report--mode--branch.txt \
               --push \
-              --debug
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
