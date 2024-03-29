@@ -125,12 +125,6 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
 
     $output = $this->runGitArtifactCommandTimestamped(sprintf('--src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
 
-    if ($this->isDebug()) {
-      print str_pad('', 80, '+') . PHP_EOL;
-      print implode(PHP_EOL, $output) . PHP_EOL;
-      print str_pad('', 80, '+') . PHP_EOL;
-    }
-
     return implode(PHP_EOL, $output);
   }
 

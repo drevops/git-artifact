@@ -134,7 +134,7 @@ fully-configured [example in the DrevOps project](https://github.com/drevops/dre
           --no-cleanup                     Do not cleanup after run.
           --now=NOW                        Internal value used to set internal time.
           --push                           Push artifact to the remote repository. Defaults to FALSE.
-          --report=REPORT                  Path to the report file.
+          --log=LOG                        Path to the log/report file.
           --root=ROOT                      Path to the root for file path resolution. If not specified, current directory is used.
           --show-changes                   Show changes made to the repo by the build in the output.
           --src=SRC                        Directory where source repository is located. If not specified, root directory is used.
@@ -144,9 +144,6 @@ fully-configured [example in the DrevOps project](https://github.com/drevops/dre
           --ansi                           Force ANSI output
           --no-ansi                        Disable ANSI output
       -n, --no-interaction                 Do not ask any interactive question
-          --simulate                       Run in simulated mode (show what would have happened).
-          --progress-delay=PROGRESS-DELAY  Number of seconds before progress bar is displayed in long-running task collections. Default: 2s. [default: 2]
-      -D, --define=DEFINE                  Define a configuration item value. (multiple values allowed)
       -v|vv|vvv, --verbose                 Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 
     Help:

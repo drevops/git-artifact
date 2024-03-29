@@ -38,13 +38,6 @@ trait CommandTrait {
   protected $fs;
 
   /**
-   * Flag to denote that debug information should be printed.
-   *
-   * @var bool
-   */
-  protected $printDebug;
-
-  /**
    * Artifact git.
    */
   protected GitArtifactGit $git;
@@ -58,12 +51,8 @@ trait CommandTrait {
    *   Source path.
    * @param string $remote
    *   Remote path.
-   * @param bool $printDebug
-   *   Optional flag to print debug information when running commands.
-   *   Defaults to FALSE.
    */
-  protected function setUp(string $src, string $remote, bool $printDebug = FALSE): void {
-    $this->printDebug = $printDebug;
+  protected function setUp(string $src, string $remote): void {
     $this->fs = new Filesystem();
     $this->src = $src;
     $this->gitInitRepo($this->src);
@@ -511,16 +500,10 @@ trait CommandTrait {
    *   If commands exists with non-zero status.
    */
   protected function runCliCommand(string $command): array {
-    if ($this->printDebug) {
-      print '++ ' . $command . PHP_EOL;
-    }
     exec($command . ' 2>&1', $output, $code);
 
     if ($code !== 0) {
       throw new ErrorException(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new ErrorException(implode(PHP_EOL, $output), $code, '', -1));
-    }
-    if ($this->printDebug) {
-      print '++++ ' . implode(PHP_EOL, $output) . PHP_EOL;
     }
 
     return $output;

@@ -21,7 +21,8 @@
         "symfony/filesystem": "^6",
         "symfony/finder": "^6",
         "czproject/git-php": "^4.2",
-        "symfony/process": "^6"
+        "symfony/process": "^6",
+        "symfony/monolog-bridge": "^6"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8",
@@ -52,7 +53,7 @@
         "lint": [
             "phpcs",
             "phpmd --exclude vendor,vendor-bin,node_modules . text phpmd.xml",
-            "phpstan",
+            "phpstan --memory-limit=-1",
             "rector --clear-cache --dry-run"
         ],
         "lint-fix": [
