@@ -158,7 +158,7 @@ jobs:
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--force-push--gha--[branch] \
             --mode=force-push \
-            --report=$HOME/report--mode--force-push.txt \
+            --log=$HOME/report--mode--force-push.txt \
             --push \
             --debug
 
@@ -181,7 +181,7 @@ jobs:
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--force-push--gha--[branch] \
             --mode=force-push \
-            --report=$HOME/report--mode--force-push.txt \
+            --log=$HOME/report--mode--force-push.txt \
             --push \
             --debug
 
@@ -260,7 +260,7 @@ jobs:
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i] \
             --mode=branch \
-            --report=$HOME/report--mode--branch.txt \
+            --log=$HOME/report--mode--branch.txt \
             --push \
             --debug
 
@@ -283,7 +283,7 @@ jobs:
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i] \
             --mode=branch \
-            --report=$HOME/report--mode--branch.txt \
+            --log=$HOME/report--mode--branch.txt \
             --push \
             --debug \
             && { echo "Expected to fail as repeated pushes to the same branch are not allowed, but succeeded" >&2; exit 1; } || echo "Failed as expected"
@@ -294,7 +294,7 @@ jobs:
             git@github.com:drevops/git-artifact-destination.git \
             --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i-s] \
             --mode=branch \
-            --report=$HOME/report--mode--branch.txt \
+            --log=$HOME/report--mode--branch.txt \
             --push \
             --debug
 
