@@ -227,19 +227,16 @@ class ArtifactCommand extends Command {
     if ($input->getOption('log')) {
       $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
     }
-    // Setup io and logger.
     $this->output = $output;
     $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
     $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
     $remote = $input->getArgument('remote');
     try {
-      // Let resolve options into properties first.
-      // @phpstan-ignore-next-line
-      $this->resolveOptions($remote, $input->getOptions());
       // Now we have all what we need.
       // Let process artifact function.
       $this->checkRequirements();
-      $this->processArtifact();
+      // @phpstan-ignore-next-line
+      $this->processArtifact($remote, $input->getOptions());
       // Dump log file and clean tmp log file.
       if (!empty($this->logFile)) {
         $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
@@ -262,12 +259,36 @@ class ArtifactCommand extends Command {
   /**
    * Assemble a code artifact from your codebase.
    *
+   * @param string $remote
+   *   Path to the remote git repository.
+   * @param array<mixed> $options
+   *   Options.
+   *
+   * @option $branch Destination branch with optional tokens.
+   * @option $debug Print debug information.
+   * @option $gitignore Path to gitignore file to replace current .gitignore.
+   * @option $message Commit message with optional tokens.
+   * @option $mode Mode of artifact build: branch, force-push or diff.
+   *   Defaults to force-push.
+   * @option $now Internal value used to set internal time.
+   * @option $no-cleanup Do not cleanup after run.
+   * @option $push Push artifact to the remote repository. Defaults to FALSE.
+   * @option $report Path to the report file.
+   * @option $root Path to the root for file path resolution. If not
+   *         specified, current directory is used.
+   * @option $show-changes Show changes made to the repo by the build in the
+   *         output.
+   * @option $src Directory where source repository is located. If not
+   *   specified, root directory is used.
+   *
    * @throws \Exception
    */
-  protected function processArtifact(): void {
+  protected function processArtifact(string $remote, array $options): void {
     try {
       $error = NULL;
       $this->logDebug('Debug messages enabled');
+      // Let resolve options into properties first.
+      $this->resolveOptions($remote, $options);
       $this->setupRemoteForRepository();
       $this->showInfo();
       $this->prepareArtifact();
