@@ -15,14 +15,14 @@
         "source": "https://github.com/drevops/git-artifact"
     },
     "require": {
-        "php": ">=8.1",
-        "monolog/monolog": "^3.5",
-        "symfony/console": "^6",
-        "symfony/filesystem": "^6",
-        "symfony/finder": "^6",
+        "php": ">=8.2",
         "czproject/git-php": "^4.2",
-        "symfony/process": "^6",
-        "symfony/monolog-bridge": "^6"
+        "monolog/monolog": "^3.5",
+        "symfony/console": "^7",
+        "symfony/filesystem": "^7",
+        "symfony/finder": "^7",
+        "symfony/monolog-bridge": "^7",
+        "symfony/process": "^7"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8",

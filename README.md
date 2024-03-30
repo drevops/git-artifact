@@ -88,6 +88,7 @@ destination repository.
 ```shell
 composer require drevops/git-artifact
 ```
+or download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
 
 ## Usage
 ```shell
