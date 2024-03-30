@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Unit;
 
-use DrevOps\GitArtifact\GitArtifactGit;
-use DrevOps\GitArtifact\GitArtifactGitRepository;
+use DrevOps\GitArtifact\Git\ArtifactGit;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Test git artifact git.
  */
-#[CoversClass(GitArtifactGit::class)]
-class GitArtifactGitTest extends AbstractUnitTestCase {
+#[CoversClass(ArtifactGit::class)]
+class ArtifactGitTest extends AbstractUnitTestCase {
 
   /**
    * Test open directory.
@@ -21,7 +21,7 @@ class GitArtifactGitTest extends AbstractUnitTestCase {
    */
   public function testOpen(): void {
     $repo = $this->git->open($this->src);
-    $this->assertEquals(GitArtifactGitRepository::class, $repo::class);
+    $this->assertEquals(ArtifactGitRepository::class, $repo::class);
   }
 
 }

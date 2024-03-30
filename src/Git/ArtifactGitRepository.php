@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact;
+namespace DrevOps\GitArtifact\Git;
 
 use CzProject\GitPhp\GitRepository;
 use CzProject\GitPhp\RunnerResult;
@@ -14,7 +14,7 @@ use Symfony\Component\Filesystem\Filesystem;
  *
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-class GitArtifactGitRepository extends GitRepository {
+class ArtifactGitRepository extends GitRepository {
 
   /**
    * Filesystem.
@@ -34,12 +34,12 @@ class GitArtifactGitRepository extends GitRepository {
    * @param string $refSpec
    *   Specify what destination ref to update with what source object.
    *
-   * @return GitArtifactGitRepository
+   * @return ArtifactGitRepository
    *   Git repo.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function pushForce(string $remote, string $refSpec): GitArtifactGitRepository {
+  public function pushForce(string $remote, string $refSpec): ArtifactGitRepository {
     return parent::push([$remote, $refSpec], ['--force']);
   }
 
@@ -110,7 +110,7 @@ class GitArtifactGitRepository extends GitRepository {
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function resetHard(): GitArtifactGitRepository {
+  public function resetHard(): ArtifactGitRepository {
     $this->run('reset', ['--hard']);
 
     return $this;
@@ -124,7 +124,7 @@ class GitArtifactGitRepository extends GitRepository {
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function cleanForce(): GitArtifactGitRepository {
+  public function cleanForce(): ArtifactGitRepository {
     $this->run('clean', ['-dfx']);
 
     return $this;
@@ -138,12 +138,12 @@ class GitArtifactGitRepository extends GitRepository {
    * @param bool $createNew
    *   Optional flag to also create a branch before switching. Default false.
    *
-   * @return GitArtifactGitRepository
+   * @return ArtifactGitRepository
    *   The git repository.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function switchToBranch(string $branchName, bool $createNew = FALSE): GitArtifactGitRepository {
+  public function switchToBranch(string $branchName, bool $createNew = FALSE): ArtifactGitRepository {
     if (!$createNew) {
       return $this->checkout($branchName);
     }
@@ -159,12 +159,12 @@ class GitArtifactGitRepository extends GitRepository {
    * @param bool $force
    *   Force remove or not.
    *
-   * @return GitArtifactGitRepository
+   * @return ArtifactGitRepository
    *   Git repository
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function removeBranch($name, bool $force = FALSE): GitArtifactGitRepository {
+  public function removeBranch($name, bool $force = FALSE): ArtifactGitRepository {
     if (empty($name)) {
       return $this;
     }
@@ -231,7 +231,7 @@ class GitArtifactGitRepository extends GitRepository {
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function setConfigReceiveDenyCurrentBranchIgnore(): GitArtifactGitRepository {
+  public function setConfigReceiveDenyCurrentBranchIgnore(): ArtifactGitRepository {
     $this->extractFromCommand(['config', ['receive.denyCurrentBranch', 'ignore']]);
 
     return $this;
@@ -250,7 +250,7 @@ class GitArtifactGitRepository extends GitRepository {
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function createAnnotatedTag(string $name, string $message): GitArtifactGitRepository {
+  public function createAnnotatedTag(string $name, string $message): ArtifactGitRepository {
     $this->createTag($name, [
       '--message=' . $message,
       '-a',
@@ -270,7 +270,7 @@ class GitArtifactGitRepository extends GitRepository {
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function createLightweightTag(string $name): GitArtifactGitRepository {
+  public function createLightweightTag(string $name): ArtifactGitRepository {
     $this->createTag($name);
 
     return $this;
@@ -284,12 +284,12 @@ class GitArtifactGitRepository extends GitRepository {
    * @param string $name
    *   Remote name.
    *
-   * @return GitArtifactGitRepository
+   * @return ArtifactGitRepository
    *   Git repo.
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  public function removeRemote($name): GitArtifactGitRepository {
+  public function removeRemote($name): ArtifactGitRepository {
     if ($this->isRemoteExists($name)) {
       $this->run('remote', 'remove', $name);
     }

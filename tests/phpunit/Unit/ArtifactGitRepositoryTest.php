@@ -3,17 +3,17 @@
 namespace DrevOps\GitArtifact\Tests\Unit;
 
 use CzProject\GitPhp\GitException;
-use DrevOps\GitArtifact\GitArtifactGitRepository;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * Test GitArtifactGitRepository class.
+ * Test ArtifactGitRepository class.
  *
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-#[CoversClass(GitArtifactGitRepository::class)]
-class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
+#[CoversClass(ArtifactGitRepository::class)]
+class ArtifactGitRepositoryTest extends AbstractUnitTestCase {
 
   /**
    * Test push force.
@@ -73,13 +73,17 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
    */
   public function testGetCommits(): void {
     $sourceRepo = $this->git->open($this->src);
+
     $this->gitCreateFixtureFile($this->src, 'test-commit-file1');
     $sourceRepo->commitAllChanges('Add file 1');
     $commits = $sourceRepo->getCommits();
+
     $this->assertEquals(['Add file 1'], $commits);
+
     $this->gitCreateFixtureFile($this->src, 'test-commit-file2');
     $sourceRepo->commitAllChanges('Add file 2');
     $commits = $sourceRepo->getCommits();
+
     $this->assertEquals(['Add file 2', 'Add file 1'], $commits);
   }
 
@@ -245,10 +249,10 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
   public function testIsValidRemoteUrl(?bool $expected, string $pathOrUri, string $type, bool $pass): void {
     if (!$pass) {
       $this->expectException(\InvalidArgumentException::class);
-      GitArtifactGitRepository::isValidRemoteUrl($pathOrUri, $type);
+      ArtifactGitRepository::isValidRemoteUrl($pathOrUri, $type);
     }
     else {
-      $this->assertEquals($expected, GitArtifactGitRepository::isValidRemoteUrl($pathOrUri, $type));
+      $this->assertEquals($expected, ArtifactGitRepository::isValidRemoteUrl($pathOrUri, $type));
     }
   }
 
@@ -276,7 +280,7 @@ class GitArtifactGitRepositoryTest extends AbstractUnitTestCase {
    */
   #[DataProvider('dataProviderIsValidBranchName')]
   public function testIsValidBranchName(bool $expected, string $branchName): void {
-    $this->assertEquals($expected, GitArtifactGitRepository::isValidBranchName($branchName));
+    $this->assertEquals($expected, ArtifactGitRepository::isValidBranchName($branchName));
   }
 
   /**

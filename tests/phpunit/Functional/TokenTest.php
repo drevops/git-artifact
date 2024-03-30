@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Functional;
 
-use DrevOps\GitArtifact\TokenTrait;
+use DrevOps\GitArtifact\Traits\TokenTrait;
 
 /**
  * Class ForcePushTest.
  *
  * @group integration
  *
- * @covers \DrevOps\GitArtifact\TokenTrait
+ * @covers \DrevOps\GitArtifact\Traits\TokenTrait
  */
 class TokenTest extends AbstractFunctionalTestCase {
 

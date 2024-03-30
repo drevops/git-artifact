@@ -9,9 +9,8 @@ namespace DrevOps\GitArtifact\Tests\Functional;
  *
  * @group integration
  *
- * @covers \DrevOps\GitArtifact\GitTrait
  * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
- * @covers \DrevOps\GitArtifact\FilesystemTrait
+ * @covers \DrevOps\GitArtifact\Traits\FilesystemTrait
  */
 class TagTest extends AbstractFunctionalTestCase {
 

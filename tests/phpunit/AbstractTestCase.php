@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests;
 
-use DrevOps\GitArtifact\GitArtifactGit;
+use DrevOps\GitArtifact\Git\ArtifactGit;
 use DrevOps\GitArtifact\Tests\Traits\CommandTrait;
 use DrevOps\GitArtifact\Tests\Traits\MockTrait;
 use DrevOps\GitArtifact\Tests\Traits\ReflectionTrait;
@@ -48,7 +48,7 @@ abstract class AbstractTestCase extends TestCase {
     parent::setUp();
 
     $this->fs = new Filesystem();
-    $this->git = new GitArtifactGit();
+    $this->git = new ArtifactGit();
 
     $this->fixtureDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git_artifact';
     $this->fs->mkdir($this->fixtureDir);

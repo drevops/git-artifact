@@ -21,9 +21,6 @@
 
 ---
 
->[!NOTE]
-> Version `0.7` will be a standalone CLI application and will no longer require Robo to run.
-
 ## What is it?
 
 A tool to assemble a code artifact from your codebase, remove unnecessary files,

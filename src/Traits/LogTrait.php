@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact;
+namespace DrevOps\GitArtifact\Traits;
 
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Commands;
 
-use DrevOps\GitArtifact\FilesystemTrait;
-use DrevOps\GitArtifact\GitArtifactGit;
-use DrevOps\GitArtifact\GitArtifactGitRepository;
-use DrevOps\GitArtifact\LogTrait;
-use DrevOps\GitArtifact\TokenTrait;
+use DrevOps\GitArtifact\Git\ArtifactGit;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
+use DrevOps\GitArtifact\Traits\FilesystemTrait;
+use DrevOps\GitArtifact\Traits\LogTrait;
+use DrevOps\GitArtifact\Traits\TokenTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,7 +36,7 @@ class ArtifactCommand extends Command {
   /**
    * Represent to current repository.
    */
-  protected GitArtifactGitRepository $gitRepository;
+  protected ArtifactGitRepository $gitRepository;
 
   /**
    * Source path of git repository.
@@ -125,12 +125,12 @@ class ArtifactCommand extends Command {
   /**
    * Git wrapper.
    */
-  protected GitArtifactGit $git;
+  protected ArtifactGit $git;
 
   /**
    * Artifact constructor.
    *
-   * @param \DrevOps\GitArtifact\GitArtifactGit $gitWrapper
+   * @param \DrevOps\GitArtifact\Git\ArtifactGit $gitWrapper
    *   Git wrapper.
    * @param \Symfony\Component\Filesystem\Filesystem $fsFileSystem
    *   File system.
@@ -138,13 +138,13 @@ class ArtifactCommand extends Command {
    *   Command name.
    */
   public function __construct(
-    GitArtifactGit $gitWrapper = NULL,
+    ArtifactGit $gitWrapper = NULL,
     Filesystem $fsFileSystem = NULL,
     ?string $name = NULL
   ) {
     parent::__construct($name);
     $this->fsFileSystem = is_null($fsFileSystem) ? new Filesystem() : $fsFileSystem;
-    $this->git = is_null($gitWrapper) ? new GitArtifactGit() : $gitWrapper;
+    $this->git = is_null($gitWrapper) ? new ArtifactGit() : $gitWrapper;
   }
 
   /**
@@ -528,13 +528,13 @@ class ArtifactCommand extends Command {
    * @param string $sourcePath
    *   Source path.
    *
-   * @return \DrevOps\GitArtifact\GitArtifactGitRepository
+   * @return \DrevOps\GitArtifact\Git\ArtifactGitRepository
    *   Current git repository.
    *
    * @throws \CzProject\GitPhp\GitException
    * @throws \Exception
    */
-  protected function initGitRepository(string $sourcePath): GitArtifactGitRepository {
+  protected function initGitRepository(string $sourcePath): ArtifactGitRepository {
     $this->gitRepository = $this->git->open($sourcePath);
 
     return $this->gitRepository;
@@ -666,7 +666,7 @@ class ArtifactCommand extends Command {
   protected function setDstBranch(string $branch): void {
     $branch = (string) $this->tokenProcess($branch);
 
-    if (!GitArtifactGitRepository::isValidBranchName($branch)) {
+    if (!ArtifactGitRepository::isValidBranchName($branch)) {
       throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch', $branch));
     }
     $this->destinationBranch = $branch;
@@ -970,7 +970,7 @@ class ArtifactCommand extends Command {
   protected function setupRemoteForRepository(): void {
     $remoteName = $this->remoteName;
     $remoteUrl = $this->remoteUrl;
-    if (!GitArtifactGitRepository::isValidRemoteUrl($remoteUrl)) {
+    if (!ArtifactGitRepository::isValidRemoteUrl($remoteUrl)) {
       throw new \Exception(sprintf('Invalid remote URL: %s', $remoteUrl));
     }
 
