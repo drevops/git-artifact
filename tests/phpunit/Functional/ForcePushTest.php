@@ -11,9 +11,8 @@ namespace DrevOps\GitArtifact\Tests\Functional;
  *
  * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  *
- * @covers \DrevOps\GitArtifact\GitTrait
- * @covers \DrevOps\GitArtifact\Artifact
- * @covers \DrevOps\GitArtifact\FilesystemTrait
+ * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
+ * @covers \DrevOps\GitArtifact\Traits\FilesystemTrait
  */
 class ForcePushTest extends AbstractFunctionalTestCase {
 
@@ -75,7 +74,7 @@ class ForcePushTest extends AbstractFunctionalTestCase {
     $this->gitAssertFilesNotExist($this->src, ['r2/r21.git/index']);
     $this->gitAssertFilesNotExist($this->src, ['r3/r31/r311/.git/index']);
 
-    $output = $this->assertBuildSuccess('--debug');
+    $output = $this->assertBuildSuccess('-vvv');
     $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->src . DIRECTORY_SEPARATOR . 'r1/.git'), $output);
     $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->src . DIRECTORY_SEPARATOR . 'r2/r21/.git'), $output);
     $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->src . DIRECTORY_SEPARATOR . 'r3/r31/r311/.git'), $output);
@@ -234,7 +233,7 @@ class ForcePushTest extends AbstractFunctionalTestCase {
     ]);
 
     // Run the build.
-    $this->assertBuildSuccess('--debug --gitignore=' . $this->src . DIRECTORY_SEPARATOR . 'mygitignore');
+    $this->assertBuildSuccess('-vvv --gitignore=' . $this->src . DIRECTORY_SEPARATOR . 'mygitignore');
 
     $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
 

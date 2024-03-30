@@ -9,7 +9,7 @@ namespace DrevOps\GitArtifact\Tests\Unit;
  *
  * @group unit
  *
- * @covers \DrevOps\GitArtifact\Artifact
+ * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
  */
 class ExcludeTest extends AbstractUnitTestCase {
 
@@ -19,7 +19,7 @@ class ExcludeTest extends AbstractUnitTestCase {
   public function testExcludeExists(): void {
     $this->createFixtureExcludeFile();
 
-    $actual = $this->callProtectedMethod($this->mock, 'localExcludeExists', [$this->fixtureDir]);
+    $actual = $this->callProtectedMethod($this->command, 'localExcludeExists', [$this->fixtureDir]);
 
     $this->assertTrue($actual);
   }
@@ -40,7 +40,7 @@ class ExcludeTest extends AbstractUnitTestCase {
   public function testExcludeEmpty(array $lines, bool $strict, bool $expected): void {
     $this->createFixtureExcludeFile(implode(PHP_EOL, $lines));
 
-    $actual = $this->callProtectedMethod($this->mock, 'localExcludeEmpty', [$this->fixtureDir, $strict]);
+    $actual = $this->callProtectedMethod($this->command, 'localExcludeEmpty', [$this->fixtureDir, $strict]);
 
     $this->assertEquals($expected, $actual);
   }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Traits;
 
+use CzProject\GitPhp\GitException;
+use DrevOps\GitArtifact\Git\ArtifactGit;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use DrevOps\GitArtifact\Tests\Exception\ErrorException;
 use PHPUnit\Framework\AssertionFailedError;
 use Symfony\Component\Filesystem\Filesystem;
@@ -35,11 +38,9 @@ trait CommandTrait {
   protected $fs;
 
   /**
-   * Flag to denote that debug information should be printed.
-   *
-   * @var bool
+   * Artifact git.
    */
-  protected $printDebug;
+  protected ArtifactGit $git;
 
   /**
    * Setup test.
@@ -50,20 +51,16 @@ trait CommandTrait {
    *   Source path.
    * @param string $remote
    *   Remote path.
-   * @param bool $printDebug
-   *   Optional flag to print debug information when running commands.
-   *   Defaults to FALSE.
    */
-  protected function setUp(string $src, string $remote, bool $printDebug = FALSE): void {
-    $this->printDebug = $printDebug;
+  protected function setUp(string $src, string $remote): void {
     $this->fs = new Filesystem();
     $this->src = $src;
     $this->gitInitRepo($this->src);
     $this->dst = $remote;
-    $this->gitInitRepo($this->dst);
+    $remoteRepo = $this->gitInitRepo($this->dst);
     // Allow pushing into already checked out branch. We need this to
     // avoid additional management of fixture repository.
-    $this->runGitCommand('config receive.denyCurrentBranch ignore', $this->dst);
+    $remoteRepo->setConfigReceiveDenyCurrentBranchIgnore();
   }
 
   /**
@@ -86,21 +83,22 @@ trait CommandTrait {
    * @param string $path
    *   Path to the repository directory.
    */
-  protected function gitInitRepo(string $path): void {
+  protected function gitInitRepo(string $path): ArtifactGitRepository {
     if ($this->fs->exists($path)) {
       $this->fs->remove($path);
     }
     $this->fs->mkdir($path);
+    /** @var \DrevOps\GitArtifact\Git\ArtifactGitRepository $repo */
+    $repo = $this->git->init($path, ['-b' => 'master']);
 
-    $this->runGitCommand('init -b master', $path);
+    return $repo;
   }
 
   /**
    * Get all commit hashes in the repository.
    *
-   * @param string|null $path
-   *   Optional path to the repository directory. If not provided, fixture
-   *   directory is used.
+   * @param string $path
+   *   Path to the repository directory.
    * @param string $format
    *   Format of commits.
    *
@@ -109,10 +107,10 @@ trait CommandTrait {
    *
    * @throws \Exception
    */
-  protected function gitGetAllCommits(string $path = NULL, string $format = '%s'): array {
+  protected function gitGetAllCommits(string $path, string $format = '%s'): array {
     $commits = [];
     try {
-      $commits = $this->runGitCommand('log --format="' . $format . '"', $path);
+      $commits = $this->git->open($path)->getCommits($format);
     }
     catch (\Exception $exception) {
       $output = ($exception->getPrevious() instanceof \Throwable) ? $exception->getPrevious()->getMessage() : '';
@@ -135,16 +133,15 @@ trait CommandTrait {
    *
    * @param array<int> $range
    *   Array of commit indexes, stating from 1.
-   * @param string|null $path
-   *   Optional path to the repository directory. If not provided, fixture
-   *   directory is used.
+   * @param string $path
+   *   Path to the repository directory.
    *
    * @return array<string>
    *   Array of commit hashes, ordered by keys in the $range.
    *
    * @throws \Exception
    */
-  protected function gitGetCommitsHashesFromRange(array $range, string $path = NULL): array {
+  protected function gitGetCommitsHashesFromRange(array $range, string $path): array {
     $commits = $this->gitGetAllCommits($path);
 
     array_walk($range, static function (&$v) : void {
@@ -162,15 +159,17 @@ trait CommandTrait {
   /**
    * Get all committed files.
    *
-   * @param string|null $path
-   *   Optional path to the repository directory. If not provided, fixture
-   *   directory is used.
+   * @param string $path
+   *   Path to the repository directory.
    *
    * @return array<string>
    *   Array of commit committed files.
    */
-  protected function gitGetCommittedFiles(string $path = NULL): array {
-    return $this->runGitCommand('ls-tree --full-tree --name-only -r HEAD', $path);
+  protected function gitGetCommittedFiles(string $path): array {
+    return $this
+      ->git
+      ->open($path)
+      ->listCommittedFiles();
   }
 
   /**
@@ -205,13 +204,15 @@ trait CommandTrait {
    */
   protected function gitCreateFixtureCommit(int $index, string $path = NULL): string {
     $path = $path ? $path : $this->src;
-    $this->gitCreateFixtureFile($path, 'f' . $index);
-    $this->runGitCommand(sprintf('add f%s', $index), $path);
-    $this->runGitCommand(sprintf('commit -am "Commit number %s"', $index), $path);
+    $filename = 'f' . $index;
+    $this->gitCreateFixtureFile($path, $filename);
+    $repo = $this->git->open($path);
+    $repo->addFile($filename);
+    $message = 'Commit number ' . $index;
+    $repo->commitAllChanges($message);
+    $lastCommit = $repo->getLastCommit();
 
-    $output = $this->runGitCommand('rev-parse HEAD', $path);
-
-    return trim(implode(' ', $output));
+    return $lastCommit->getId()->toString();
   }
 
   /**
@@ -223,8 +224,8 @@ trait CommandTrait {
    *   Commit message.
    */
   protected function gitCommitAll(string $path, string $message): void {
-    $this->runGitCommand('add .', $path);
-    $this->runGitCommand(sprintf('commit -am "%s"', $message), $path);
+    $repo = $this->git->open($path);
+    $repo->commitAllChanges($message);
   }
 
   /**
@@ -237,17 +238,21 @@ trait CommandTrait {
    */
   protected function gitCheckout(string $path, string $branch): void {
     try {
-      $this->runGitCommand(sprintf('checkout %s', $branch), $path);
+      $repo = $this->git->open($path);
+      $repo->checkout($branch);
     }
-    catch (ErrorException $errorException) {
+    catch (GitException $gitException) {
       $allowedFails = [
         sprintf("error: pathspec '%s' did not match any file(s) known to git", $branch),
       ];
 
-      $output = explode(PHP_EOL, ($errorException->getPrevious() instanceof \Throwable) ? $errorException->getPrevious()->getMessage() : '');
+      if ($gitException->getRunnerResult()) {
+        $output = $gitException->getRunnerResult()->getErrorOutput();
+      }
+
       // Re-throw exception if it is not one of the allowed ones.
-      if (empty(array_intersect($output, $allowedFails))) {
-        throw $errorException;
+      if (!isset($output) || empty(array_intersect($output, $allowedFails))) {
+        throw $gitException;
       }
     }
   }
@@ -259,8 +264,9 @@ trait CommandTrait {
    *   Path to the repo.
    */
   protected function gitReset($path): void {
-    $this->runGitCommand('reset --hard', $path);
-    $this->runGitCommand('clean -dfx', $path);
+    $repo = $this->git->open($path);
+    $repo->resetHard();
+    $repo->cleanForce();
   }
 
   /**
@@ -320,11 +326,13 @@ trait CommandTrait {
    *   Optional flag to add random annotation to the tag. Defaults to FALSE.
    */
   protected function gitAddTag(string $path, string $name, bool $annotate = FALSE): void {
+    $repo = $this->git->open($path);
     if ($annotate) {
-      $this->runGitCommand(sprintf('tag -a %s -m "%s"', $name, 'Annotation for tag ' . $name), $path);
+      $message = 'Annotation for tag ' . $name;
+      $repo->createAnnotatedTag($name, $message);
     }
     else {
-      $this->runGitCommand(sprintf('tag %s', $name), $path);
+      $repo->createLightweightTag($name);
     }
   }
 
@@ -446,30 +454,6 @@ trait CommandTrait {
   }
 
   /**
-   * Run Git command.
-   *
-   * @param string $args
-   *   CLI arguments.
-   * @param string|null $path
-   *   Optional path to the repository. If not provided, fixture repository is
-   *   used.
-   *
-   * @return array<string>
-   *   Array of output lines.
-   */
-  protected function runGitCommand(string $args, string $path = NULL): array {
-    $path = $path ? $path : $this->src;
-
-    $command = 'git --no-pager';
-    if (!empty($path)) {
-      $command .= ' --git-dir=' . $path . '/.git';
-      $command .= ' --work-tree=' . $path;
-    }
-
-    return $this->runCliCommand($command . ' ' . trim($args));
-  }
-
-  /**
    * Run command.
    *
    * @param string $argsAndOptions
@@ -516,16 +500,10 @@ trait CommandTrait {
    *   If commands exists with non-zero status.
    */
   protected function runCliCommand(string $command): array {
-    if ($this->printDebug) {
-      print '++ ' . $command . PHP_EOL;
-    }
     exec($command . ' 2>&1', $output, $code);
 
     if ($code !== 0) {
       throw new ErrorException(sprintf('Command "%s" exited with non-zero status', $command), $code, '', -1, new ErrorException(implode(PHP_EOL, $output), $code, '', -1));
-    }
-    if ($this->printDebug) {
-      print '++++ ' . implode(PHP_EOL, $output) . PHP_EOL;
     }
 
     return $output;

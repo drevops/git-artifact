@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact;
+namespace DrevOps\GitArtifact\Traits;
 
 /**
  * Trait TokenTrait.
@@ -22,19 +22,19 @@ trait TokenTrait {
   protected function tokenProcess(string $string): ?string {
     return preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match) {
       if (count($match) > 1) {
-            $parts = explode(':', $match[1], 2);
-            $token = $parts[0] ?? NULL;
-            $argument = $parts[1] ?? NULL;
+        $parts = explode(':', $match[1], 2);
+        $token = $parts[0] ?? NULL;
+        $argument = $parts[1] ?? NULL;
         if ($token) {
           $method = 'getToken' . ucfirst($token);
           if (method_exists($this, $method)) {
-                /* @phpstan-ignore-next-line */
-                $match[0] = call_user_func([$this, $method], $argument);
+            /* @phpstan-ignore-next-line */
+            $match[0] = call_user_func([$this, $method], $argument);
           }
         }
       }
 
-        return $match[0];
+      return $match[0];
     }, $string);
   }
 

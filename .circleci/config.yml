@@ -96,9 +96,8 @@ jobs:
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--force-push--circleci--[branch] \
               --mode=force-push \
-              --report=$HOME/report--mode--force-push.txt \
-              --push \
-              --debug
+              --log=$HOME/report--mode--force-push.txt \
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
@@ -121,9 +120,8 @@ jobs:
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--force-push--circleci--[branch] \
               --mode=force-push \
-              --report=$HOME/report--mode--force-push.txt \
-              --push \
-              --debug
+              --log=$HOME/report--mode--force-push.txt \
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
@@ -170,9 +168,8 @@ jobs:
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
               --mode=branch \
-              --report=$HOME/report--mode--branch.txt \
-              --push \
-              --debug
+              --log=$HOME/report--mode--branch.txt \
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"
@@ -187,9 +184,8 @@ jobs:
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
               --mode=branch \
-              --report=$HOME/report--mode--branch.txt \
-              --push \
-              --debug \
+              --log=$HOME/report--mode--branch.txt \
+              -vvv \
               && { echo "Expected to fail as repeated pushes to the same branch are not allowed, but succeeded" >&2; exit 1; } || echo "Failed as expected"
 
       - run:
@@ -207,9 +203,8 @@ jobs:
               git@github.com:drevops/git-artifact-destination.git \
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i-s] \
               --mode=branch \
-              --report=$HOME/report--mode--branch.txt \
-              --push \
-              --debug
+              --log=$HOME/report--mode--branch.txt \
+              -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
             echo "Deployed to $DEPLOYED_BRANCH"

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests;
 
+use DrevOps\GitArtifact\Git\ArtifactGit;
 use DrevOps\GitArtifact\Tests\Traits\CommandTrait;
 use DrevOps\GitArtifact\Tests\Traits\MockTrait;
 use DrevOps\GitArtifact\Tests\Traits\ReflectionTrait;
@@ -47,6 +48,7 @@ abstract class AbstractTestCase extends TestCase {
     parent::setUp();
 
     $this->fs = new Filesystem();
+    $this->git = new ArtifactGit();
 
     $this->fixtureDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git_artifact';
     $this->fs->mkdir($this->fixtureDir);
@@ -54,7 +56,6 @@ abstract class AbstractTestCase extends TestCase {
     $this->commandTraitSetUp(
           $this->fixtureDir . DIRECTORY_SEPARATOR . 'git_src',
           $this->fixtureDir . DIRECTORY_SEPARATOR . 'git_remote',
-          $this->isDebug()
       );
   }
 
@@ -67,16 +68,6 @@ abstract class AbstractTestCase extends TestCase {
     if ($this->fs->exists($this->fixtureDir)) {
       $this->fs->remove($this->fixtureDir);
     }
-  }
-
-  /**
-   * Check if testing framework was ran with --debug option.
-   *
-   * @return bool
-   *   TRUE if is in debug mode, FALSE otherwise.
-   */
-  protected function isDebug(): bool {
-    return in_array('--debug', $_SERVER['argv'], TRUE);
   }
 
 }

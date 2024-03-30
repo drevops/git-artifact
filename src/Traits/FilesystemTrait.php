@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact;
+namespace DrevOps\GitArtifact\Traits;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -14,10 +14,8 @@ trait FilesystemTrait {
 
   /**
    * Current directory where call originated.
-   *
-   * @var string
    */
-  protected $fsRootDir;
+  protected string $fsRootDir;
 
   /**
    * File system for custom commands.
@@ -33,7 +31,7 @@ trait FilesystemTrait {
    *
    * @var array<string>
    */
-  protected $fsOriginalCwdStack = [];
+  protected array $fsOriginalCwdStack = [];
 
   /**
    * Set root directory path.
@@ -57,7 +55,7 @@ trait FilesystemTrait {
    *   script was started from or current working directory.
    */
   protected function fsGetRootDir(): string {
-    if ($this->fsRootDir) {
+    if (isset($this->fsRootDir)) {
       return $this->fsRootDir;
     }
 

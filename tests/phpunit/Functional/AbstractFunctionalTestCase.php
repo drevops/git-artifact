@@ -76,7 +76,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
    *   Command output.
    */
   protected function assertBuildSuccess(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
-    $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
+    $output = $this->runBuild(sprintf('--branch=%s %s', $branch, $args));
     $this->assertStringNotContainsString('[error]', $output);
     $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
     $this->assertStringContainsString('Deployment finished successfully.', $output);
@@ -99,7 +99,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
    *   Command output.
    */
   protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
-    $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), TRUE);
+    $output = $this->runBuild(sprintf('--branch=%s %s', $branch, $args), TRUE);
     $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
     $this->assertStringNotContainsString('Deployment finished successfully.', $output);
     $this->assertStringContainsString('Deployment failed.', $output);
@@ -124,12 +124,6 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
     }
 
     $output = $this->runGitArtifactCommandTimestamped(sprintf('--src=%s %s %s', $this->src, $this->dst, $args), $expectFail);
-
-    if ($this->isDebug()) {
-      print str_pad('', 80, '+') . PHP_EOL;
-      print implode(PHP_EOL, $output) . PHP_EOL;
-      print str_pad('', 80, '+') . PHP_EOL;
-    }
 
     return implode(PHP_EOL, $output);
   }
@@ -161,9 +155,9 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
    *   Branch name to assert.
    */
   protected function assertGitCurrentBranch(string $path, string $branch): void {
-    $currentBranch = $this->runGitCommand('rev-parse --abbrev-ref HEAD', $path);
+    $currentBranch = $this->git->open($path)->getCurrentBranchName();
 
-    $this->assertStringContainsString($branch, implode('', $currentBranch), sprintf('Current branch is "%s"', $branch));
+    $this->assertStringContainsString($branch, $currentBranch, sprintf('Current branch is "%s"', $branch));
   }
 
   /**
@@ -175,9 +169,13 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
    *   Remote name to assert.
    */
   protected function assertGitNoRemote(string $path, string $remote): void {
-    $remotes = $this->runGitCommand('remote', $path);
-
-    $this->assertStringNotContainsString($remote, implode('', $remotes), sprintf('Remote "%s" is not present"', $remote));
+    $remotes = $this->git->open($path)->getRemotes();
+    if (empty($remotes)) {
+      $this->assertEmpty($remotes);
+    }
+    else {
+      $this->assertStringNotContainsString($remote, implode("\n", $remotes), sprintf('Remote "%s" is not present"', $remote));
+    }
   }
 
 }
