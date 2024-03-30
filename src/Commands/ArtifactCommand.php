@@ -88,9 +88,9 @@ class ArtifactCommand extends Command {
   protected string $message = '';
 
   /**
-   * Flag to specify if push is required or should be using dry run.
+   * Flag to specify if using dry run.
    */
-  protected bool $needsPush = FALSE;
+  protected bool $isDryRun = FALSE;
 
   /**
    * Flag to specify if cleanup is required to run after the build.
@@ -181,7 +181,7 @@ class ArtifactCommand extends Command {
       )
       ->addOption('no-cleanup', NULL, InputOption::VALUE_NONE, 'Do not cleanup after run.')
       ->addOption('now', NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
-      ->addOption('push', NULL, InputOption::VALUE_NONE, 'Push artifact to the remote repository')
+      ->addOption('dry-run', NULL, InputOption::VALUE_NONE, 'Run without pushing to the remote repository.')
       ->addOption('log', NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
       ->addOption(
           'root',
@@ -261,23 +261,6 @@ class ArtifactCommand extends Command {
    * @param array<mixed> $options
    *   Options.
    *
-   * @option $branch Destination branch with optional tokens.
-   * @option $debug Print debug information.
-   * @option $gitignore Path to gitignore file to replace current .gitignore.
-   * @option $message Commit message with optional tokens.
-   * @option $mode Mode of artifact build: branch, force-push or diff.
-   *   Defaults to force-push.
-   * @option $now Internal value used to set internal time.
-   * @option $no-cleanup Do not cleanup after run.
-   * @option $push Push artifact to the remote repository. Defaults to FALSE.
-   * @option $report Path to the report file.
-   * @option $root Path to the root for file path resolution. If not
-   *         specified, current directory is used.
-   * @option $show-changes Show changes made to the repo by the build in the
-   *         output.
-   * @option $src Directory where source repository is located. If not
-   *   specified, root directory is used.
-   *
    * @throws \Exception
    */
   protected function processArtifact(string $remote, array $options): void {
@@ -290,11 +273,11 @@ class ArtifactCommand extends Command {
       $this->showInfo();
       $this->prepareArtifact();
 
-      if ($this->needsPush) {
-        $this->doPush();
+      if ($this->isDryRun) {
+        $this->output->writeln('<comment>Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.</comment>');
       }
       else {
-        $this->output->writeln('<comment>Cowardly refusing to push to remote. Use --push option to perform an actual push.</comment>');
+        $this->doPush();
       }
       $this->result = TRUE;
     }
@@ -497,7 +480,7 @@ class ArtifactCommand extends Command {
     // Resolve some basic options into properties.
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
-    $this->needsPush = !empty($options['push']);
+    $this->isDryRun = !empty($options['dry-run']);
     $this->logFile = empty($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
     $this->remoteName = self::GIT_REMOTE_NAME;
@@ -553,7 +536,7 @@ class ArtifactCommand extends Command {
     $lines[] = (' Remote repository:     ' . $this->remoteUrl);
     $lines[] = (' Remote branch:         ' . $this->destinationBranch);
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
-    $lines[] = (' Will push:             ' . ($this->needsPush ? 'Yes' : 'No'));
+    $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
     $lines[] = ('----------------------------------------------------------------------');
 
     $this->output->writeln($lines);

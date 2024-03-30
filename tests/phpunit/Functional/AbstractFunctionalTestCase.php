@@ -76,7 +76,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
    *   Command output.
    */
   protected function assertBuildSuccess(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
-    $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args));
+    $output = $this->runBuild(sprintf('--branch=%s %s', $branch, $args));
     $this->assertStringNotContainsString('[error]', $output);
     $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
     $this->assertStringContainsString('Deployment finished successfully.', $output);
@@ -99,7 +99,7 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase {
    *   Command output.
    */
   protected function assertBuildFailure(string $args = '', string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
-    $output = $this->runBuild(sprintf('--push --branch=%s %s', $branch, $args), TRUE);
+    $output = $this->runBuild(sprintf('--branch=%s %s', $branch, $args), TRUE);
     $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
     $this->assertStringNotContainsString('Deployment finished successfully.', $output);
     $this->assertStringContainsString('Deployment failed.', $output);

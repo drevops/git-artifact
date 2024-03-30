@@ -97,7 +97,6 @@ jobs:
               --branch=mode--force-push--circleci--[branch] \
               --mode=force-push \
               --log=$HOME/report--mode--force-push.txt \
-              --push \
               -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
@@ -122,7 +121,6 @@ jobs:
               --branch=mode--force-push--circleci--[branch] \
               --mode=force-push \
               --log=$HOME/report--mode--force-push.txt \
-              --push \
               -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--force-push.txt | sed 's/ //g')
@@ -171,7 +169,6 @@ jobs:
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
               --mode=branch \
               --log=$HOME/report--mode--branch.txt \
-              --push \
               -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
@@ -188,7 +185,6 @@ jobs:
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i] \
               --mode=branch \
               --log=$HOME/report--mode--branch.txt \
-              --push \
               -vvv \
               && { echo "Expected to fail as repeated pushes to the same branch are not allowed, but succeeded" >&2; exit 1; } || echo "Failed as expected"
 
@@ -208,7 +204,6 @@ jobs:
               --branch=mode--branch--circleci--[branch]--[timestamp:Y-m-d_H-i-s] \
               --mode=branch \
               --log=$HOME/report--mode--branch.txt \
-              --push \
               -vvv
 
             DEPLOYED_BRANCH=$(sed -n 's/Remote branch://p' $HOME/report--mode--branch.txt | sed 's/ //g')
