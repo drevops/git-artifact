@@ -28,7 +28,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testInfo(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild();
+    $output = $this->runBuild('--dry-run');
     $this->assertStringContainsString('Artifact information', $output);
     $this->assertStringContainsString('Mode:                  force-push', $output);
     $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
@@ -38,33 +38,33 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $this->assertStringContainsString('Will push:             No', $output);
     $this->assertStringNotContainsString('Added changes:', $output);
 
-    $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+    $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
 
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
 
   public function testShowChanges(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--show-changes');
+    $output = $this->runBuild('--show-changes --dry-run');
 
     $this->assertStringContainsString('Added changes:', $output);
 
-    $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+    $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
 
   public function testNoCleanup(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--no-cleanup');
+    $output = $this->runBuild('--no-cleanup --dry-run');
 
     $this->assertGitCurrentBranch($this->src, $this->artifactBranch);
-    $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+    $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
 
   public function testDebug(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('-vvv');
+    $output = $this->runBuild('-vvv --dry-run');
 
     $this->assertStringContainsString('Debug messages enabled', $output);
     $this->assertStringContainsString('Artifact information', $output);
@@ -82,7 +82,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $this->assertStringContainsString('Gitignore file:    No', $output);
     $this->assertStringContainsString('Push result:       Success', $output);
 
-    $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+    $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
 
@@ -90,7 +90,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $report = $this->src . DIRECTORY_SEPARATOR . 'report.txt';
 
     $this->gitCreateFixtureCommits(1);
-    $commandOutput = $this->runBuild(sprintf('--log=%s', $report));
+    $commandOutput = $this->runBuild(sprintf('--dry-run --log=%s', $report));
 
     $this->assertStringContainsString('Debug messages enabled', $commandOutput);
     $this->assertStringContainsString('Artifact information', $commandOutput);
@@ -131,11 +131,11 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testDebugDisabled(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild();
+    $output = $this->runBuild('--dry-run');
 
     $this->assertStringNotContainsString('Debug messages enabled', $output);
 
-    $this->assertStringContainsString('Cowardly refusing to push to remote. Use --push option to perform an actual push.', $output);
+    $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
 

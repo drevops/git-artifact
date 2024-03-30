@@ -117,36 +117,27 @@ fully-configured [example in the DrevOps project](https://github.com/drevops/dre
 
 ## Options
 
-    Usage:
-      artifact [options] [--] <remote>
+| Name               | Default value        | Description                                                                                   |
+|--------------------|----------------------|-----------------------------------------------------------------------------------------------|
+| `--branch`         | `"[branch]"`         | Destination branch with optional tokens.                                                      |
+| `--gitignore`      |                      | Path to gitignore file to replace current `.gitignore`.                                       |
+| `--message`        | `"Deployment commit"`| Commit message with optional tokens.                                                          |
+| `--mode`           | `"force-push"`       | Mode of artifact build: branch, force-push or diff.                                           |
+| `--no-cleanup`     |                      | Do not cleanup after run.                                                                     |
+| `--now`            |                      | Internal value used to set internal time.                                                     |
+| `--dry-run`        |                      | Run without pushing to the remote repository.                                                 |
+| `--log`            |                      | Path to the log file.                                                                         |
+| `--root`           |                      | Path to the root for file path resolution. Uses current directory if not specified.           |
+| `--show-changes`   |                      | Show changes made to the repo by the build in the output.                                     |
+| `--src`            |                      | Directory where source repository is located. Uses root directory if not specified.           |
+| `-h, --help`       |                      | Display help for the given command. Displays help for the artifact command if no command given. |
+| `-q, --quiet`      |                      | Do not output any message.                                                                    |
+| `-V, --version`    |                      | Display this application version.                                                             |
+| `--ansi`           |                      | Force ANSI output. Use `--no-ansi` to disable.                                                |
+| `-n, --no-interaction` |                  | Do not ask any interactive question.                                                          |
+| `-v, --verbose`    |                      | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug.            |
 
-    Arguments:
-      remote                               Path to the remote git repository.
-
-    Options:
-          --branch[=BRANCH]                Destination branch with optional tokens. [default: "[branch]"]
-          --gitignore=GITIGNORE            Path to gitignore file to replace current .gitignore.
-          --message[=MESSAGE]              Commit message with optional tokens. [default: "Deployment commit"]
-          --mode[=MODE]                    Mode of artifact build: branch, force-push or diff. Defaults to force-push. [default: "force-push"]
-          --no-cleanup                     Do not cleanup after run.
-          --now=NOW                        Internal value used to set internal time.
-          --push                           Push artifact to the remote repository. Defaults to FALSE.
-          --log=LOG                        Path to the log/report file.
-          --root=ROOT                      Path to the root for file path resolution. If not specified, current directory is used.
-          --show-changes                   Show changes made to the repo by the build in the output.
-          --src=SRC                        Directory where source repository is located. If not specified, root directory is used.
-      -h, --help                           Display this help message
-      -q, --quiet                          Do not output any message
-      -V, --version                        Display this application version
-          --ansi                           Force ANSI output
-          --no-ansi                        Disable ANSI output
-      -n, --no-interaction                 Do not ask any interactive question
-      -v|vv|vvv, --verbose                 Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
-
-    Help:
-      Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.
-
-### Adding dependencies
+### Modifying artifact content
 
 `--gitignore` option allows to specify the path to the artifact's `.gitignore`
 file that replaces existing `.gitignore` (if any) during the build. Any files no
