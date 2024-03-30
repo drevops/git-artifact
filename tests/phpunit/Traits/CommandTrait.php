@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Tests\Traits;
 
 use CzProject\GitPhp\GitException;
-use DrevOps\GitArtifact\GitArtifactGit;
-use DrevOps\GitArtifact\GitArtifactGitRepository;
+use DrevOps\GitArtifact\Git\ArtifactGit;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use DrevOps\GitArtifact\Tests\Exception\ErrorException;
 use PHPUnit\Framework\AssertionFailedError;
 use Symfony\Component\Filesystem\Filesystem;
@@ -40,7 +40,7 @@ trait CommandTrait {
   /**
    * Artifact git.
    */
-  protected GitArtifactGit $git;
+  protected ArtifactGit $git;
 
   /**
    * Setup test.
@@ -83,12 +83,12 @@ trait CommandTrait {
    * @param string $path
    *   Path to the repository directory.
    */
-  protected function gitInitRepo(string $path): GitArtifactGitRepository {
+  protected function gitInitRepo(string $path): ArtifactGitRepository {
     if ($this->fs->exists($path)) {
       $this->fs->remove($path);
     }
     $this->fs->mkdir($path);
-    /** @var \DrevOps\GitArtifact\GitArtifactGitRepository $repo */
+    /** @var \DrevOps\GitArtifact\Git\ArtifactGitRepository $repo */
     $repo = $this->git->init($path, ['-b' => 'master']);
 
     return $repo;
