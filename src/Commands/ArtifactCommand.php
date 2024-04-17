@@ -914,9 +914,10 @@ class ArtifactCommand extends Command {
    */
   protected function getTokenTags(string $delimiter = NULL): string {
     $delimiter = $delimiter ?: '-';
+    // We just want to get all tags point to the HEAD.
     $tags = $this
       ->gitRepository
-      ->getTags();
+      ->getTagsPointToHead();
 
     return implode($delimiter, $tags);
   }

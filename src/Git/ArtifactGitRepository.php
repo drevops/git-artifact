@@ -238,6 +238,25 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
+   * Get tag point to HEAD.
+   *
+   * @return string[]
+   *   Array of tags from the latest commit.
+   *
+   * @throws \Exception
+   *   If no tags found in the latest commit.
+   */
+  public function getTagsPointToHead(): array {
+    $tags = $this->extractFromCommand(['tag', ['--points-at', 'HEAD']]);
+
+    if (empty($tags)) {
+      throw new \Exception('No tags found in the latest commit.');
+    }
+
+    return $tags;
+  }
+
+  /**
    * Create an annotated tag.
    *
    * @param string $name
