@@ -285,6 +285,14 @@ class ForcePushTest extends AbstractFunctionalTestCase {
     $this->assertFixtureCommits(3, $this->dst, 'tag3', ['Deployment commit']);
   }
 
+  public function testBuildMultipleTagsMissingTags(): void {
+    $this->gitCreateFixtureCommits(2);
+    $this->gitAddTag($this->src, 'tag1');
+    $this->gitCreateFixtureCommit(3);
+
+    $this->assertBuildFailure('--branch=[tags]');
+  }
+
   public function testBuildMultipleTagsDelimiter(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
