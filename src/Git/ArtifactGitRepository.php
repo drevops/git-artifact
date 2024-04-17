@@ -238,6 +238,18 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
+   * Get tag point to HEAD.
+   *
+   * @return string[]|null
+   *   Tags.
+   *
+   * @throws \CzProject\GitPhp\GitException
+   */
+  public function getTagsPointToHead(): ?array {
+    return $this->extractFromCommand(['tag', ['--points-at', 'HEAD']]);
+  }
+
+  /**
    * Create an annotated tag.
    *
    * @param string $name
