@@ -179,3 +179,5 @@ composer lint-fix
 composer test
 ```
 
+---
+Repository created using https://getscaffold.dev/ project scaffold template
