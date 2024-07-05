@@ -20,6 +20,7 @@ trait TokenTrait {
    *   original string.
    */
   protected function tokenProcess(string $string): ?string {
+    /* @phpstan-ignore-next-line */
     return preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match) {
       if (count($match) > 1) {
         $parts = explode(':', $match[1], 2);

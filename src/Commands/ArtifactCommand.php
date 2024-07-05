@@ -140,7 +140,7 @@ class ArtifactCommand extends Command {
   public function __construct(
     ArtifactGit $gitWrapper = NULL,
     Filesystem $fsFileSystem = NULL,
-    ?string $name = NULL
+    ?string $name = NULL,
   ) {
     parent::__construct($name);
     $this->fsFileSystem = is_null($fsFileSystem) ? new Filesystem() : $fsFileSystem;
@@ -760,7 +760,7 @@ class ArtifactCommand extends Command {
     }
     $lines = file($filename);
     if ($lines) {
-      $lines = array_map('trim', $lines);
+      $lines = array_map(trim(...), $lines);
       $lines = array_filter($lines, static function ($line) : bool {
         return strlen($line) > 0;
       });

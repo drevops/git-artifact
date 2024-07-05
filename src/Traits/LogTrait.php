@@ -49,6 +49,7 @@ trait LogTrait {
         OutputInterface::VERBOSITY_DEBUG => Level::Debug,
       ];
       $verbosity = $output->getVerbosity();
+      // @phpstan-ignore-next-line
       $level = $verbosityMapping[$verbosity] ?? Level::Debug;
       $handler = new StreamHandler($logFile, $level);
       $logger->pushHandler($handler);
