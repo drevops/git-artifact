@@ -115,7 +115,7 @@ export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
 ```
 
 See extended and
-fully-configured [example in the DrevOps project](https://github.com/drevops/drevops/blob/develop/scripts/drevops/deploy-artifact.sh).
+fully-configured [example in the Scaffold project](https://github.com/drevops/scaffold/blob/develop/scripts/drevops/deploy-artifact.sh).
 
 ## Options
 
@@ -180,4 +180,4 @@ composer test
 ```
 
 ---
-Repository created using https://getscaffold.dev/ project scaffold template
+_Repository created using https://getscaffold.dev/ project scaffold template_
