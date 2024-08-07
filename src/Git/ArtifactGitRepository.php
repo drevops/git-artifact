@@ -364,7 +364,7 @@ class ArtifactGitRepository extends GitRepository {
    *
    * @throws \CzProject\GitPhp\GitException
    */
-  protected function run(...$args): RunnerResult {
+  public function run(...$args): RunnerResult {
     $command = array_shift($args);
     array_unshift($args, '--no-pager', $command);
 
