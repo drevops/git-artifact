@@ -70,6 +70,7 @@
             "rector --clear-cache",
             "phpcbf"
         ],
+        "reset": "rm -rf vendor vendor-bin composer.lock",
         "test": "if [ \"${XDEBUG_MODE}\" = 'coverage' ]; then phpunit; else phpunit --no-coverage; fi"
     }
 }
