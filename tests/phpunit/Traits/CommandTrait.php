@@ -183,7 +183,7 @@ trait CommandTrait {
    *   Optional path to the repository directory. If not provided, fixture
    *   directory is used.
    */
-  protected function gitCreateFixtureCommits(int $count, int $offset = 0, string $path = NULL): void {
+  protected function gitCreateFixtureCommits(int $count, int $offset = 0, ?string $path = NULL): void {
     $path = $path ? $path : $this->src;
     for ($i = $offset; $i < $count + $offset; $i++) {
       $this->gitCreateFixtureCommit($i + 1, $path);
@@ -202,7 +202,7 @@ trait CommandTrait {
    * @return string
    *   Hash of created commit.
    */
-  protected function gitCreateFixtureCommit(int $index, string $path = NULL): string {
+  protected function gitCreateFixtureCommit(int $index, ?string $path = NULL): string {
     $path = $path ? $path : $this->src;
     $filename = 'f' . $index;
     $this->gitCreateFixtureFile($path, $filename);
@@ -348,7 +348,7 @@ trait CommandTrait {
    *
    * @todo Update arguments order and add assertion message.
    */
-  protected function gitAssertFilesExist(string $path, $files, string $branch = NULL): void {
+  protected function gitAssertFilesExist(string $path, $files, ?string $branch = NULL): void {
     $files = is_array($files) ? $files : [$files];
     if ($branch) {
       $this->gitCheckout($path, $branch);
@@ -368,7 +368,7 @@ trait CommandTrait {
    * @param string|null $branch
    *   Optional branch. If set, will be checked out before assertion.
    */
-  protected function gitAssertFilesNotExist(string $path, $files, string $branch = NULL): void {
+  protected function gitAssertFilesNotExist(string $path, $files, ?string $branch = NULL): void {
     $files = is_array($files) ? $files : [$files];
     if ($branch) {
       $this->gitCheckout($path, $branch);

@@ -14,7 +14,7 @@ class ErrorException extends Exception {
   /**
    * {@inheritdoc}
    */
-  public function __construct(string $message, int $code, string $file, int $line, \Exception $previous = NULL) {
+  public function __construct(string $message, int $code, string $file, int $line, ?\Exception $previous = NULL) {
     parent::__construct($message, $code, $previous);
 
     $this->file = $file;

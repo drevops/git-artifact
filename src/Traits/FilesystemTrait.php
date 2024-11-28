@@ -41,7 +41,7 @@ trait FilesystemTrait {
    *
    * @throws \Exception
    */
-  protected function fsSetRootDir(string $path = NULL): void {
+  protected function fsSetRootDir(?string $path = NULL): void {
     $path = empty($path) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($path);
     $this->fsPathsExist($path);
     $this->fsRootDir = $path;
@@ -129,7 +129,7 @@ trait FilesystemTrait {
    * @return string
    *   Absolute path for provided file.
    */
-  protected function fsGetAbsolutePath(string $file, string $root = NULL): string {
+  protected function fsGetAbsolutePath(string $file, ?string $root = NULL): string {
     if ($this->fsFileSystem->isAbsolutePath($file)) {
       return $this->realpath($file);
     }

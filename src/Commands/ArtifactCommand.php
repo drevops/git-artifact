@@ -138,8 +138,8 @@ class ArtifactCommand extends Command {
    *   Command name.
    */
   public function __construct(
-    ArtifactGit $gitWrapper = NULL,
-    Filesystem $fsFileSystem = NULL,
+    ?ArtifactGit $gitWrapper = NULL,
+    ?Filesystem $fsFileSystem = NULL,
     ?string $name = NULL,
   ) {
     parent::__construct($name);
@@ -813,7 +813,7 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    *   If removal command finished with an error.
    */
-  protected function removeIgnoredFiles(string $location, string $gitignorePath = NULL): void {
+  protected function removeIgnoredFiles(string $location, ?string $gitignorePath = NULL): void {
     $location = $this->getSourcePathGitRepository();
     $gitignorePath = $gitignorePath ?: $location . DIRECTORY_SEPARATOR . '.gitignore';
 
@@ -912,7 +912,7 @@ class ArtifactCommand extends Command {
    *
    * @throws \Exception
    */
-  protected function getTokenTags(string $delimiter = NULL): string {
+  protected function getTokenTags(?string $delimiter = NULL): string {
     $delimiter = $delimiter ?: '-';
     // We just want to get all tags point to the HEAD.
     $tags = $this
