@@ -31,10 +31,10 @@ and push it into a separate Git repository.
 
 In hosting environments like Acquia, there are restrictions on the languages or
 frameworks available for building applications—for instance, the inability to
-run composer install due to a read-only filesystem. Consequently, a website must
-be developed in a separate (source) repository, compiled into an artifact either
-locally or via CI, and then transferred to the hosting provider's version
-control system (destination repository).
+run `composer install` due to a read-only filesystem. Consequently, a website 
+source code has to be developed in a separate (source) repository, then 
+assembled into a code artifact either locally or via CI, and then transferred 
+to the hosting provider's version control system (destination repository).
 
 This tool facilitates such processes seamlessly: it uses a `.gitignore.deployment`
 file to determine which files should be transferred to the destination
@@ -87,7 +87,7 @@ destination repository.
 
 ## Installation
 ```shell
-composer require drevops/git-artifact
+composer require --dev drevops/git-artifact
 ```
 or download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
 
@@ -152,21 +152,21 @@ captured.
 
 Tokens are pre-defined strings surrounded by `[` and `]` and may contain
 optional formatter (for flexibility). For example, `[timestamp:Y-m-d]` is
-replaced with current timestamp in format `Y-m-d` (token formatter), which is
-PHP `date()` expected format.
+replaced with the current timestamp in format `Y-m-d` (token formatter), which is
+PHP [`date()`](https://www.php.net/manual/en/function.date.php) expected format.
 
 Both `--branch` and `--message` option values support token replacement.
 
 Available tokens:
 
-- `[timestamp:FORMAT]` - current time with a PHP `date()`-compatible `FORMAT`.
+- `[timestamp:FORMAT]` - current time with a PHP [`date()`](https://www.php.net/manual/en/function.date.php)-compatible `FORMAT`.
 - `[branch]` - current branch in the source repository.
 - `[tags:DELIMITER]` - tags from the latest commit in the source repository
    separated by a `DELIMITER`.
 
 ## Maintenance
 
-### Lint code
+### Lint and fix code
 
 ```bash
 composer lint
