@@ -28,30 +28,29 @@ trait LogTrait {
    *   Name.
    * @param \Symfony\Component\Console\Output\OutputInterface $output
    *   Output.
-   * @param string $logFile
-   *   Log file.
+   * @param string $filepath
+   *   Filepath to log file.
    *
    * @return \Psr\Log\LoggerInterface
    *   Logger.
    */
-  public static function createLogger(string $name, OutputInterface $output, string $logFile): LoggerInterface {
+  public static function loggerCreate(string $name, OutputInterface $output, string $filepath): LoggerInterface {
     $logger = new Logger($name);
-    // Console handler.
+
     $handler = new ConsoleHandler($output);
     $logger->pushHandler($handler);
-    // Stream handler if needed.
-    if (!empty($logFile)) {
-      $verbosityMapping = [
+
+    if (!empty($filepath)) {
+      $map = [
         OutputInterface::VERBOSITY_QUIET => Level::Error,
         OutputInterface::VERBOSITY_NORMAL => Level::Warning,
         OutputInterface::VERBOSITY_VERBOSE => Level::Notice,
         OutputInterface::VERBOSITY_VERY_VERBOSE => Level::Info,
         OutputInterface::VERBOSITY_DEBUG => Level::Debug,
       ];
-      $verbosity = $output->getVerbosity();
-      // @phpstan-ignore-next-line
-      $level = $verbosityMapping[$verbosity] ?? Level::Debug;
-      $handler = new StreamHandler($logFile, $level);
+
+      $handler = new StreamHandler($filepath, $map[$output->getVerbosity()] ?? Level::Debug);
+
       $logger->pushHandler($handler);
     }
 

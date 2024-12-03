@@ -519,8 +519,6 @@ trait CommandTrait {
    *   Expected assert.
    * @param array $array
    *   The array want to assert.
-   *
-   * @phpstan-ignore-next-line
    */
   protected function assertArraySimilar(array $expected, array $array): void {
     $this->assertEquals([], array_diff($array, $expected));
