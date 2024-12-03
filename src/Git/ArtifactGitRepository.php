@@ -19,7 +19,7 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Filesystem.
    */
-  protected Filesystem $fileSystem;
+  protected Filesystem $fs;
 
   /**
    * Logger.
@@ -56,6 +56,7 @@ class ArtifactGitRepository extends GitRepository {
    */
   public function listIgnoredFilesFromGitIgnoreFile(string $gitIgnoreFilePath): array {
     $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $gitIgnoreFilePath]);
+
     if (!$files) {
       return [];
     }

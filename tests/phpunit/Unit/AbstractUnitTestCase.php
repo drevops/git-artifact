@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DrevOps\GitArtifact\Tests\Unit;
 
 use DrevOps\GitArtifact\Commands\ArtifactCommand;

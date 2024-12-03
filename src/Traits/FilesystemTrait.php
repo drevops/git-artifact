@@ -20,7 +20,7 @@ trait FilesystemTrait {
   /**
    * File system for custom commands.
    */
-  protected Filesystem $fsFileSystem;
+  protected Filesystem $fs;
 
   /**
    * Stack of original current working directories.
@@ -39,12 +39,15 @@ trait FilesystemTrait {
    * @param string|null $path
    *   The path of the root directory.
    *
-   * @throws \Exception
+   * @return static
+   *   The called object.
    */
-  protected function fsSetRootDir(?string $path = NULL): void {
+  protected function fsSetRootDir(?string $path = NULL): static {
     $path = empty($path) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($path);
     $this->fsPathsExist($path);
     $this->fsRootDir = $path;
+
+    return $this;
   }
 
   /**
@@ -74,10 +77,14 @@ trait FilesystemTrait {
    *
    * @param string $dir
    *   Path to the current directory.
+   *
+   * @return static
+   *   The called object.
    */
-  protected function fsCwdSet(string $dir): void {
+  protected function fsSetCwd(string $dir): static {
     chdir($dir);
     $this->fsOriginalCwdStack[] = $dir;
+    return $this;
   }
 
   /**
@@ -130,14 +137,15 @@ trait FilesystemTrait {
    *   Absolute path for provided file.
    */
   protected function fsGetAbsolutePath(string $file, ?string $root = NULL): string {
-    if ($this->fsFileSystem->isAbsolutePath($file)) {
-      return $this->realpath($file);
+    if ($this->fs->isAbsolutePath($file)) {
+      return $this->fsRealpath($file);
     }
+
     $root = $root ? $root : $this->fsGetRootDir();
-    $root = $this->realpath($root);
+    $root = $this->fsRealpath($root);
     $file = $root . DIRECTORY_SEPARATOR . $file;
 
-    return $this->realpath($file);
+    return $this->fsRealpath($file);
   }
 
   /**
@@ -157,7 +165,7 @@ trait FilesystemTrait {
    */
   protected function fsPathsExist($paths, bool $strict = TRUE): bool {
     $paths = is_array($paths) ? $paths : [$paths];
-    if (!$this->fsFileSystem->exists($paths)) {
+    if (!$this->fs->exists($paths)) {
       if ($strict) {
         throw new \Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
       }
@@ -169,7 +177,7 @@ trait FilesystemTrait {
   }
 
   /**
-   * Replacement for PHP's `realpath` resolves non-existing paths.
+   * Replacement for PHP's `fsRealpath` resolves non-existing paths.
    *
    * The main deference is that it does not return FALSE on non-existing
    * paths.
@@ -185,10 +193,11 @@ trait FilesystemTrait {
    * @SuppressWarnings(PHPMD.CyclomaticComplexity)
    * @SuppressWarnings(PHPMD.NPathComplexity)
    */
-  protected function realpath(string $path): string {
+  protected function fsRealpath(string $path): string {
     // Whether $path is unix or not.
     $unipath = $path === '' || $path[0] !== '/';
     $unc = str_starts_with($path, '\\\\');
+
     // Attempt to detect if path is relative in which case, add cwd.
     if (!str_contains($path, ':') && $unipath && !$unc) {
       $path = getcwd() . DIRECTORY_SEPARATOR . $path;
@@ -215,15 +224,21 @@ trait FilesystemTrait {
         $absolutes[] = $part;
       }
     }
+
     $path = implode(DIRECTORY_SEPARATOR, $absolutes);
+
     // Resolve any symlinks.
     if (function_exists('readlink') && file_exists($path) && linkinfo($path) > 0) {
       $path = readlink($path);
+
+      if (!$path) {
+        throw new \Exception(sprintf('Could not resolve symlink for path: %s', $path));
+      }
     }
+
     // Put initial separator that could have been lost.
     $path = $unipath ? $path : '/' . $path;
 
-    /* @phpstan-ignore-next-line */
     return $unc ? '\\\\' . $path : $path;
   }
 
