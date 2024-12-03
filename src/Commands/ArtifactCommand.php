@@ -143,7 +143,7 @@ class ArtifactCommand extends Command {
     ?string $name = NULL,
   ) {
     parent::__construct($name);
-    $this->fsFileSystem = is_null($fsFileSystem) ? new Filesystem() : $fsFileSystem;
+    $this->fs = is_null($fsFileSystem) ? new Filesystem() : $fsFileSystem;
     $this->git = is_null($gitWrapper) ? new ArtifactGit() : $gitWrapper;
   }
 
@@ -160,46 +160,46 @@ class ArtifactCommand extends Command {
     $this
       ->addOption('branch', NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.', '[branch]')
       ->addOption(
-          'gitignore',
-          NULL,
-          InputOption::VALUE_REQUIRED,
-          'Path to gitignore file to replace current .gitignore.'
+        'gitignore',
+        NULL,
+        InputOption::VALUE_REQUIRED,
+        'Path to gitignore file to replace current .gitignore.'
       )
       ->addOption(
-          'message',
-          NULL,
-          InputOption::VALUE_REQUIRED,
-          'Commit message with optional tokens.',
-          'Deployment commit'
+        'message',
+        NULL,
+        InputOption::VALUE_REQUIRED,
+        'Commit message with optional tokens.',
+        'Deployment commit'
       )
       ->addOption(
-          'mode',
-          NULL,
-          InputOption::VALUE_REQUIRED,
-          'Mode of artifact build: branch, force-push or diff. Defaults to force-push.',
-          'force-push'
+        'mode',
+        NULL,
+        InputOption::VALUE_REQUIRED,
+        'Mode of artifact build: branch, force-push or diff. Defaults to force-push.',
+        'force-push'
       )
       ->addOption('no-cleanup', NULL, InputOption::VALUE_NONE, 'Do not cleanup after run.')
       ->addOption('now', NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('dry-run', NULL, InputOption::VALUE_NONE, 'Run without pushing to the remote repository.')
       ->addOption('log', NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
       ->addOption(
-          'root',
-          NULL,
-          InputOption::VALUE_REQUIRED,
-          'Path to the root for file path resolution. If not specified, current directory is used.'
+        'root',
+        NULL,
+        InputOption::VALUE_REQUIRED,
+        'Path to the root for file path resolution. If not specified, current directory is used.'
       )
       ->addOption(
-          'show-changes',
-          NULL,
-          InputOption::VALUE_NONE,
-          'Show changes made to the repo by the build in the output.'
+        'show-changes',
+        NULL,
+        InputOption::VALUE_NONE,
+        'Show changes made to the repo by the build in the output.'
       )
       ->addOption(
-          'src',
-          NULL,
-          InputOption::VALUE_REQUIRED,
-          'Directory where source repository is located. If not specified, root directory is used.'
+        'src',
+        NULL,
+        InputOption::VALUE_REQUIRED,
+        'Directory where source repository is located. If not specified, root directory is used.'
       );
   }
 
@@ -217,27 +217,34 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    // If log option was set, we set verbosity is debug.
     if ($input->getOption('log')) {
       $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
     }
+
     $this->output = $output;
-    $tmpLogFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
-    $this->logger = self::createLogger((string) $this->getName(), $output, $tmpLogFile);
+
+    $logfile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
+    $this->logger = self::loggerCreate((string) $this->getName(), $output, $logfile);
+
     $remote = $input->getArgument('remote');
+    if (!is_string($remote)) {
+      throw new \RuntimeException('Remote argument must be a string');
+    }
+
     try {
       // Now we have all what we need.
       // Let process artifact function.
       $this->checkRequirements();
-      // @phpstan-ignore-next-line
+
       $this->processArtifact($remote, $input->getOptions());
 
       // Dump log file and clean tmp log file.
-      if ($this->fsFileSystem->exists($tmpLogFile)) {
+      if ($this->fs->exists($logfile)) {
         if (!empty($this->logFile)) {
-          $this->fsFileSystem->copy($tmpLogFile, $this->logFile);
+          $this->fs->copy($logfile, $this->logFile);
         }
-        $this->fsFileSystem->remove($tmpLogFile);
+
+        $this->fs->remove($logfile);
       }
     }
     catch (\Exception $exception) {
@@ -245,6 +252,7 @@ class ArtifactCommand extends Command {
         '<error>Deployment failed.</error>',
         '<error>' . $exception->getMessage() . '</error>',
       ]);
+
       return Command::FAILURE;
     }
 
@@ -463,46 +471,43 @@ class ArtifactCommand extends Command {
   /**
    * Resolve and validate CLI options values into internal values.
    *
-   * @param string $remote
+   * @param string $url
    *   Remote URL.
-   * @param array $options
+   * @param array<mixed> $options
    *   Array of CLI options.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   * @throws \Exception
-   *
-   * @phpstan-ignore-next-line
    */
-  protected function resolveOptions(string $remote, array $options): void {
-    // First handle root for filesystem.
-    $this->fsSetRootDir($options['root']);
+  protected function resolveOptions(string $url, array $options): void {
+    if (!empty($options['root']) && is_scalar($options['root'])) {
+      $this->fsSetRootDir(strval($options['root']));
+    }
 
-    // Resolve some basic options into properties.
+    $this->remoteUrl = $url;
+    $this->remoteName = self::GIT_REMOTE_NAME;
+    $this->now = empty($options['now']) ? time() : (int) $options['now'];
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->isDryRun = !empty($options['dry-run']);
     $this->logFile = empty($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
-    $this->now = empty($options['now']) ? time() : (int) $options['now'];
-    $this->remoteName = self::GIT_REMOTE_NAME;
-    $this->remoteUrl = $remote;
+
     $this->setMode($options['mode'], $options);
 
-    // Handle some complex options.
     $srcPath = empty($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
     $this->sourcePathGitRepository = $srcPath;
+
     // Setup Git repository from source path.
     $this->initGitRepository($srcPath);
+
     // Set original, destination, artifact branch name.
     $this->originalBranch = $this->resolveOriginalBranch();
     $this->setDstBranch($options['branch']);
     $this->artifactBranch = $this->destinationBranch . '-artifact';
+
     // Set commit message.
     $this->setMessage($options['message']);
-    // Set git ignore file path.
+
     if (!empty($options['gitignore'])) {
       $this->setGitignoreFile($options['gitignore']);
     }
-
   }
 
   /**
@@ -572,10 +577,8 @@ class ArtifactCommand extends Command {
    *
    * @param string $mode
    *   Mode to set.
-   * @param array $options
+   * @param array<mixed> $options
    *   Array of CLI options.
-   *
-   * @phpstan-ignore-next-line
    */
   protected function setMode(string $mode, array $options): void {
     switch ($mode) {
@@ -584,9 +587,9 @@ class ArtifactCommand extends Command {
         break;
 
       case self::modeBranch():
-        if (!$this->hasToken($options['branch'])) {
+        if (is_scalar($options['branch'] ?? NULL) && !self::tokenExists(strval($options['branch']))) {
           $this->output->writeln('<comment>WARNING! Provided branch name does not have a token.
-                    Pushing of the artifact into this branch will fail on second and follow up pushes to remote.
+                    Pushing of the artifact into this branch will fail on second and follow-up pushes to remote.
                     Consider adding tokens with unique values to the branch name.</comment>');
         }
         break;
@@ -701,8 +704,8 @@ class ArtifactCommand extends Command {
   protected function replaceGitignoreInGitRepository(string $filename): void {
     $path = $this->getSourcePathGitRepository();
     $this->logDebug(sprintf('Replacing .gitignore: %s with %s', $path . DIRECTORY_SEPARATOR . '.gitignore', $filename));
-    $this->fsFileSystem->copy($filename, $path . DIRECTORY_SEPARATOR . '.gitignore', TRUE);
-    $this->fsFileSystem->remove($filename);
+    $this->fs->copy($filename, $path . DIRECTORY_SEPARATOR . '.gitignore', TRUE);
+    $this->fs->remove($filename);
   }
 
   /**
@@ -728,7 +731,7 @@ class ArtifactCommand extends Command {
    *   True if exists, false otherwise.
    */
   protected function localExcludeExists(string $path): bool {
-    return $this->fsFileSystem->exists($this->getLocalExcludeFileName($path));
+    return $this->fs->exists($this->getLocalExcludeFileName($path));
   }
 
   /**
@@ -761,10 +764,10 @@ class ArtifactCommand extends Command {
     $lines = file($filename);
     if ($lines) {
       $lines = array_map(trim(...), $lines);
-      $lines = array_filter($lines, static function ($line) : bool {
+      $lines = array_filter($lines, static function ($line): bool {
         return strlen($line) > 0;
       });
-      $lines = array_filter($lines, static function ($line) : bool {
+      $lines = array_filter($lines, static function ($line): bool {
         return !str_starts_with(trim($line), '#');
       });
     }
@@ -781,9 +784,9 @@ class ArtifactCommand extends Command {
   protected function disableLocalExclude(string $path): void {
     $filename = $this->getLocalExcludeFileName($path);
     $filenameDisabled = $filename . '.bak';
-    if ($this->fsFileSystem->exists($filename)) {
+    if ($this->fs->exists($filename)) {
       $this->logDebug('Disabling local exclude');
-      $this->fsFileSystem->rename($filename, $filenameDisabled);
+      $this->fs->rename($filename, $filenameDisabled);
     }
   }
 
@@ -796,9 +799,9 @@ class ArtifactCommand extends Command {
   protected function restoreLocalExclude(string $path): void {
     $filename = $this->getLocalExcludeFileName($path);
     $filenameDisabled = $filename . '.bak';
-    if ($this->fsFileSystem->exists($filenameDisabled)) {
+    if ($this->fs->exists($filenameDisabled)) {
       $this->logDebug('Restoring local exclude');
-      $this->fsFileSystem->rename($filenameDisabled, $filename);
+      $this->fs->rename($filenameDisabled, $filename);
     }
   }
 
@@ -836,8 +839,8 @@ class ArtifactCommand extends Command {
       foreach ($files as $file) {
         $fileName = $location . DIRECTORY_SEPARATOR . $file;
         $this->logDebug(sprintf('Removing excluded file %s', $fileName));
-        if ($this->fsFileSystem->exists($fileName)) {
-          $this->fsFileSystem->remove($fileName);
+        if ($this->fs->exists($fileName)) {
+          $this->fs->remove($fileName);
         }
       }
     }
@@ -858,7 +861,7 @@ class ArtifactCommand extends Command {
       foreach ($files as $file) {
         $fileName = $this->getSourcePathGitRepository() . DIRECTORY_SEPARATOR . $file;
         $this->logDebug(sprintf('Removing other file %s', $fileName));
-        $this->fsFileSystem->remove($fileName);
+        $this->fs->remove($fileName);
       }
     }
   }
@@ -882,7 +885,7 @@ class ArtifactCommand extends Command {
       if ($dir instanceof \SplFileInfo) {
         $dir = $dir->getPathname();
       }
-      $this->fsFileSystem->remove($dir);
+      $this->fs->remove($dir);
       $this->logDebug(sprintf('Removing sub-repository "%s"', (string) $dir));
     }
   }

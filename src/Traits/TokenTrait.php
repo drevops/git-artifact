@@ -20,22 +20,23 @@ trait TokenTrait {
    *   original string.
    */
   protected function tokenProcess(string $string): ?string {
-    /* @phpstan-ignore-next-line */
-    return preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match) {
+    return preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match): string {
       if (!empty($match[1])) {
         $parts = explode(':', $match[1], 2);
+
         $token = $parts[0] ?? NULL;
         $argument = $parts[1] ?? NULL;
+
         if ($token) {
           $method = 'getToken' . ucfirst($token);
-          if (method_exists($this, $method)) {
-            /* @phpstan-ignore-next-line */
-            $match[0] = call_user_func([$this, $method], $argument);
+
+          if (method_exists($this, $method) && is_callable([$this, $method])) {
+            $match[0] = (string) $this->$method($argument);
           }
         }
       }
 
-      return $match[0];
+      return strval($match[0]);
     }, $string);
   }
 
@@ -46,9 +47,9 @@ trait TokenTrait {
    *   String to check.
    *
    * @return bool
-   *   True if there is at least one token present, false otherwise.
+   *   TRUE if there is at least one token present, FALSE otherwise.
    */
-  protected function hasToken(string $string): bool {
+  protected static function tokenExists(string $string): bool {
     return (bool) preg_match('/\[[^]]+]/', $string);
   }
 
