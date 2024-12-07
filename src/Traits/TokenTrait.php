@@ -15,29 +15,33 @@ trait TokenTrait {
    * @param string $string
    *   String that may contain tokens surrounded by '[' and ']'.
    *
-   * @return string|null
+   * @return string
    *   String with replaced tokens if replacements are available or
    *   original string.
    */
-  protected function tokenProcess(string $string): ?string {
-    return preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match): string {
+  protected function tokenProcess(string $string): string {
+    $processed = preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match): string {
+      $replacement = strval($match[0]);
+
       if (!empty($match[1])) {
         $parts = explode(':', $match[1], 2);
 
-        $token = $parts[0] ?? NULL;
+        $token = $parts[0];
         $argument = $parts[1] ?? NULL;
 
-        if ($token) {
+        if ($token !== '' && $token !== '0') {
           $method = 'getToken' . ucfirst($token);
 
           if (method_exists($this, $method) && is_callable([$this, $method])) {
-            $match[0] = (string) $this->$method($argument);
+            $replacement = (string) $this->$method($argument);
           }
         }
       }
 
-      return strval($match[0]);
+      return $replacement;
     }, $string);
+
+    return $processed ?? $string;
   }
 
   /**

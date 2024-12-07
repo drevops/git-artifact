@@ -23,6 +23,12 @@
         <exclude-pattern>*.test</exclude-pattern>
     </rule>
 
+    <!-- Allow missing class comments in tests. -->
+    <rule ref="Drupal.Commenting.ClassComment.Missing">
+        <exclude-pattern>*.Test\.php</exclude-pattern>
+        <exclude-pattern>*.TestCase\.php</exclude-pattern>
+        <exclude-pattern>*.test</exclude-pattern>
+    </rule>
     <!-- Allow missing function comments in tests. -->
     <rule ref="Drupal.Commenting.FunctionComment.Missing">
         <exclude-pattern>*.Test\.php</exclude-pattern>

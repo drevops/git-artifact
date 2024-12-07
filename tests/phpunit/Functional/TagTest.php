@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Functional;
 
-/**
- * Class TagTest.
- *
- * @group integration
- *
- * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
- * @covers \DrevOps\GitArtifact\Traits\FilesystemTrait
- */
+use CzProject\GitPhp\Git;
+use DrevOps\GitArtifact\Commands\ArtifactCommand;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
+use PHPUnit\Framework\Attributes\CoversClass;
+
+#[CoversClass(ArtifactCommand::class)]
+#[CoversClass(ArtifactGitRepository::class)]
 class TagTest extends AbstractFunctionalTestCase {
 
   /**
@@ -26,15 +25,16 @@ class TagTest extends AbstractFunctionalTestCase {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
     $this->gitCheckout($this->src, 'tag1');
-    $gitRepo = $this->git->open($this->src);
-    $srcBranches = $gitRepo->getBranches();
 
-    $output = $this->assertBuildSuccess();
+    $repo = (new Git())->open($this->src);
+    $branches = $repo->getBranches();
+
+    $output = $this->assertCommandSuccess();
     $this->assertStringContainsString('Mode:                  force-push', $output);
     $this->assertStringContainsString('Will push:             Yes', $output);
 
-    $this->assertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
-    $this->assertEquals($srcBranches, $gitRepo->getBranches(), 'Cleanup has correctly returned to the previous branch.');
+    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->assertEquals($branches, $repo->getBranches(), 'Cleanup has correctly returned to the previous branch.');
   }
 
 }

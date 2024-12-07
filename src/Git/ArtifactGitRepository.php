@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Git;
 
 use CzProject\GitPhp\GitRepository;
+use CzProject\GitPhp\IRunner;
 use CzProject\GitPhp\RunnerResult;
+use DrevOps\GitArtifact\Traits\FilesystemTrait;
+use DrevOps\GitArtifact\Traits\LogTrait;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Artifact git repository.
@@ -16,117 +20,64 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class ArtifactGitRepository extends GitRepository {
 
-  /**
-   * Filesystem.
-   */
-  protected Filesystem $fs;
+  use FilesystemTrait;
+  use LogTrait;
 
   /**
-   * Logger.
+   * The gitignore file path.
    */
-  protected LoggerInterface $logger;
+  protected string $gitignoreFile;
 
   /**
-   * Force pushing.
-   *
-   * @param string $remote
-   *   Remote name.
-   * @param string $refSpec
-   *   Specify what destination ref to update with what source object.
-   *
-   * @return ArtifactGitRepository
-   *   Git repo.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * {@inheritdoc}
    */
-  public function pushForce(string $remote, string $refSpec): ArtifactGitRepository {
-    return parent::push([$remote, $refSpec], ['--force']);
-  }
+  public function __construct($repository, ?IRunner $runner = NULL, ?LoggerInterface $logger = NULL) {
+    parent::__construct($repository, $runner);
 
-  /**
-   * List ignored files from git ignore file.
-   *
-   * @param string $gitIgnoreFilePath
-   *   Git ignore file path.
-   *
-   * @return string[]
-   *   Files.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function listIgnoredFilesFromGitIgnoreFile(string $gitIgnoreFilePath): array {
-    $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $gitIgnoreFilePath]);
+    $this->fs = new Filesystem();
 
-    if (!$files) {
-      return [];
+    if ($logger instanceof LoggerInterface) {
+      $this->logger = $logger;
     }
-
-    return $files;
   }
 
   /**
-   * List 'Other' files.
-   *
-   * 'Other' files are files that are neither staged nor tracked in git.
-   *
-   * @return string[]
-   *   Files.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * {@inheritdoc}
    */
-  public function listOtherFiles(): array {
-    $files = $this->extractFromCommand(['ls-files', '--other', '--exclude-standard']);
-    if (!$files) {
-      return [];
-    }
+  public function run(...$args): RunnerResult {
+    $command = array_shift($args);
+    array_unshift($args, '--no-pager', $command);
 
-    return $files;
+    return parent::run(...$args);
   }
 
   /**
-   * Get commits.
-   *
-   * @param string $format
-   *   Commit format.
-   *
-   * @return string[]
-   *   Commits.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * Set gitignore file.
    */
-  public function getCommits(string $format = '%s'): array {
-    $commits = $this->extractFromCommand(['log', '--format=' . $format]);
-    if (!$commits) {
-      return [];
-    }
-
-    return $commits;
-  }
-
-  /**
-   * Reset hard.
-   *
-   * @return $this
-   *   Git repo.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function resetHard(): ArtifactGitRepository {
-    $this->run('reset', ['--hard']);
+  public function setGitignoreFile(string $filename): static {
+    $this->gitignoreFile = $filename;
 
     return $this;
   }
 
   /**
-   * Clean repo.
-   *
-   * @return $this
-   *   Git repo.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * {@inheritdoc}
    */
-  public function cleanForce(): ArtifactGitRepository {
-    $this->run('clean', ['-dfx']);
+  public function addRemote($name, $url, ?array $options = NULL): static {
+    if (!self::isValidRemote($url)) {
+      throw new \InvalidArgumentException(sprintf('Invalid remote URL provided: %s', $url));
+    }
+
+    return parent::addRemote($name, $url, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function removeRemote($name): static {
+    if (in_array($name, $this->listRemotes())) {
+      $this->run('remote', 'remove', $name);
+    }
 
     return $this;
   }
@@ -134,22 +85,20 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Switch to new branch.
    *
-   * @param string $branchName
+   * @param string $branch
    *   Branch name.
-   * @param bool $createNew
+   * @param bool $create_new
    *   Optional flag to also create a branch before switching. Default false.
    *
-   * @return ArtifactGitRepository
+   * @return static
    *   The git repository.
-   *
-   * @throws \CzProject\GitPhp\GitException
    */
-  public function switchToBranch(string $branchName, bool $createNew = FALSE): ArtifactGitRepository {
-    if (!$createNew) {
-      return $this->checkout($branchName);
+  public function switchToBranch(string $branch, bool $create_new = FALSE): static {
+    if (!$create_new) {
+      return $this->checkout($branch);
     }
 
-    return $this->createBranch($branchName, TRUE);
+    return $this->createBranch($branch, TRUE);
   }
 
   /**
@@ -160,20 +109,20 @@ class ArtifactGitRepository extends GitRepository {
    * @param bool $force
    *   Force remove or not.
    *
-   * @return ArtifactGitRepository
+   * @return static
    *   Git repository
-   *
-   * @throws \CzProject\GitPhp\GitException
    */
-  public function removeBranch($name, bool $force = FALSE): ArtifactGitRepository {
+  public function removeBranch($name, bool $force = FALSE): static {
     if (empty($name)) {
       return $this;
     }
 
     $branches = $this->getBranches();
+
     if (empty($branches)) {
       return $this;
     }
+
     if (!in_array($name, $branches)) {
       return $this;
     }
@@ -195,51 +144,56 @@ class ArtifactGitRepository extends GitRepository {
    *
    * @return array<string>
    *   The changes.
-   *
-   * @throws \CzProject\GitPhp\GitException
    */
   public function commitAllChanges(string $message): array {
     $this->addAllChanges();
 
-    // We do not use commit method because we need return the output.
+    // We do not use the commit method because we need return the output.
     return $this->execute('commit', '--allow-empty', [
       '-m' => $message,
     ]);
   }
 
   /**
-   * List committed files.
-   *
-   * @return string[]
-   *   Files.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * Disable local exclude file (.git/info/exclude).
    */
-  public function listCommittedFiles(): array {
-    $files = $this->extractFromCommand(['ls-tree', '--name-only', '-r', 'HEAD']);
-    if (!$files) {
-      return [];
+  public function disableLocalExclude(): static {
+    $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info' . DIRECTORY_SEPARATOR . 'exclude';
+
+    if ($this->fs->exists($filename)) {
+      $this->logDebug('Disabling local exclude');
+      $this->fs->rename($filename, $filename . '.bak');
     }
-
-    return $files;
-  }
-
-  /**
-   * Set config receive.denyCurrentBranch is ignored.
-   *
-   * @return $this
-   *   Git repo.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function setConfigReceiveDenyCurrentBranchIgnore(): ArtifactGitRepository {
-    $this->extractFromCommand(['config', ['receive.denyCurrentBranch', 'ignore']]);
 
     return $this;
   }
 
   /**
-   * Get tag point to HEAD.
+   * Restore previously disabled local exclude file.
+   */
+  public function restoreLocalExclude(): static {
+    $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info' . DIRECTORY_SEPARATOR . 'exclude';
+
+    if ($this->fs->exists($filename . '.bak')) {
+      $this->logDebug('Restoring local exclude');
+      $this->fs->rename($filename . '.bak', $filename);
+    }
+
+    return $this;
+  }
+
+  /**
+   * List remotes.
+   *
+   * @return array<string>
+   *   Remotes.
+   */
+  protected function listRemotes(): array {
+    return $this->extractFromCommand(['remote']) ?: [];
+  }
+
+  /**
+   * Get tag pointing to HEAD.
    *
    * @return string[]
    *   Array of tags from the latest commit.
@@ -247,7 +201,7 @@ class ArtifactGitRepository extends GitRepository {
    * @throws \Exception
    *   If no tags found in the latest commit.
    */
-  public function getTagsPointToHead(): array {
+  public function listTagsPointingToHead(): array {
     $tags = $this->extractFromCommand(['tag', ['--points-at', 'HEAD']]);
 
     if (empty($tags)) {
@@ -258,171 +212,169 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Create an annotated tag.
+   * Ger original branch, accounting for detached repository state.
    *
-   * @param string $name
-   *   Name.
-   * @param string $message
-   *   Message.
+   * Usually, repository become detached when a tag is checked out.
    *
-   * @return $this
-   *   Git repo.
+   * @return string
+   *   Branch or detachment source.
    *
-   * @throws \CzProject\GitPhp\GitException
+   * @throws \Exception
+   *   If neither branch nor detachment source is not found.
    */
-  public function createAnnotatedTag(string $name, string $message): ArtifactGitRepository {
-    $this->createTag($name, [
-      '--message=' . $message,
-      '-a',
-    ]);
+  public function getOriginalBranch(): string {
+    $branch = $this->getCurrentBranchName();
 
-    return $this;
+    // Repository could be in detached state. If this the case - we need to
+    // capture the source of detachment, if it exists.
+    if (str_contains($branch, 'HEAD detached')) {
+      $branch = NULL;
+      $branch_list = $this->getBranches();
+      if ($branch_list) {
+        $branch_list = array_filter($branch_list);
+        foreach ($branch_list as $branch) {
+          if (preg_match('/\(.*detached .* ([^)]+)\)/', $branch, $matches)) {
+            $branch = $matches[1];
+            break;
+          }
+        }
+      }
+
+      if (empty($branch)) {
+        throw new \Exception('Unable to determine a detachment source');
+      }
+    }
+
+    return $branch;
   }
 
   /**
-   * Create an annotated tag.
-   *
-   * @param string $name
-   *   Name.
-   *
-   * @return $this
-   *   Git repo.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * Remove ignored files.
    */
-  public function createLightweightTag(string $name): ArtifactGitRepository {
-    $this->createTag($name);
+  public function removeIgnoredFiles(): static {
+    if (!empty($this->gitignoreFile)) {
+      $gitignore = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.gitignore';
+      $this->logDebug(sprintf('Copying custom .gitignore file from %s to %s', $this->gitignoreFile, $gitignore));
+      $this->fs->copy($this->gitignoreFile, $gitignore, TRUE);
 
-    return $this;
-  }
+      // Remove custom .gitignore file if it is within the repository.
+      // @todo Review if this is "magic" and should be explicitly listed in
+      // the file itself. Alternatively, we could add a check if the custom
+      // gitignore is ignored within itself and add it if it is not.
+      if (str_starts_with($this->gitignoreFile, $this->getRepositoryPath())) {
+        $this->fs->remove($this->gitignoreFile);
+      }
 
-  /**
-   * Remove remote by name.
-   *
-   * We need override this method because parent method does not work.
-   *
-   * @param string $name
-   *   Remote name.
-   *
-   * @return ArtifactGitRepository
-   *   Git repo.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function removeRemote($name): ArtifactGitRepository {
-    if ($this->isRemoteExists($name)) {
-      $this->run('remote', 'remove', $name);
+      // Custom .gitignore may contain rules that will change the list of
+      // ignored files. We need to add these files as changes so that they
+      // could be reported as excluded by the command below.
+      $this->addAllChanges();
+
+      $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $gitignore]) ?: [];
+      $files = array_filter($files);
+
+      foreach ($files as $file) {
+        $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
+        if ($this->fs->exists($filename)) {
+          $this->logDebug(sprintf('Removing ignored file %s', $filename));
+          $this->fs->remove($filename);
+        }
+      }
     }
 
     return $this;
   }
 
   /**
-   * Get remote list.
+   * Remove 'other' files.
    *
-   * @return array<string>
-   *   Remotes.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * 'Other' files are files that are neither staged nor tracked in git.
    */
-  public function getRemotes(): array {
-    $remotes = $this->extractFromCommand(['remote']);
-    if (!$remotes) {
-      return [];
+  public function removeOtherFiles(): static {
+    $files = $this->extractFromCommand(['ls-files', '--other', '--exclude-standard']) ?: [];
+    $files = array_filter($files);
+
+    foreach ($files as $file) {
+      $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
+      if ($this->fs->exists($filename)) {
+        $this->logDebug(sprintf('Removing other file %s', $filename));
+        $this->fs->remove($filename);
+      }
     }
 
-    return $remotes;
+    return $this;
   }
 
   /**
-   * Check remote is existing or not by remote name.
-   *
-   * @param string $remoteName
-   *   Remote name to check.
-   *
-   * @return bool
-   *   Exist or not.
-   *
-   * @throws \CzProject\GitPhp\GitException
+   * Remove any repositories within current repository.
    */
-  public function isRemoteExists(string $remoteName): bool {
-    $remotes = $this->getRemotes();
-    if (empty($remotes)) {
-      return FALSE;
+  public function removeSubRepositories(): static {
+    $finder = new Finder();
+    $dirs = $finder
+      ->directories()
+      ->name('.git')
+      ->ignoreDotFiles(FALSE)
+      ->ignoreVCS(FALSE)
+      ->depth('>0')
+      ->in($this->getRepositoryPath());
+
+    $dirs = iterator_to_array($dirs->directories());
+
+    foreach ($dirs as $dir) {
+      if ($dir instanceof \SplFileInfo) {
+        $dir = $dir->getPathname();
+        $this->fs->remove($dir);
+        $this->logDebug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
+      }
     }
 
-    return in_array($remoteName, $remotes);
+    // After removing sub-repositories, the files that were previously tracked
+    // in those repositories are now become a part of the current repository.
+    // We need to add them as changes.
+    $this->addAllChanges();
+
+    return $this;
   }
 
   /**
-   * Override run method to add --no-pager option to all command.
+   * Check if provided branch name can be used in Git.
    *
-   * @param mixed ...$args
-   *   Command args.
-   *
-   * @return \CzProject\GitPhp\RunnerResult
-   *   Runner result.
-   *
-   * @throws \CzProject\GitPhp\GitException
-   */
-  public function run(...$args): RunnerResult {
-    $command = array_shift($args);
-    array_unshift($args, '--no-pager', $command);
-
-    return parent::run(...$args);
-  }
-
-  /**
-   * Check if provided location is a URI.
-   *
-   * @param string $location
-   *   Location to check.
-   *
-   * @return bool
-   *   TRUE if location is URI, FALSE otherwise.
-   */
-  public static function isUri(string $location): bool {
-    return (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $location);
-  }
-
-  /**
-   * Check if provided branch name can be used in git.
-   *
-   * @param string $branchName
-   *   Branch to check.
+   * @param string $name
+   *   Branch name to check.
    *
    * @return bool
    *   TRUE if it is a valid Git branch, FALSE otherwise.
    */
-  public static function isValidBranchName(string $branchName): bool {
-    return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $branchName) && strlen($branchName) < 255;
+  public static function isValidBranchName(string $name): bool {
+    return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $name) && strlen($name) < 255;
   }
 
   /**
    * Check if provided remote url is local path or remote URI.
    *
-   * @param string $pathOrUri
-   *   Local path or remote URI.
+   * @param string $uri
+   *   Local path or remote URL.
    * @param string $type
    *   One of the predefined types:
    *   - any: Expected to have either local path or remote URI provided.
-   *   - local: Expected to have local path provided.
-   *   - uri: Expected to have remote URI provided.
+   *   - local: Expected to have a local path provided.
+   *   - external: Expected to have an external URI provided.
    *
    * @return bool
    *   Returns TRUE if location matches type, FALSE otherwise.
    *
    * @throws \Exception
    */
-  public static function isValidRemoteUrl(string $pathOrUri, string $type = 'any'): bool {
+  public static function isValidRemote(string $uri, string $type = 'any'): bool {
     $filesystem = new Filesystem();
-    $isLocal = $filesystem->exists($pathOrUri);
-    $isUri = self::isUri($pathOrUri);
+
+    $is_local = $filesystem->exists($uri);
+    $is_external = (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $uri);
 
     return match ($type) {
-      'any' => $isLocal || $isUri,
-      'local' => $isLocal,
-      'uri' => $isUri,
+      'any' => $is_local || $is_external,
+      'local' => $is_local,
+      'external' => $is_external,
       default => throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided', $type)),
     };
   }

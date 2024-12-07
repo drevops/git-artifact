@@ -44,7 +44,7 @@ trait FilesystemTrait {
    */
   protected function fsSetRootDir(?string $path = NULL): static {
     $path = empty($path) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($path);
-    $this->fsPathsExist($path);
+    $this->fsAssertPathsExist($path);
     $this->fsRootDir = $path;
 
     return $this;
@@ -84,6 +84,7 @@ trait FilesystemTrait {
   protected function fsSetCwd(string $dir): static {
     chdir($dir);
     $this->fsOriginalCwdStack[] = $dir;
+
     return $this;
   }
 
@@ -163,8 +164,9 @@ trait FilesystemTrait {
    * @throws \Exception
    *   If at least one file does not exist.
    */
-  protected function fsPathsExist($paths, bool $strict = TRUE): bool {
+  protected function fsAssertPathsExist($paths, bool $strict = TRUE): bool {
     $paths = is_array($paths) ? $paths : [$paths];
+
     if (!$this->fs->exists($paths)) {
       if ($strict) {
         throw new \Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
@@ -177,7 +179,7 @@ trait FilesystemTrait {
   }
 
   /**
-   * Replacement for PHP's `fsRealpath` resolves non-existing paths.
+   * Replacement for PHP's `realpath` resolves non-existing paths.
    *
    * The main deference is that it does not return FALSE on non-existing
    * paths.
@@ -208,8 +210,8 @@ trait FilesystemTrait {
 
     // Resolve path parts (single dot, double dot and double delimiters).
     $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function ($part) : bool {
-        return strlen($part) > 0;
+    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function ($part): bool {
+      return strlen($part) > 0;
     });
 
     $absolutes = [];
@@ -239,7 +241,16 @@ trait FilesystemTrait {
     // Put initial separator that could have been lost.
     $path = $unipath ? $path : '/' . $path;
 
-    return $unc ? '\\\\' . $path : $path;
+    $path = $unc ? '\\\\' . $path : $path;
+
+    if (str_starts_with($path, sys_get_temp_dir())) {
+      $tmp_realpath = realpath(sys_get_temp_dir());
+      if ($tmp_realpath) {
+        $path = str_replace(sys_get_temp_dir(), $tmp_realpath, $path);
+      }
+    }
+
+    return $path;
   }
 
 }

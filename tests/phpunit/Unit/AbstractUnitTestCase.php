@@ -4,24 +4,38 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Unit;
 
-use DrevOps\GitArtifact\Commands\ArtifactCommand;
-use DrevOps\GitArtifact\Tests\AbstractTestCase;
+use DrevOps\GitArtifact\Tests\Traits\MockTrait;
+use DrevOps\GitArtifact\Tests\Traits\ReflectionTrait;
+use PHPUnit\Framework\TestCase;
 
-/**
- * Class AbstractUnitTestCase.
- */
-abstract class AbstractUnitTestCase extends AbstractTestCase {
+abstract class AbstractUnitTestCase extends TestCase {
+
+  use MockTrait;
+  use ReflectionTrait;
 
   /**
-   * Artifact command.
+   * Asserts that two associative arrays are similar.
+   *
+   * Both arrays must have the same indexes with identical values
+   * without respect to key ordering.
+   *
+   * @param array $expected
+   *   Expected assert.
+   * @param array $array
+   *   The array want to assert.
    */
-  protected ArtifactCommand $command;
+  protected function assertArraySimilar(array $expected, array $array): void {
+    $this->assertEquals([], array_diff($array, $expected));
+    $this->assertEquals([], array_diff_key($array, $expected));
 
-  protected function setUp(): void {
-    parent::setUp();
-
-    $this->command = new ArtifactCommand();
-    $this->callProtectedMethod($this->command, 'fsSetRootDir', [$this->fixtureDir]);
+    foreach ($expected as $key => $value) {
+      if (is_array($value)) {
+        $this->assertArraySimilar($value, $array[$key]);
+      }
+      else {
+        $this->assertContains($value, $array);
+      }
+    }
   }
 
 }

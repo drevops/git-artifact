@@ -62,8 +62,8 @@
         ],
         "lint": [
             "phpcs",
-            "phpmd --exclude vendor,vendor-bin,node_modules . text phpmd.xml",
             "phpstan --memory-limit=-1",
+            "phpmd --exclude vendor,vendor-bin,node_modules,TokenTest.php . text phpmd.xml",
             "rector --clear-cache --dry-run"
         ],
         "lint-fix": [
@@ -71,6 +71,6 @@
             "phpcbf"
         ],
         "reset": "rm -rf vendor vendor-bin composer.lock",
-        "test": "if [ \"${XDEBUG_MODE}\" = 'coverage' ]; then phpunit; else phpunit --no-coverage; fi"
+        "test": "phpunit"
     }
 }
