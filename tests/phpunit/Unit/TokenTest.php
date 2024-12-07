@@ -19,9 +19,11 @@ class TokenTest extends AbstractUnitTestCase {
    * @dataProvider dataProviderTokenExists
    */
   public function testTokenExists(string $string, bool $expected): void {
-    $mock = $this->prepareMock(TokenTrait::class);
+    $class = new class() {
+      use TokenTrait;
+    };
 
-    $actual = $this->callProtectedMethod($mock, 'tokenExists', [$string]);
+    $actual = $this->callProtectedMethod($class, 'tokenExists', [$string]);
     $this->assertEquals($expected, $actual);
   }
 
