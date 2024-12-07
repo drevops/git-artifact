@@ -4,31 +4,24 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Functional;
 
-/**
- * Class GeneralTest.
- *
- * @group integration
- *
- * @covers \DrevOps\GitArtifact\Commands\ArtifactCommand
- * @covers \DrevOps\GitArtifact\Traits\FilesystemTrait
- */
+use DrevOps\GitArtifact\Commands\ArtifactCommand;
+use DrevOps\GitArtifact\Git\ArtifactGitRepository;
+use PHPUnit\Framework\Attributes\CoversClass;
+
+#[CoversClass(ArtifactCommand::class)]
+#[CoversClass(ArtifactGitRepository::class)]
 class GeneralTest extends AbstractFunctionalTestCase {
 
-  public function testHelp(): void {
-    $output = $this->runGitArtifactCommand('--help');
-    $this->assertStringContainsString('artifact [options] [--] <remote>', implode(PHP_EOL, $output));
-    $this->assertStringContainsString('Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.', implode(PHP_EOL, $output));
-  }
-
   public function testCompulsoryParameter(): void {
-    $output = $this->runGitArtifactCommand('', TRUE);
+    $this->dst = '';
+    $output = $this->runCommand(['remote' => ' '], TRUE);
 
-    $this->assertStringContainsString('Not enough arguments (missing: "remote")', implode(PHP_EOL, $output));
+    $this->assertStringContainsString('Remote argument must be a non-empty string', $output);
   }
 
   public function testInfo(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--dry-run');
+    $output = $this->runCommand(['--dry-run' => TRUE]);
     $this->assertStringContainsString('Artifact information', $output);
     $this->assertStringContainsString('Mode:                  force-push', $output);
     $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
@@ -45,7 +38,10 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testShowChanges(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--show-changes --dry-run');
+    $output = $this->runCommand([
+      '--show-changes' => TRUE,
+      '--dry-run' => TRUE,
+    ]);
 
     $this->assertStringContainsString('Added changes:', $output);
 
@@ -55,16 +51,22 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testNoCleanup(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--no-cleanup --dry-run');
+    $output = $this->runCommand([
+      '--no-cleanup' => TRUE,
+      '--dry-run' => TRUE,
+    ]);
 
-    $this->assertGitCurrentBranch($this->src, $this->artifactBranch);
+    $this->gitAssertCurrentBranch($this->src, $this->artifactBranch);
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
     $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
   }
 
   public function testDebug(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('-vvv --dry-run');
+    $output = $this->runCommand([
+      '-vvv' => TRUE,
+      '--dry-run' => TRUE,
+    ]);
 
     $this->assertStringContainsString('Debug messages enabled', $output);
     $this->assertStringContainsString('Artifact information', $output);
@@ -90,7 +92,10 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $report = $this->src . DIRECTORY_SEPARATOR . 'report.txt';
 
     $this->gitCreateFixtureCommits(1);
-    $commandOutput = $this->runBuild(sprintf('--dry-run --log=%s', $report));
+    $commandOutput = $this->runCommand([
+      '--dry-run' => TRUE,
+      '--log' => $report,
+    ]);
 
     $this->assertStringContainsString('Debug messages enabled', $commandOutput);
     $this->assertStringContainsString('Artifact information', $commandOutput);
@@ -131,7 +136,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testDebugDisabled(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runBuild('--dry-run');
+    $output = $this->runCommand(['--dry-run' => TRUE]);
 
     $this->assertStringNotContainsString('Debug messages enabled', $output);
 

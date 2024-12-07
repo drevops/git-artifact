@@ -5,30 +5,86 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Tests\Unit;
 
 use DrevOps\GitArtifact\Traits\TokenTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
-/**
- * Class ForcePushTest.
- *
- * @group integration
- *
- * @covers \DrevOps\GitArtifact\Traits\TokenTrait
- */
+#[CoversClass(TokenTrait::class)]
 class TokenTest extends AbstractUnitTestCase {
 
-  /**
-   * @dataProvider dataProviderTokenExists
-   */
-  public function testTokenExists(string $string, bool $expected): void {
-    $mock = $this->prepareMock(TokenTrait::class);
+  #[DataProvider('dataProviderTokenProcess')]
+  public function testTokenProcess(string $string, string $expected): void {
+    $class = new class() {
 
-    $actual = $this->callProtectedMethod($mock, 'tokenExists', [$string]);
+      use TokenTrait;
+
+      public function getTokenSomeToken(?string $prop = NULL): string {
+        return empty($prop) ? 'somevalue' : 'somevalue with property ' . $prop;
+      }
+
+    };
+
+    $actual = $this->callProtectedMethod($class, 'tokenProcess', [$string]);
     $this->assertEquals($expected, $actual);
   }
 
-  /**
-   * @return array<mixed>
-   *   Data provider.
-   */
+  public static function dataProviderTokenProcess(): array {
+    return [
+      [
+        '',
+        '',
+      ],
+      [
+        '',
+        '',
+      ],
+      [
+        'string without a token',
+        'string without a token',
+      ],
+      [
+        'string with sometoken without delimiters',
+        'string with sometoken without delimiters',
+      ],
+      [
+        'string with [sometoken broken delimiters',
+        'string with [sometoken broken delimiters',
+      ],
+      [
+        'string with sometoken] broken delimiters',
+        'string with sometoken] broken delimiters',
+      ],
+      // Proper token.
+      [
+        '[sometoken]',
+        'somevalue',
+      ],
+      [
+        'string with [sometoken] present',
+        'string with somevalue present',
+      ],
+      // Token with properties.
+      [
+        'string with [sometoken:prop] present',
+        'string with somevalue with property prop present',
+      ],
+      [
+        'string with [sometoken:prop:otherprop] present',
+        'string with somevalue with property prop:otherprop present',
+      ],
+    ];
+  }
+
+  #[DataProvider('dataProviderTokenExists')]
+  public function testTokenExists(string $string, bool $expected): void {
+    $class = new class() {
+
+      use TokenTrait;
+    };
+
+    $actual = $this->callProtectedMethod($class, 'tokenExists', [$string]);
+    $this->assertEquals($expected, $actual);
+  }
+
   public static function dataProviderTokenExists(): array {
     return [
       ['notoken', FALSE],

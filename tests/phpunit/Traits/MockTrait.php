@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Traits;
 
+use PHPUnit\Framework\MockObject\MockObject;
+
 /**
  * Trait MockTrait.
  *
@@ -16,61 +18,50 @@ trait MockTrait {
    *
    * @param class-string $class
    *   Class or trait name to generate the mock.
-   * @param array<string, \Closure> $methodsMap
+   * @param array<string, scalar|\Closure> $methods
    *   Optional array of methods and values, keyed by method name. Array
    *   elements can be return values, callbacks created with
-   *   $this->returnCallback(), or closures.
-   * @param array<mixed> $args
-   *   Optional array of constructor arguments. If omitted, a constructor
-   *   will not be called.
+   *   $this->willReturnCallback(), or closures.
+   * @param bool|array<mixed> $args
+   *   Optional array of constructor arguments or FALSE to disable the original
+   *   constructor. If omitted, an original constructor will be called.
    *
-   * @return object
+   * @return \PHPUnit\Framework\MockObject\MockObject
    *   Mocked class.
    *
    * @throws \ReflectionException
+   *
+   * @SuppressWarnings(CyclomaticComplexity)
    */
-  protected function prepareMock(string $class, array $methodsMap = [], array $args = []) {
-    $methods = array_keys($methodsMap);
+  protected function prepareMock(string $class, array $methods = [], array|bool $args = []): MockObject {
+    $methods = array_filter($methods, fn($value, $key): bool => is_string($key), ARRAY_FILTER_USE_BOTH);
 
-    $reflectionClass = new \ReflectionClass($class);
-
-    if ($reflectionClass->isAbstract()) {
-      $mock = $this->getMockForAbstractClass($class, $args, '', !empty($args), TRUE, TRUE, $methods);
-    }
-    elseif ($reflectionClass->isTrait()) {
-      $mock = $this->getMockForTrait($class, [], '', TRUE, TRUE, TRUE, array_keys($methodsMap));
-    }
-    else {
-      $mockBuilder = $this->getMockBuilder($class);
-      if (!empty($args)) {
-        $mockBuilder = $mockBuilder->enableOriginalConstructor()
-          ->setConstructorArgs($args);
-      }
-      else {
-        $mockBuilder = $mockBuilder->disableOriginalConstructor();
-      }
-      /* @todo setMethods method is not found on MockBuilder */
-      /* @phpstan-ignore-next-line */
-      $mock = $mockBuilder->setMethods($methods)
-        ->getMock();
+    if (!class_exists($class)) {
+      throw new \InvalidArgumentException(sprintf('Class %s does not exist', $class));
     }
 
-    foreach ($methodsMap as $method => $value) {
-      // Handle callback values differently.
+    $builder = $this->getMockBuilder($class);
+
+    if (is_array($args) && !empty($args)) {
+      $builder->enableOriginalConstructor()->setConstructorArgs($args);
+    }
+    elseif ($args === FALSE) {
+      $builder->disableOriginalConstructor();
+    }
+
+    $method_names = array_filter(array_keys($methods), fn($method): bool => is_string($method) && !empty($method));
+    $mock = $builder->onlyMethods($method_names)->getMock();
+
+    foreach ($methods as $method => $value) {
+      // Handle callback value differently based on its type.
       if (is_object($value) && str_contains($value::class, 'Callback')) {
-        $mock->expects($this->any())
-          ->method($method)
-          ->will($value);
+        $mock->expects($this->any())->method($method)->willReturnCallback($value);
       }
       elseif (is_object($value) && str_contains($value::class, 'Closure')) {
-        $mock->expects($this->any())
-          ->method($method)
-          ->will($this->returnCallback($value));
+        $mock->expects($this->any())->method($method)->willReturnCallback($value);
       }
       else {
-        $mock->expects($this->any())
-          ->method($method)
-          ->willReturn($value);
+        $mock->expects($this->any())->method($method)->willReturn($value);
       }
     }
 
