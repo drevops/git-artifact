@@ -275,51 +275,7 @@ trait GitTrait {
     $this->assertEquals($expected_commits, $commits, 'All fixture commits are present');
 
     if ($should_assert_files) {
-      $this->gitAssertFilesExist($this->dst, $expected_files, $branch);
-    }
-  }
-
-  /**
-   * Assert that files exist in repository in specified branch.
-   *
-   * @param string $path
-   *   Repository location.
-   * @param array<string>|string $files
-   *   File or array of files.
-   * @param string|null $branch
-   *   Optional branch. If set, will be checked out before assertion.
-   */
-  protected function gitAssertFilesExist(string $path, array|string $files, ?string $branch = NULL): void {
-    $files = is_array($files) ? $files : [$files];
-
-    if ($branch) {
-      $this->gitCheckout($path, $branch);
-    }
-
-    foreach ($files as $file) {
-      $this->assertFileExists($path . DIRECTORY_SEPARATOR . $file);
-    }
-  }
-
-  /**
-   * Assert that files do not exist in repository in specified branch.
-   *
-   * @param string $path
-   *   Repository location.
-   * @param array<string>|string $files
-   *   File or array of files.
-   * @param string|null $branch
-   *   Optional branch. If set, will be checked out before assertion.
-   */
-  protected function gitAssertFilesNotExist(string $path, array|string $files, ?string $branch = NULL): void {
-    $files = is_array($files) ? $files : [$files];
-
-    if ($branch) {
-      $this->gitCheckout($path, $branch);
-    }
-
-    foreach ($files as $file) {
-      $this->assertFileDoesNotExist($path . DIRECTORY_SEPARATOR . $file);
+      $this->assertFilesExist($this->dst, $expected_files);
     }
   }
 
