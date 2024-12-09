@@ -5,18 +5,16 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Tests\Functional;
 
 use DrevOps\GitArtifact\Commands\ArtifactCommand;
+use DrevOps\GitArtifact\Tests\Traits\ConsoleTrait;
 use DrevOps\GitArtifact\Tests\Traits\FixtureTrait;
 use DrevOps\GitArtifact\Tests\Traits\GitTrait;
 use DrevOps\GitArtifact\Tests\Unit\AbstractUnitTestCase;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
-use PHPUnit\Framework\AssertionFailedError;
-use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
 
+  use ConsoleTrait;
   use FilesystemTrait;
   use FixtureTrait;
   use GitTrait;
@@ -36,55 +34,31 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
   protected $dst;
 
   /**
-   * Artifact command.
+   * Remote name.
    */
-  protected ArtifactCommand $command;
-
-  /**
-   * Fixture directory.
-   *
-   * @var string
-   */
-  protected $fixtureDir;
+  protected string $remoteName;
 
   /**
    * Current branch.
-   *
-   * @var string
    */
-  protected $currentBranch;
+  protected string $currentBranch;
 
   /**
    * Artifact branch.
-   *
-   * @var string
    */
-  protected $artifactBranch;
+  protected string $artifactBranch;
 
   /**
-   * Remote name.
-   *
-   * @var string
+   * Mode in which the artifact application will run.
    */
-  protected $remoteName;
-
-  /**
-   * Mode in which the build will run.
-   *
-   * Passed as a value of the --mode option.
-   *
-   * @var string
-   */
-  protected $mode;
+  protected ?string $mode = NULL;
 
   /**
    * Current timestamp to run commands with.
    *
    * Used for generating internal tokens that could be based on time.
-   *
-   * @var int
    */
-  protected $now;
+  protected int $now;
 
   /**
    * {@inheritdoc}
@@ -94,7 +68,8 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
 
     $this->fs = new Filesystem();
 
-    $this->fixtureDir = $this->fsGetAbsolutePath(sys_get_temp_dir() . DIRECTORY_SEPARATOR . date('U') . DIRECTORY_SEPARATOR . 'git_artifact');
+    $this->fixtureInit('git_artifact');
+    $this->fixtureDir = $this->fsGetAbsolutePath($this->fixtureDir);
 
     $this->src = $this->fsGetAbsolutePath($this->fixtureDir . DIRECTORY_SEPARATOR . 'src');
     $this->gitInitRepo($this->src);
@@ -109,6 +84,8 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
     $this->currentBranch = $this->gitGetGlobalDefaultBranch();
     $this->artifactBranch = $this->currentBranch . '-artifact';
     $this->remoteName = 'dst';
+
+    $this->consoleInitApplicationTester(ArtifactCommand::class);
   }
 
   /**
@@ -133,9 +110,10 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
    * @return string
    *   Command output.
    */
-  protected function assertCommandSuccess(?array $args = [], string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
+  protected function assertArtifactCommandSuccess(?array $args = [], string $branch = 'testbranch', string $commit = 'Deployment commit'): string {
     $args += ['--branch' => 'testbranch'];
-    $output = $this->runCommand($args);
+
+    $output = $this->runArtifactCommand($args);
 
     $this->assertStringNotContainsString('[error]', $output);
     $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
@@ -158,9 +136,10 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
    * @return string
    *   Command output.
    */
-  protected function assertCommandFailure(?array $args = [], string $commit = 'Deployment commit'): string {
+  protected function assertArtifactCommandFailure(?array $args = [], string $commit = 'Deployment commit'): string {
     $args += ['--branch' => 'testbranch'];
-    $output = $this->runCommand($args, TRUE);
+
+    $output = $this->runArtifactCommand($args, TRUE);
 
     $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $args['--branch'], $commit), $output);
     $this->assertStringNotContainsString('Deployment finished successfully.', $output);
@@ -173,100 +152,34 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
    * Run artifact build.
    *
    * @param array $args
-   *   Additional arguments or options as an associative array.
+   *   Additional arguments or options as an associative array. If NULL, no
+   *   additional arguments are passed.
    * @param bool $expect_fail
    *   Expect on fail.
    *
    * @return string
    *   Output string.
    */
-  protected function runCommand(?array $args = [], bool $expect_fail = FALSE): string {
-    try {
-
-      if (is_null($args)) {
-        $input = [];
-      }
-      else {
-        $input = [
-          '--root' => $this->fixtureDir,
-          '--now' => $this->now,
-          '--src' => $this->src,
-          'remote' => $this->dst,
-        ];
-
-        if ($this->mode) {
-          $input['--mode'] = $this->mode;
-        }
-
-        $input += $args;
-      }
-
-      $this->runExecute(ArtifactCommand::class, $input);
-      $output = $this->commandTester->getDisplay();
-
-      if ($this->commandTester->getStatusCode() !== 0) {
-        throw new \Exception(sprintf("Command exited with non-zero code.\nThe output was:\n%s\nThe error output was:\n%s", $this->commandTester->getDisplay(), $this->commandTester->getErrorOutput()));
-      }
-
-      if ($expect_fail) {
-        throw new AssertionFailedError(sprintf("Command exited successfully but should not.\nThe output was:\n%s\nThe error output was:\n%s", $this->commandTester->getDisplay(), $this->commandTester->getErrorOutput()));
-      }
-
+  protected function runArtifactCommand(?array $args = [], bool $expect_fail = FALSE): string {
+    if (is_null($args)) {
+      $input = [];
     }
-    catch (\RuntimeException $exception) {
-      if (!$expect_fail) {
-        throw new AssertionFailedError('Command exited with an error:' . PHP_EOL . $exception->getMessage());
+    else {
+      $input = [
+        '--root' => $this->fixtureDir,
+        '--now' => $this->now,
+        '--src' => $this->src,
+        'remote' => $this->dst,
+      ];
+
+      if ($this->mode) {
+        $input['--mode'] = $this->mode;
       }
-      $output = $exception->getMessage();
-    }
-    catch (\Exception $exception) {
-      if (!$expect_fail) {
-        throw new AssertionFailedError('Command exited with an error:' . PHP_EOL . $exception->getMessage());
-      }
+
+      $input += $args;
     }
 
-    return $output;
-  }
-
-  /**
-   * CommandTester instance.
-   *
-   * @var \Symfony\Component\Console\Tester\CommandTester
-   */
-  protected $commandTester;
-
-  /**
-   * Run main() with optional arguments.
-   *
-   * @param string|object $object_or_class
-   *   Object or class name.
-   * @param array<string> $input
-   *   Optional array of input arguments.
-   * @param array<string, string> $options
-   *   Optional array of options. See CommandTester::execute() for details.
-   */
-  protected function runExecute(string|object $object_or_class, array $input = [], array $options = []): void {
-    $application = new Application();
-    /** @var \Symfony\Component\Console\Command\Command $instance */
-    $instance = is_object($object_or_class) ? $object_or_class : new $object_or_class();
-    $application->add($instance);
-
-    $name = $instance->getName();
-    if (empty($name)) {
-      /** @var string $name */
-      $name = $this->getProtectedValue($instance, 'defaultName');
-    }
-
-    $command = $application->find($name);
-    $this->commandTester = new CommandTester($command);
-
-    $options['capture_stderr_separately'] = TRUE;
-    if (array_key_exists('-vvv', $input)) {
-      $options['verbosity'] = ConsoleOutput::VERBOSITY_DEBUG;
-      unset($input['-vvv']);
-    }
-
-    $this->commandTester->execute($input, $options);
+    return $this->consoleApplicationRun($input, [], $expect_fail);
   }
 
 }
