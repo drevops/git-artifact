@@ -7,7 +7,7 @@ namespace DrevOps\GitArtifact\Commands;
 use CzProject\GitPhp\GitException;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
-use DrevOps\GitArtifact\Traits\LogTrait;
+use DrevOps\GitArtifact\Traits\LoggerTrait;
 use DrevOps\GitArtifact\Traits\TokenTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -28,7 +28,7 @@ class ArtifactCommand extends Command {
 
   use TokenTrait;
   use FilesystemTrait;
-  use LogTrait;
+  use LoggerTrait;
 
   const GIT_REMOTE_NAME = 'dst';
 
@@ -189,7 +189,7 @@ class ArtifactCommand extends Command {
   protected function execute(InputInterface $input, OutputInterface $output): int {
     $this->output = $output;
 
-    $this->logPrepare((string) $this->getName(), $input, $output);
+    $this->loggerInit((string) $this->getName(), $input, $output);
 
     $remote = $input->getArgument('remote');
     if (empty($remote) || !is_string($remote)) {
@@ -241,7 +241,7 @@ class ArtifactCommand extends Command {
 
       if ($this->showChanges) {
         $this->output->writeln(sprintf('Added changes: %s', implode("\n", $changes)));
-        $this->logNotice(sprintf('Added changes: %s', implode("\n", $changes)));
+        $this->logger->notice(sprintf('Added changes: %s', implode("\n", $changes)));
       }
 
       if ($this->isDryRun) {
@@ -279,7 +279,7 @@ class ArtifactCommand extends Command {
     $this->showReport(is_null($error));
 
     if ($this->needCleanup) {
-      $this->logNotice('Cleaning up');
+      $this->logger->notice('Cleaning up');
       $this->repo
         ->restoreLocalExclude()
         ->switchToBranch($this->originalBranch)
@@ -289,7 +289,7 @@ class ArtifactCommand extends Command {
 
     // Dump log to a file.
     if (!empty($this->logFile)) {
-      $this->logDump($this->logFile);
+      $this->loggerDump($this->logFile);
     }
 
     if (!is_null($error)) {
@@ -348,9 +348,9 @@ class ArtifactCommand extends Command {
         throw new \Exception('Unable to load contents of ' . $gitignore);
       }
 
-      $this->logDebug('-----.gitignore---------');
-      $this->logDebug($contents);
-      $this->logDebug('-----.gitignore---------');
+      $this->logger->debug('-----.gitignore---------');
+      $this->logger->debug($contents);
+      $this->logger->debug('-----.gitignore---------');
 
       $this->gitignoreFile = $gitignore;
       $this->repo->setGitignoreFile($gitignore);
@@ -376,7 +376,7 @@ class ArtifactCommand extends Command {
     $this->output->writeln($lines);
 
     foreach ($lines as $line) {
-      $this->logNotice($line);
+      $this->logger->notice($line);
     }
   }
 
@@ -398,7 +398,7 @@ class ArtifactCommand extends Command {
     $lines[] = '----------------------------------------------------------------------';
 
     foreach ($lines as $line) {
-      $this->logNotice($line);
+      $this->logger->notice($line);
     }
   }
 
@@ -443,13 +443,13 @@ class ArtifactCommand extends Command {
    */
   protected function checkRequirements(): void {
     // @todo Refactor this into more generic implementation.
-    $this->logNotice('Checking requirements');
+    $this->logger->notice('Checking requirements');
 
     if (!$this->fsIsCommandAvailable('git')) {
       throw new \RuntimeException('Git command is not available');
     }
 
-    $this->logNotice('All requirements were met');
+    $this->logger->notice('All requirements were met');
   }
 
   /**
