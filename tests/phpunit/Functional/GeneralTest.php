@@ -12,18 +12,27 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(ArtifactGitRepository::class)]
 class GeneralTest extends AbstractFunctionalTestCase {
 
+  public function testHelp(): void {
+    $output = $this->runArtifactCommand(['--help' => TRUE]);
+
+    $this->assertStringContainsString('artifact [options] [--] <remote>', $output);
+    $this->assertStringContainsString('Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.', $output);
+  }
+
   public function testCompulsoryParameter(): void {
     $this->dst = '';
-    $output = $this->runCommand(['remote' => ' '], TRUE);
+    $output = $this->runArtifactCommand(['remote' => ' '], TRUE);
 
     $this->assertStringContainsString('Remote argument must be a non-empty string', $output);
   }
 
   public function testInfo(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runCommand(['--dry-run' => TRUE]);
+
+    $output = $this->runArtifactCommand(['--dry-run' => TRUE]);
+
     $this->assertStringContainsString('Artifact information', $output);
-    $this->assertStringContainsString('Mode:                  force-push', $output);
+    $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, $output);
     $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
     $this->assertStringContainsString('Remote repository:     ' . $this->dst, $output);
     $this->assertStringContainsString('Remote branch:         ' . $this->currentBranch, $output);
@@ -38,7 +47,8 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testShowChanges(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runCommand([
+
+    $output = $this->runArtifactCommand([
       '--show-changes' => TRUE,
       '--dry-run' => TRUE,
     ]);
@@ -51,7 +61,8 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testNoCleanup(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runCommand([
+
+    $output = $this->runArtifactCommand([
       '--no-cleanup' => TRUE,
       '--dry-run' => TRUE,
     ]);
@@ -63,14 +74,15 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
   public function testDebug(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runCommand([
+
+    $output = $this->runArtifactCommand([
       '-vvv' => TRUE,
       '--dry-run' => TRUE,
     ]);
 
     $this->assertStringContainsString('Debug messages enabled', $output);
     $this->assertStringContainsString('Artifact information', $output);
-    $this->assertStringContainsString('Mode:                  force-push', $output);
+    $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, $output);
     $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
     $this->assertStringContainsString('Remote repository:     ' . $this->dst, $output);
     $this->assertStringContainsString('Remote branch:         ' . $this->currentBranch, $output);
@@ -92,51 +104,52 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $report = $this->src . DIRECTORY_SEPARATOR . 'report.txt';
 
     $this->gitCreateFixtureCommits(1);
-    $commandOutput = $this->runCommand([
+    $output = $this->runArtifactCommand([
       '--dry-run' => TRUE,
       '--log' => $report,
     ]);
 
-    $this->assertStringContainsString('Debug messages enabled', $commandOutput);
-    $this->assertStringContainsString('Artifact information', $commandOutput);
-    $this->assertStringContainsString('Mode:                  force-push', $commandOutput);
-    $this->assertStringContainsString('Source repository:     ' . $this->src, $commandOutput);
-    $this->assertStringContainsString('Remote repository:     ' . $this->dst, $commandOutput);
-    $this->assertStringContainsString('Remote branch:         ' . $this->currentBranch, $commandOutput);
-    $this->assertStringContainsString('Gitignore file:        No', $commandOutput);
-    $this->assertStringContainsString('Will push:             No', $commandOutput);
+    $this->assertStringContainsString('Debug messages enabled', $output);
+    $this->assertStringContainsString('Artifact information', $output);
+    $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, $output);
+    $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
+    $this->assertStringContainsString('Remote repository:     ' . $this->dst, $output);
+    $this->assertStringContainsString('Remote branch:         ' . $this->currentBranch, $output);
+    $this->assertStringContainsString('Gitignore file:        No', $output);
+    $this->assertStringContainsString('Will push:             No', $output);
 
-    $this->assertStringContainsString('Artifact report', $commandOutput);
-    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), $commandOutput);
-    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), $commandOutput);
-    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $commandOutput);
-    $this->assertStringContainsString('Gitignore file:    No', $commandOutput);
-    $this->assertStringContainsString('Push result:       Success', $commandOutput);
+    $this->assertStringContainsString('Artifact report', $output);
+    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), $output);
+    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), $output);
+    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $output);
+    $this->assertStringContainsString('Gitignore file:    No', $output);
+    $this->assertStringContainsString('Push result:       Success', $output);
 
     $this->assertFileExists($report);
-    $output = file_get_contents($report);
+    $report_output = file_get_contents($report);
 
-    $this->assertStringContainsString('Debug messages enabled', (string) $output);
-    $this->assertStringContainsString('Artifact information', (string) $output);
-    $this->assertStringContainsString('Mode:                  force-push', (string) $output);
-    $this->assertStringContainsString('Source repository:     ' . $this->src, (string) $output);
-    $this->assertStringContainsString('Remote repository:     ' . $this->dst, (string) $output);
-    $this->assertStringContainsString('Remote branch:         ' . $this->currentBranch, (string) $output);
-    $this->assertStringContainsString('Gitignore file:        No', (string) $output);
-    $this->assertStringContainsString('Will push:             No', (string) $output);
-    $this->assertStringNotContainsString('Added changes:', (string) $output);
+    $this->assertStringContainsString('Debug messages enabled', (string) $report_output);
+    $this->assertStringContainsString('Artifact information', (string) $report_output);
+    $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, (string) $report_output);
+    $this->assertStringContainsString('Source repository:     ' . $this->src, (string) $report_output);
+    $this->assertStringContainsString('Remote repository:     ' . $this->dst, (string) $report_output);
+    $this->assertStringContainsString('Remote branch:         ' . $this->currentBranch, (string) $report_output);
+    $this->assertStringContainsString('Gitignore file:        No', (string) $report_output);
+    $this->assertStringContainsString('Will push:             No', (string) $report_output);
+    $this->assertStringNotContainsString('Added changes:', (string) $report_output);
 
-    $this->assertStringContainsString('Artifact report', (string) $output);
-    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), (string) $output);
-    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), (string) $output);
-    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), (string) $output);
-    $this->assertStringContainsString('Gitignore file:    No', (string) $output);
-    $this->assertStringContainsString('Push result:       Success', (string) $output);
+    $this->assertStringContainsString('Artifact report', (string) $report_output);
+    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), (string) $report_output);
+    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), (string) $report_output);
+    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), (string) $report_output);
+    $this->assertStringContainsString('Gitignore file:    No', (string) $report_output);
+    $this->assertStringContainsString('Push result:       Success', (string) $report_output);
   }
 
   public function testDebugDisabled(): void {
     $this->gitCreateFixtureCommits(1);
-    $output = $this->runCommand(['--dry-run' => TRUE]);
+
+    $output = $this->runArtifactCommand(['--dry-run' => TRUE]);
 
     $this->assertStringNotContainsString('Debug messages enabled', $output);
 
