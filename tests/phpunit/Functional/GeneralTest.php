@@ -42,7 +42,8 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
 
-    $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+    $this->assertFilesNotExist($this->dst, 'f1');
   }
 
   public function testShowChanges(): void {
@@ -56,7 +57,8 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $this->assertStringContainsString('Added changes:', $output);
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
-    $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+    $this->assertFilesNotExist($this->dst, 'f1');
   }
 
   public function testNoCleanup(): void {
@@ -69,7 +71,7 @@ class GeneralTest extends AbstractFunctionalTestCase {
 
     $this->gitAssertCurrentBranch($this->src, $this->artifactBranch);
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
-    $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
+    $this->assertFilesNotExist($this->dst, 'f1');
   }
 
   public function testDebug(): void {
@@ -97,7 +99,8 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $this->assertStringContainsString('Push result:       Success', $output);
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
-    $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+    $this->assertFilesNotExist($this->dst, 'f1');
   }
 
   public function testDebugLogFile(): void {
@@ -154,7 +157,8 @@ class GeneralTest extends AbstractFunctionalTestCase {
     $this->assertStringNotContainsString('Debug messages enabled', $output);
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
-    $this->gitAssertFilesNotExist($this->dst, 'f1', $this->currentBranch);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+    $this->assertFilesNotExist($this->dst, 'f1');
   }
 
 }

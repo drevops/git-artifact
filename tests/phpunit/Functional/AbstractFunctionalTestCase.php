@@ -182,4 +182,36 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
     return $this->consoleApplicationRun($input, [], $expect_fail);
   }
 
+  /**
+   * Assert that files exist.
+   *
+   * @param string $path
+   *   Repository location.
+   * @param array<string>|string $files
+   *   File or array of files.
+   */
+  protected function assertFilesExist(string $path, array|string $files): void {
+    $files = is_array($files) ? $files : [$files];
+
+    foreach ($files as $file) {
+      $this->assertFileExists($path . DIRECTORY_SEPARATOR . $file);
+    }
+  }
+
+  /**
+   * Assert that files do not exist.
+   *
+   * @param string $path
+   *   Repository location.
+   * @param array<string>|string $files
+   *   File or array of files.
+   */
+  protected function assertFilesNotExist(string $path, array|string $files): void {
+    $files = is_array($files) ? $files : [$files];
+
+    foreach ($files as $file) {
+      $this->assertFileDoesNotExist($path . DIRECTORY_SEPARATOR . $file);
+    }
+  }
+
 }
