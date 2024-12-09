@@ -8,7 +8,7 @@ use CzProject\GitPhp\GitRepository;
 use CzProject\GitPhp\IRunner;
 use CzProject\GitPhp\RunnerResult;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
-use DrevOps\GitArtifact\Traits\LogTrait;
+use DrevOps\GitArtifact\Traits\LoggerTrait;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
@@ -21,7 +21,7 @@ use Symfony\Component\Finder\Finder;
 class ArtifactGitRepository extends GitRepository {
 
   use FilesystemTrait;
-  use LogTrait;
+  use LoggerTrait;
 
   /**
    * The gitignore file path.
@@ -161,7 +161,7 @@ class ArtifactGitRepository extends GitRepository {
     $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info' . DIRECTORY_SEPARATOR . 'exclude';
 
     if ($this->fs->exists($filename)) {
-      $this->logDebug('Disabling local exclude');
+      $this->logger->debug('Disabling local exclude');
       $this->fs->rename($filename, $filename . '.bak');
     }
 
@@ -175,7 +175,7 @@ class ArtifactGitRepository extends GitRepository {
     $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info' . DIRECTORY_SEPARATOR . 'exclude';
 
     if ($this->fs->exists($filename . '.bak')) {
-      $this->logDebug('Restoring local exclude');
+      $this->logger->debug('Restoring local exclude');
       $this->fs->rename($filename . '.bak', $filename);
     }
 
@@ -254,7 +254,7 @@ class ArtifactGitRepository extends GitRepository {
   public function removeIgnoredFiles(): static {
     if (!empty($this->gitignoreFile)) {
       $gitignore = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.gitignore';
-      $this->logDebug(sprintf('Copying custom .gitignore file from %s to %s', $this->gitignoreFile, $gitignore));
+      $this->logger->debug(sprintf('Copying custom .gitignore file from %s to %s', $this->gitignoreFile, $gitignore));
       $this->fs->copy($this->gitignoreFile, $gitignore, TRUE);
 
       // Remove custom .gitignore file if it is within the repository.
@@ -276,7 +276,7 @@ class ArtifactGitRepository extends GitRepository {
       foreach ($files as $file) {
         $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
         if ($this->fs->exists($filename)) {
-          $this->logDebug(sprintf('Removing ignored file %s', $filename));
+          $this->logger->debug(sprintf('Removing ignored file %s', $filename));
           $this->fs->remove($filename);
         }
       }
@@ -297,7 +297,7 @@ class ArtifactGitRepository extends GitRepository {
     foreach ($files as $file) {
       $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
       if ($this->fs->exists($filename)) {
-        $this->logDebug(sprintf('Removing other file %s', $filename));
+        $this->logger->debug(sprintf('Removing other file %s', $filename));
         $this->fs->remove($filename);
       }
     }
@@ -324,7 +324,7 @@ class ArtifactGitRepository extends GitRepository {
       if ($dir instanceof \SplFileInfo) {
         $dir = $dir->getPathname();
         $this->fs->remove($dir);
-        $this->logDebug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
+        $this->logger->debug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
       }
     }
 
