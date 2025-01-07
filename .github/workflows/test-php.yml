@@ -8,6 +8,13 @@ on:
     branches:
       - main
       - 'feature/**'
+  workflow_dispatch:
+    inputs:
+      enable_terminal:
+        type: boolean
+        description: 'Enable terminal session.'
+        required: false
+        default: false
 
 jobs:
   test-php:
@@ -15,7 +22,7 @@ jobs:
 
     strategy:
       matrix:
-        php-versions: ['8.2', '8.3']
+        php-versions: ['8.2', '8.3', '8.4']
 
     steps:
       - name: Checkout code
@@ -33,6 +40,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
+          coverage: pcov
+          ini-values: pcov.directory=.
 
       - name: Setup SSH private key
         uses: webfactory/ssh-agent@v0.9.0
@@ -47,24 +56,41 @@ jobs:
       - name: Install dependencies
         run: composer install
 
+      - name: Validate composer.json
+        run: |
+          composer --verbose validate
+          composer normalize --dry-run
+
       - name: Check coding standards
         run: composer lint
+        continue-on-error: ${{ vars.CI_LINT_IGNORE_FAILURE == '1' }}
 
       - name: Run tests
-        run: XDEBUG_MODE=coverage composer test
+        run: composer test-coverage
+        continue-on-error: ${{ vars.CI_TEST_IGNORE_FAILURE == '1' }}
 
       - name: Upload coverage report as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{github.job}}-code-coverage-report-${{ matrix.php-versions }}
           path: ./.coverage-html
+          include-hidden-files: true
+          if-no-files-found: error
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v5
+        if: ${{ env.CODECOV_TOKEN != '' }}
         with:
           files: ./cobertura.xml
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Setup tmate session
+        if: ${{ !cancelled() && github.event.inputs.enable_terminal }}
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 5
 
   build-php:
     runs-on: ubuntu-latest

@@ -62,7 +62,7 @@ trait FilesystemTrait {
       return $this->fsRootDir;
     }
 
-    if (isset($_SERVER['PWD'])) {
+    if (isset($_SERVER['PWD']) && is_string($_SERVER['PWD']) && !empty($_SERVER['PWD'])) {
       return $_SERVER['PWD'];
     }
 
@@ -191,9 +191,6 @@ trait FilesystemTrait {
    *   Resolved path.
    *
    * @see https://stackoverflow.com/a/29372360/712666
-   *
-   * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-   * @SuppressWarnings(PHPMD.NPathComplexity)
    */
   protected function fsRealpath(string $path): string {
     // Whether $path is unix or not.

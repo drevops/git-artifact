@@ -52,9 +52,6 @@ trait ConsoleTrait {
 
     $application->setAutoExit(FALSE);
     $application->setCatchExceptions(FALSE);
-    if (method_exists($application, 'setCatchErrors')) {
-      $application->setCatchErrors(FALSE);
-    }
 
     $this->appTester = new ApplicationTester($application);
   }
@@ -75,6 +72,7 @@ trait ConsoleTrait {
   protected function consoleApplicationRun(array $input = [], array $options = [], bool $expect_fail = FALSE): string {
     $options += ['capture_stderr_separately' => TRUE];
 
+    $output = '';
     try {
       $this->appTester->run($input, $options);
       $output = $this->appTester->getDisplay();

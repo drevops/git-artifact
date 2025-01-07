@@ -29,10 +29,9 @@
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "drupal/coder": "^8.3",
         "ergebnis/composer-normalize": "^2.43",
-        "phpmd/phpmd": "^2.15",
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^2",
         "phpunit/phpunit": "^11",
-        "rector/rector": "^1.0.0"
+        "rector/rector": "^2"
     },
     "autoload": {
         "psr-4": {
@@ -63,14 +62,14 @@
         "lint": [
             "phpcs",
             "phpstan --memory-limit=-1",
-            "phpmd --exclude vendor,vendor-bin,node_modules,TokenTest.php . text phpmd.xml",
             "rector --clear-cache --dry-run"
         ],
         "lint-fix": [
             "rector --clear-cache",
             "phpcbf"
         ],
-        "reset": "rm -rf vendor vendor-bin composer.lock",
-        "test": "phpunit"
+        "reset": "rm -Rf vendor vendor-bin composer.lock",
+        "test": "phpunit --no-coverage",
+        "test-coverage": "phpunit"
     }
 }
