@@ -15,8 +15,6 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Artifact git repository.
- *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class ArtifactGitRepository extends GitRepository {
 
@@ -321,11 +319,9 @@ class ArtifactGitRepository extends GitRepository {
     $dirs = iterator_to_array($dirs->directories());
 
     foreach ($dirs as $dir) {
-      if ($dir instanceof \SplFileInfo) {
-        $dir = $dir->getPathname();
-        $this->fs->remove($dir);
-        $this->logger->debug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
-      }
+      $dir = $dir->getPathname();
+      $this->fs->remove($dir);
+      $this->logger->debug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
     }
 
     // After removing sub-repositories, the files that were previously tracked

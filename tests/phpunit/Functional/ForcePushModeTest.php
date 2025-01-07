@@ -10,8 +10,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Class ForcePushTest.
- *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]

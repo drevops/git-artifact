@@ -18,11 +18,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Artifact Command.
- *
- * @SuppressWarnings(PHPMD.TooManyMethods)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
- * @SuppressWarnings(PHPMD.TooManyFields)
- * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  */
 class ArtifactCommand extends Command {
 
@@ -219,8 +214,6 @@ class ArtifactCommand extends Command {
 
   /**
    * Assemble a code artifact from your codebase.
-   *
-   * @SuppressWarnings(PHPMD.CyclomaticComplexity)
    */
   protected function doExecute(): void {
     $error = NULL;
