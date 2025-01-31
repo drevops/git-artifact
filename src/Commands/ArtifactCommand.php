@@ -458,6 +458,26 @@ class ArtifactCommand extends Command {
   }
 
   /**
+   * Token callback to get current branch as a safe string.
+   *
+   * @return string
+   *   Branch name.
+   *
+   * @throws \Exception
+   */
+  protected function getTokenSafebranch(): string {
+    $name = $this->repo->getCurrentBranchName();
+
+    $replacement = preg_replace('/[^a-z0-9-]/i', '-', strtolower($name));
+
+    if (empty($replacement)) {
+      throw new \Exception('Safe branch name is empty');
+    }
+
+    return $replacement;
+  }
+
+  /**
    * Token callback to get tags.
    *
    * @param string|null $delimiter

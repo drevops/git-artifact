@@ -57,6 +57,18 @@ trait GitTrait {
   }
 
   /**
+   * Create branch.
+   *
+   * @param string $path
+   *   Path to repository.
+   * @param string $branch
+   *   Branch name.
+   */
+  protected function gitCreateBranch(string $path, string $branch): void {
+    (new Git())->open($path)->createBranch($branch);
+  }
+
+  /**
    * Reset git repo at path.
    *
    * @param string $path
