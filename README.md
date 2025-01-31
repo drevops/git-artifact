@@ -31,15 +31,15 @@ and push it into a separate Git repository.
 
 In hosting environments like Acquia, there are restrictions on the languages or
 frameworks available for building applications—for instance, the inability to
-run `composer install` due to a read-only filesystem. Consequently, a website 
-source code has to be developed in a separate (source) repository, then 
-assembled into a code artifact either locally or via CI, and then transferred 
+run `composer install` due to a read-only filesystem. Consequently, a website
+source code has to be developed in a separate (source) repository, then
+assembled into a code artifact either locally or via CI, and then transferred
 to the hosting provider's version control system (destination repository).
 
-This tool facilitates such processes seamlessly: it uses a `.gitignore.deployment`
-file to determine which files should be transferred to the destination
-repository, ensuring only necessary files are included and leaving out those
-specified by the ignore file.
+This tool facilitates such processes seamlessly: it uses a
+`.gitignore.deployment` file to determine which files should be transferred to
+the destination repository, ensuring only necessary files are included and
+leaving out those specified by the ignore file.
 
 Furthermore, since the destination repository requires a commit to incorporate
 changes from the artifact (like CSS, JS, etc.), the tool offers two options for
@@ -86,12 +86,15 @@ repository. The addition of the new tags would create new unique branches in the
 destination repository.
 
 ## Installation
+
 ```shell
 composer require --dev drevops/git-artifact
 ```
+
 or download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
 
 ## Usage
+
 ```shell
 ./git-artifact git@github.com:yourorg/your-repo-destination.git
 ```
@@ -107,6 +110,7 @@ See examples:
 - [CircleCI](.circleci/config.yml)
 
 Call from CI configuration or deployment script:
+
 ```shell
 export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
 ./git-artifact git@github.com:yourorg/your-repo-destination.git \
@@ -119,25 +123,25 @@ fully-configured [example in the Scaffold project](https://github.com/drevops/sc
 
 ## Options
 
-| Name               | Default value        | Description                                                                                   |
-|--------------------|----------------------|-----------------------------------------------------------------------------------------------|
-| `--branch`         | `"[branch]"`         | Destination branch with optional tokens.                                                      |
-| `--gitignore`      |                      | Path to gitignore file to replace current `.gitignore`.                                       |
-| `--message`        | `"Deployment commit"`| Commit message with optional tokens.                                                          |
-| `--mode`           | `"force-push"`       | Mode of artifact build: branch, force-push or diff.                                           |
-| `--no-cleanup`     |                      | Do not cleanup after run.                                                                     |
-| `--now`            |                      | Internal value used to set internal time.                                                     |
-| `--dry-run`        |                      | Run without pushing to the remote repository.                                                 |
-| `--log`            |                      | Path to the log file.                                                                         |
-| `--root`           |                      | Path to the root for file path resolution. Uses current directory if not specified.           |
-| `--show-changes`   |                      | Show changes made to the repo by the build in the output.                                     |
-| `--src`            |                      | Directory where source repository is located. Uses root directory if not specified.           |
-| `-h, --help`       |                      | Display help for the given command. Displays help for the artifact command if no command given. |
-| `-q, --quiet`      |                      | Do not output any message.                                                                    |
-| `-V, --version`    |                      | Display this application version.                                                             |
-| `--ansi`           |                      | Force ANSI output. Use `--no-ansi` to disable.                                                |
-| `-n, --no-interaction` |                  | Do not ask any interactive question.                                                          |
-| `-v, --verbose`    |                      | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug.            |
+| Name                   | Default value       | Description                                                                                     |
+|------------------------|---------------------|-------------------------------------------------------------------------------------------------|
+| `--branch`             | `[branch]`          | Destination branch with optional tokens.                                                        |
+| `--gitignore`          |                     | Path to gitignore file to replace current `.gitignore`.                                         |
+| `--message`            | `Deployment commit` | Commit message with optional tokens.                                                            |
+| `--mode`               | `force-push`        | Mode of artifact build: branch, force-push or diff.                                             |
+| `--no-cleanup`         |                     | Do not cleanup after run.                                                                       |
+| `--now`                |                     | Internal value used to set internal time.                                                       |
+| `--dry-run`            |                     | Run without pushing to the remote repository.                                                   |
+| `--log`                |                     | Path to the log file.                                                                           |
+| `--root`               |                     | Path to the root for file path resolution. Uses current directory if not specified.             |
+| `--show-changes`       |                     | Show changes made to the repo by the build in the output.                                       |
+| `--src`                |                     | Directory where source repository is located. Uses root directory if not specified.             |
+| `-h, --help`           |                     | Display help for the given command. Displays help for the artifact command if no command given. |
+| `-q, --quiet`          |                     | Do not output any message.                                                                      |
+| `-V, --version`        |                     | Display this application version.                                                               |
+| `--ansi`               |                     | Force ANSI output. Use `--no-ansi` to disable.                                                  |
+| `-n, --no-interaction` |                     | Do not ask any interactive question.                                                            |
+| `-v, --verbose`        |                     | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug.              |
 
 ### Modifying artifact content
 
@@ -152,8 +156,8 @@ captured.
 
 Tokens are pre-defined strings surrounded by `[` and `]` and may contain
 optional formatter (for flexibility). For example, `[timestamp:Y-m-d]` is
-replaced with the current timestamp in format `Y-m-d` (token formatter), which is
-PHP [`date()`](https://www.php.net/manual/en/function.date.php) expected format.
+replaced with the current timestamp in format `Y-m-d` (token formatter), which
+is PHP [`date()`](https://www.php.net/manual/en/function.date.php) expected format.
 
 Both `--branch` and `--message` option values support token replacement.
 
@@ -161,8 +165,9 @@ Available tokens:
 
 - `[timestamp:FORMAT]` - current time with a PHP [`date()`](https://www.php.net/manual/en/function.date.php)-compatible `FORMAT`.
 - `[branch]` - current branch in the source repository.
+- `[safebranch]` - current branch in the source repository with with all non-alphanumeric characters replaced with `-` and lowercased.
 - `[tags:DELIMITER]` - tags from the latest commit in the source repository
-   separated by a `DELIMITER`.
+  separated by a `DELIMITER`.
 
 ## Maintenance
 

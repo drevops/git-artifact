@@ -265,6 +265,15 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
     ]);
   }
 
+  public function testBuildSafebranch(): void {
+    $this->gitCreateFixtureCommits(2);
+    $this->gitCreateBranch($this->src, 'Feature/so1me/f3ature');
+    $this->gitCheckout($this->src, 'Feature/so1me/f3ature');
+    $this->gitCreateFixtureCommit(3);
+
+    $this->assertArtifactCommandSuccess(['--branch' => '[safebranch]'], 'feature-so1me-f3ature');
+  }
+
   public function testBuildTag(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
