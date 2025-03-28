@@ -40,7 +40,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DrevOps\\GitArtifact\\Tests\\": "tests/phpunit"
+            "DrevOps\\GitArtifact\\Tests\\": "tests"
         }
     },
     "bin": [
