@@ -111,20 +111,35 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
   }
 
   public function testGitignore(): void {
-    $this->fixtureCreateFile($this->src, '.gitignore', 'f3');
+    // This .gitignore is a part of the initial fixture.
+    $this->fixtureCreateFile($this->src, '.gitignore', [
+      'f3_i',
+      '.f3_i',
+    ]);
     $this->gitCreateFixtureCommits(2);
-    $this->fixtureCreateFile($this->src, 'f3');
 
+    $this->fixtureCreateFile($this->src, 'f3_i');
+    $this->fixtureCreateFile($this->src, '.f3_i');
+    $this->fixtureCreateFile($this->src, 'f3');
+    $this->fixtureCreateFile($this->src, '.f3');
+
+    $this->assertFilesExist($this->src, ['f3_i', '.f3_i', 'f3', '.f3'], 'Files exist before run');
     $this->assertArtifactCommandSuccess();
+    $this->assertFilesExist($this->src, ['f3_i', '.f3_i', 'f3', '.f3'], 'Files exist after run');
 
     $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
-    $this->assertFilesNotExist($this->dst, 'f3');
+    $this->assertFilesNotExist($this->dst, ['f3_i', '.f3_i'], 'Ignored files do not exist at DST');
+    $this->assertFilesExist($this->dst, ['f3', '.f3'], 'Non-ignored files exist at DST');
 
     // Now, remove the .gitignore and push again.
     $this->fixtureRemoveFile($this->src, '.gitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
     $this->assertArtifactCommandSuccess();
-    $this->gitAssertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->assertFilesExist($this->src, ['f3_i', '.f3_i', 'f3', '.f3'], 'Files exist after run');
+
+    $this->gitAssertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit'], FALSE);
+    $this->assertFilesExist($this->dst, ['f3_i', '.f3_i'], 'Previously ignored files exist at DST');
+    $this->assertFilesExist($this->dst, ['f3', '.f3'], 'Non-ignored files exist at DST');
   }
 
   public function testGitignoreCustom(): void {
@@ -135,10 +150,19 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
     $this->fixtureCreateFile($this->src, 'mygitignore', 'uic');
 
     $this->assertArtifactCommandSuccess(['--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore']);
+    $this->assertFilesExist($this->src, ['mygitignore', 'uc']);
+    // Not possible to restore the file that was previuosly ignored and removed.
+    // @todo Fix this by copying the original SRC to a temporary location.
+    $this->assertFilesNotExist($this->src, ['uic']);
 
     $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
     $this->assertFilesNotExist($this->dst, 'uic');
     $this->assertFilesExist($this->dst, 'uc');
+
+    // Reset the source repository to make sure that there are no uncommitted
+    // files that could have left after the cleanup operation within previous
+    // run.
+    $this->gitReset($this->src);
 
     // Now, remove the .gitignore and push again.
     // We have to create 'uic' file since it was rightfully

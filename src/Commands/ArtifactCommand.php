@@ -154,9 +154,9 @@ class ArtifactCommand extends Command {
     $this
       ->addOption('branch',       NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.',                                    '[branch]')
       ->addOption('dry-run',      NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
-      ->addOption('gitignore',    NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore.')
+      ->addOption('gitignore',    NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
       ->addOption('message',      NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.',                                        'Deployment commit')
-      ->addOption('mode',         NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push or diff. Defaults to force-push.', 'force-push')
+      ->addOption('mode',         NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push or diff. Defaults to force-push.', static::MODE_FORCE_PUSH)
       ->addOption('no-cleanup',   NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
       ->addOption('now',          NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('log',          NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
@@ -228,6 +228,11 @@ class ArtifactCommand extends Command {
       $repo->switchToBranch($this->artifactBranch, TRUE);
       $repo->removeSubRepositories();
       $repo->disableLocalExclude();
+      $repo->replaceGitignoreFromCustom();
+      // Custom .gitignore may contain rules that will change the list of
+      // ignored files. We need to add these files as changes so that they
+      // could be reported as excluded by the command below.
+      $repo->addAllChanges();
       $repo->removeIgnoredFiles();
       $repo->removeOtherFiles();
       $changes = $repo->commitAllChanges($this->commitMessage);
@@ -273,11 +278,13 @@ class ArtifactCommand extends Command {
 
     if ($this->needCleanup) {
       $this->logger->notice('Cleaning up');
-      $this->repo
-        ->restoreLocalExclude()
-        ->switchToBranch($this->originalBranch)
-        ->removeBranch($this->artifactBranch, TRUE)
-        ->removeRemote($this->remoteName);
+      $this->repo->resetToPreviousCommit();
+      $this->repo->restoreGitignoreToCustom();
+      $this->repo->restoreLocalExclude();
+      $this->repo->unstageAllChanges();
+      $this->repo->switchToBranch($this->originalBranch);
+      $this->repo->removeBranch($this->artifactBranch, TRUE);
+      $this->repo->removeRemote($this->remoteName);
     }
 
     // Dump log to a file.
@@ -341,12 +348,12 @@ class ArtifactCommand extends Command {
         throw new \Exception('Unable to load contents of ' . $gitignore);
       }
 
-      $this->logger->debug('-----.gitignore---------');
+      $this->logger->debug('-----Custom .gitignore---------');
       $this->logger->debug($contents);
       $this->logger->debug('-----.gitignore---------');
 
       $this->gitignoreFile = $gitignore;
-      $this->repo->setGitignoreFile($gitignore);
+      $this->repo->setGitignoreCustom($this->gitignoreFile);
     }
   }
 
