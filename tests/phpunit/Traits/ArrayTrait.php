@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Tests\Unit;
+namespace DrevOps\GitArtifact\Tests\Traits;
 
-use DrevOps\GitArtifact\Tests\Traits\MockTrait;
-use DrevOps\GitArtifact\Tests\Traits\ReflectionTrait;
-use PHPUnit\Framework\TestCase;
-
-abstract class AbstractUnitTestCase extends TestCase {
-
-  use MockTrait;
-  use ReflectionTrait;
+/**
+ * Trait ArrayTrait.
+ *
+ * Helpers to work with arrays.
+ */
+trait ArrayTrait {
 
   /**
    * Asserts that two associative arrays are similar.

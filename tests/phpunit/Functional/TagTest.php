@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class TagTest extends AbstractFunctionalTestCase {
+class TagTest extends FunctionalTestBase {
 
   /**
    * {@inheritdoc}

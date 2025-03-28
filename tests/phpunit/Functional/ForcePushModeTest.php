@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  */
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class ForcePushModeTest extends AbstractFunctionalTestCase {
+class ForcePushModeTest extends FunctionalTestBase {
 
   protected function setUp(): void {
     $this->mode = ArtifactCommand::MODE_FORCE_PUSH;

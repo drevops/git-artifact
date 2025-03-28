@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class BranchModeTest extends AbstractFunctionalTestCase {
+class BranchModeTest extends FunctionalTestBase {
 
   /**
    * {@inheritdoc}

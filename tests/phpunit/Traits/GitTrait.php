@@ -16,6 +16,8 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 trait GitTrait {
 
+  use ArrayTrait;
+
   /**
    * Init Git repository.
    *

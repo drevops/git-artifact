@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(ArtifactGitRepository::class)]
-class ArtifactGitRepositoryTest extends AbstractUnitTestCase {
+class ArtifactGitRepositoryTest extends UnitTestBase {
 
   #[DataProvider('dataProviderIsValidRemote')]
   public function testIsValidRemote(string $url, string $type, bool $expect_exception, bool $expected): void {
