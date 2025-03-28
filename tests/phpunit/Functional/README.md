@@ -7,7 +7,7 @@
 - `d` - deleted
 - `d_` - directory
 - `sub_` - sub-directory or file; used for testing wildcard name matching (i.e. `d_1/f1` vs `d_1/sub_f1`)
-
+- `f*_l` - symlink to a file or dir (i.e. `f1_l` is a symlink to `f1`)
 
 ## Examples
 - `f1`, `f2` - files `f1` and `f2`

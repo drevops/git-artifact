@@ -283,6 +283,27 @@ class ArtifactGitRepository extends GitRepository {
       $files = array_merge($files, array_filter($files));
     }
 
+    if ($this->gitignore !== NULL && file_exists($this->gitignore)) {
+      $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
+      $files = array_merge($files, array_filter($files));
+    }
+
+    // Symlinks are not returned by the command above. We need to find them
+    // manually and check if they are ignored.
+    $symlinks_iterator = (new Finder())
+      ->ignoreDotFiles(FALSE)
+      ->ignoreVCS(TRUE)
+      ->in($this->getRepositoryPath())
+      ->filter(fn($file) => $file->isLink())
+      ->getIterator();
+
+    foreach ($symlinks_iterator as $file) {
+      $path = $file->getRelativePathname();
+      if ($this->isFileIgnored($path)) {
+        $files[] = $path;
+      }
+    }
+
     foreach ($files as $file) {
       $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
       if ($this->fs->exists($filename) || is_link($filename)) {
