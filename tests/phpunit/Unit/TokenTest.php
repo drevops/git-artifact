@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(TokenTrait::class)]
-class TokenTest extends AbstractUnitTestCase {
+class TokenTest extends UnitTestBase {
 
   #[DataProvider('dataProviderTokenProcess')]
   public function testTokenProcess(string $string, string $expected): void {
@@ -83,6 +83,7 @@ class TokenTest extends AbstractUnitTestCase {
 
     $actual = $this->callProtectedMethod($class, 'tokenExists', [$string]);
     $this->assertEquals($expected, $actual);
+    $this->assertSame($expected, $actual);
   }
 
   public static function dataProviderTokenExists(): array {
