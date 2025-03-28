@@ -206,7 +206,11 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
   }
 
   public function testGitignoreCustomAllowlisting(): void {
-    $this->fixtureCreateFile($this->src, '.gitignore', ['ii', 'ic', 'd_ic', 'd_ii', '/vendor']);
+    $this->fixtureCreateFile($this->src, '.gitignore', [
+      'ii', 'ic', 'd_ic', 'd_ii',
+      '/vendor',
+      'dir_other/node_modules',
+    ]);
 
     $this->fixtureCreateFile($this->src, 'ii');
     $this->fixtureCreateFile($this->src, 'ic');
@@ -222,6 +226,9 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
     $this->fixtureCreateFile($this->src, 'vendor_cc');
     $this->fixtureCreateFile($this->src, 'vendor_com with space com.txt');
     $this->fixtureCreateFile($this->src, 'dir_other/vendor/ve_cc');
+    $this->fixtureCreateFile($this->src, 'dir_other/node_modules/nm_ii');
+    $this->fixtureCreateFile($this->src, 'dir_other/node_modules/somedir/nm_sd_ii');
+    symlink($this->src . DIRECTORY_SEPARATOR . 'vendor/nm_ii', $this->src . DIRECTORY_SEPARATOR . 'dir_other/node_modules/somedir/nm_ii_l');
 
     $this->gitCreateFixtureCommits(2);
 
@@ -238,6 +245,9 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
       'ii', 'ic', 'ui', 'uc', 'ud',
       'd_ic/sub_ic', 'd_ii/sub_ii',
       'vendor/ve_ii',
+      'dir_other/node_modules/nm_ii',
+      'dir_other/node_modules/somedir/nm_sd_ii',
+      'dir_other/node_modules/somedir/nm_ii_l',
     ]);
 
     $this->fixtureCreateFile($this->src, 'ui');
@@ -254,6 +264,7 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
       '!f2', '!ic', '!cc', '!uc',
       '!d_cc', '!d_ic', '!d_uc',
       '!vendor',
+      'dir_other/node_modules',
     ]);
 
     // Run the build.
@@ -274,6 +285,9 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
       'f1', 'ii', 'ci', 'ui', 'ud',
       'd_ci/sub_ci', 'd_ii/sub_ii', 'd_ui/sub_ui', 'd_ud/sub_ud',
       'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
+      'dir_other/node_modules/nm_ii',
+      'dir_other/node_modules/somedir/nm_sd_ii',
+      'dir_other/node_modules/somedir/nm_ii_l',
     ], 'testbranch');
 
     $this->assertFilesExist($this->dst, [
@@ -286,6 +300,9 @@ class ForcePushModeTest extends AbstractFunctionalTestCase {
       'd_ci/sub_ci',
       'd_ii/sub_ii', 'd_ui/sub_ui', 'd_ud/sub_ud',
       'vendor_cc', 'dir_other/vendor/ve_cc', 'vendor_com with space com.txt',
+      'dir_other/node_modules/nm_ii',
+      'dir_other/node_modules/somedir/nm_sd_ii',
+      'dir_other/node_modules/somedir/nm_ii_l',
     ]);
   }
 
