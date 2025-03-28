@@ -22,70 +22,148 @@
 
 ---
 
-## What is it?
+## 🌟 With Git Artifact, you can:
 
-A tool to assemble a code artifact from your codebase, remove unnecessary files,
-and push it into a separate Git repository.
-
-## Why?
-
-In hosting environments like Acquia, there are restrictions on the languages or
-frameworks available for building applications—for instance, the inability to
-run `composer install` due to a read-only filesystem. Consequently, a website
-source code has to be developed in a separate (source) repository, then
-assembled into a code artifact either locally or via CI, and then transferred
-to the hosting provider's version control system (destination repository).
-
-This tool facilitates such processes seamlessly: it uses a
-`.gitignore.deployment` file to determine which files should be transferred to
-the destination repository, ensuring only necessary files are included and
-leaving out those specified by the ignore file.
-
-Furthermore, since the destination repository requires a commit to incorporate
-changes from the artifact (like CSS, JS, etc.), the tool offers two options for
-this commit: `force-push` or `branch`, accommodating different workflow
-preferences.
+📦 Assemble a code artifact locally or in CI<br/>
+🧹 Exclude any unwanted files using a deployment `.gitignore`<br/>
+📤 Transfer the final artifact to a destination Git repository for deployment<br/>
+🔁 Choose between `force-push` or `branch` modes to fit your workflow<br/>
 
 See example of deployed artifact
 in [Artifact branches](https://github.com/drevops/git-artifact-destination/branches).
 
-## Modes
+## 🔀 Workflow
+
+1️⃣ 🧑‍💻 Develop in the _source_ repository<br/>
+2️⃣ 📦 CI installs dependencies and runs **git-artifact** to package and push code to _destination_ repository<br/>
+3️⃣ 🚀 Deployment triggered whan code received<br/>
+
+## 🎚️ Modes
 
 ### `force-push` mode (default)
 
-Push the packaged artifact to the same branch in the destination repository,
-carrying over the history from the source repository while overwriting the
-existing history in the destination repository.
+Push the packaged artifact to the **same branch** in the _destination_ repository.
+This will carry over the branch history from the _source_ repository and will overwrite
+the existing branch history in the _destination_ repository.
 
-![diagram of force-push mode](https://user-images.githubusercontent.com/378794/33816665-a7b0e4a8-de8e-11e7-88f2-80baefb3d73f.png)
+```            
+==================================================
+ 🏃 Run 1
+==================================================
+
+Local repo                  Remote repo
+                            +------------------+
+                            | Artifact commit  | 💥 New commit
+                            +------------------+
++-----------+               +------------------+
+| Commit 2  |               | Commit 2         | \
++-----------+  ==  📦  ==>  +------------------+  ) 👍 Source commit
+| Commit 1  |               | Commit 1         | /   history preserved
++-----------+               +------------------+
+ `mybranch`                      `mybranch`
+
+                                     👆
+                            Branch name as at source
+
+==================================================
+ 🏃 Run 2
+==================================================
+
+Local repo                    Remote repo
+                            +------------------+
+                            | Artifact commit  | 💥 New commit
+                            +------------------+
++-----------+               +------------------+
+| Commit 4  |               | Commit 4         |  \
++-----------+               +------------------+   \
+| Commit 3  |               | Commit 3         |    \
++-----------+  ==  📦  ==>  +------------------+     )  👍 Source commit
+| Commit 2  |               | Commit 2         |    /    history preserved
++-----------+               +------------------+   /
+| Commit 1  |               | Commit 1         |  /
++-----------+               +------------------+
+ `mybranch`                      `mybranch`
+
+                                     👆
+                           Branch name as at source
+
+```
 
 #### Use case
 
-Forwarding all changes from the source repository to the destination
-repository as-is for every branch: for example, a commit in the source
-repository branch `feature/123` would create a commit in the destination
-repository branch `feature/123`. The next commit to the source repository
-branch `feature/123` would update the destination repository branch
-`feature/123` with the changes, but would overwrite the last "deployment"
-commit.
+Forwarding all changes in the _source_ repository to the _destination_
+repository **as-is** for **every branch**: for example, a commit in the _source_
+repository branch `feature/123` would create a commit in the _destination_
+repository branch `feature/123`. The next commit to the _source_ repository
+branch `feature/123` would update the _destination_ repository branch
+`feature/123` with the changes, but would overwrite the last "artifact commit".
 
 ### `branch` mode
 
-Push packaged artifact to the new branch on each deployment, preserving history
-from the source repository, but requiring to trigger a deployment of newly
-created branch after each deployment.
+Push the packaged artifact to the **new branch** in the _destination_ repository.
+This will carry over the branch history from the _source_ repository to a 
+dedicated branch in the _destination_ repository. The follow-up pushes to the
+branch in the _destination_ repository will be blocked.
 
-![diagram of branch mode](https://user-images.githubusercontent.com/378794/33816666-a87b3910-de8e-11e7-82cd-51e007ece063.png)
+```
+==================================================
+ 🏃 Run 1
+==================================================
+
+Local repo                  Remote repo
+                            +------------------+
+                            | Artifact commit  | 💥 New commit
+                            +------------------+
++-----------+               +------------------+
+| Commit 2  |               | Commit 2         | \
++-----------+  ==  📦  ==>  +------------------+  ) 👍 Source commit
+| Commit 1  |               | Commit 1         | /    history preserved
++-----------+               +------------------+
+
+ `mybranch`                  `deployment/1.2.3`
+ tagged with
+   `1.2.3`
+
+     👆                              👆
+ Tagged branch              New branch based on tag
+
+==================================================
+ 🏃 Run 2
+==================================================
+
+Local repo                    Remote repo
+                            +------------------+
+                            | Artifact commit  | 💥 New commit
+                            +------------------+
++-----------+               +------------------+
+| Commit 4  |               | Commit 4         |  \
++-----------+               +------------------+   \
+| Commit 3  |               | Commit 3         |    \
++-----------+  ==  📦  ==>  +------------------+     )  👍 Source commit
+| Commit 2  |               | Commit 2         |    /    history preserved
++-----------+               +------------------+   /
+| Commit 1  |               | Commit 1         |  /
++-----------+               +------------------+
+
+ `mybranch`                  `deployment/1.2.4`
+ tagged with
+   `1.2.4`  👈 New tag 1.2.4
+
+     👆                              👆
+ Tagged branch            New branch based on a new tag
+ with a new tag
+
+```
 
 #### Use case
 
-Creating a new branch in the destination repository for every tag
-created in the source repository: for example, a tag `1.2.3` in the source
+Creating a **new branch** in the _destination_ repository for every **tag**
+created in the _source_ repository: for example, a tag `1.2.3` in the source
 repository would create a branch `deployment/1.2.3` in the destination
 repository. The addition of the new tags would create new unique branches in the
 destination repository.
 
-## Installation
+## 📥 Installation
 
 ```shell
 composer require --dev drevops/git-artifact
@@ -93,7 +171,7 @@ composer require --dev drevops/git-artifact
 
 or download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
 
-## Usage
+## ▶️ Usage
 
 ```shell
 ./git-artifact git@github.com:yourorg/your-repo-destination.git
@@ -102,14 +180,11 @@ or download the latest release from the [GitHub releases page](https://github.co
 This will create an artifact from current directory and will send it to the
 specified remote repository into the same branch as a current one.
 
-### Run in CI
+Note that sending an artifact containing development depencnies is not a good idea,
+so you can setup your CI to build with non-dev depencies, export the code, and use
+it as a source for the artifact. Our CI examples below 
 
-See examples:
-
-- [GitHub Actions](.github/workflows/test-php.yml)
-- [CircleCI](.circleci/config.yml)
-
-Call from CI configuration or deployment script:
+Call from the CI configuration or deployment script:
 
 ```shell
 export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
@@ -118,32 +193,39 @@ export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
   --push
 ```
 
+CI providers may report branches differently when running builds triggered by tags. 
+We encourage you to check out our constantly automatically tested examples:
+
+- [GitHub Actions](.github/workflows/test-php.yml)
+- [CircleCI](.circleci/config.yml)
+
 See extended and
 fully-configured [example in the Vortex project](https://github.com/drevops/vortex/blob/develop/scripts/vortex/deploy-artifact.sh).
 
-## Options
 
-| Name                   | Default value       | Description                                                                                     |
-|------------------------|---------------------|-------------------------------------------------------------------------------------------------|
-| `--branch`             | `[branch]`          | Destination branch with optional tokens.                                                        |
-| `--gitignore`          |                     | Path to gitignore file to replace current `.gitignore`.                                         |
-| `--message`            | `Deployment commit` | Commit message with optional tokens.                                                            |
-| `--mode`               | `force-push`        | Mode of artifact build: branch, force-push or diff.                                             |
-| `--no-cleanup`         |                     | Do not cleanup after run.                                                                       |
-| `--now`                |                     | Internal value used to set internal time.                                                       |
-| `--dry-run`            |                     | Run without pushing to the remote repository.                                                   |
-| `--log`                |                     | Path to the log file.                                                                           |
-| `--root`               |                     | Path to the root for file path resolution. Uses current directory if not specified.             |
-| `--show-changes`       |                     | Show changes made to the repo by the build in the output.                                       |
-| `--src`                |                     | Directory where source repository is located. Uses root directory if not specified.             |
-| `-h, --help`           |                     | Display help for the given command. Displays help for the artifact command if no command given. |
-| `-q, --quiet`          |                     | Do not output any message.                                                                      |
-| `-V, --version`        |                     | Display this application version.                                                               |
-| `--ansi`               |                     | Force ANSI output. Use `--no-ansi` to disable.                                                  |
-| `-n, --no-interaction` |                     | Do not ask any interactive question.                                                            |
-| `-v, --verbose`        |                     | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug.              |
+## 🎛️ Options
 
-### Modifying artifact content
+| Name                   | Default value       | Description                                                                                    |
+|------------------------|---------------------|------------------------------------------------------------------------------------------------|
+| `--mode`               | `force-push`        | Mode of artifact build: `branch`, `force-push`                                                 |
+| `--branch`             | `[branch]`          | Destination branch with optional tokens (see below)                                            |
+| `--gitignore`          |                     | Path to the `.gitignore` file to replace the current `.gitignore`                              |
+| `--src`                |                     | Directory where source repository is located. Uses root directory if not specified             |
+| `--root`               |                     | Path to the root for file path resolution. Uses current directory if not specified             |
+| `--message`            | `Deployment commit` | Commit message with optional tokens (see below)                                                |
+| `--no-cleanup`         |                     | Do not cleanup after run                                                                       |
+| `--log`                |                     | Path to the log file                                                                           |
+| `--show-changes`       |                     | Show changes made to the repo by the build in the output                                       |
+| `--dry-run`            |                     | Run without pushing to the remote repository                                                   |
+| `--now`                |                     | Internal value used to set internal time                                                       |
+| `-h, --help`           |                     | Display help for the given command                                                             |
+| `-q, --quiet`          |                     | Do not output any messages                                                                     |
+| `-V, --version`        |                     | Display this application version                                                               |
+| `--ansi`               |                     | Force ANSI output. Use `--no-ansi` to disable                                                  |
+| `-n, --no-interaction` |                     | Do not ask any interactive question                                                            |
+| `-v, --verbose`        |                     | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug              |
+
+## 🧹 Modifying artifact content
 
 `--gitignore` option allows to specify the path to the artifact's `.gitignore`
 file that replaces existing `.gitignore` (if any) during the build. Any files no
@@ -152,10 +234,10 @@ deployment commit. If there are no no-longer-excluded files, the deployment
 commit is still created, to make sure that the deployment timestamp is
 captured.
 
-### Token support
+## 🏷️ Token support
 
 Tokens are pre-defined strings surrounded by `[` and `]` and may contain
-optional formatter (for flexibility). For example, `[timestamp:Y-m-d]` is
+optional formatter. For example, `[timestamp:Y-m-d]` is
 replaced with the current timestamp in format `Y-m-d` (token formatter), which
 is PHP [`date()`](https://www.php.net/manual/en/function.date.php) expected format.
 
@@ -170,6 +252,14 @@ Available tokens:
   separated by a `DELIMITER`.
 
 ## Maintenance
+
+### 🧪 Testing
+
+Packaging and deployment of artifacts is a mission-critical process, so we maintain
+a set of unit, functional and integration tests to make sure that everything works
+as expected.
+
+You can see examples of the branches created by the Git Artifact in the [example _destination_ repository](https://github.com/drevops/git-artifact-destination/branches).
 
 ### Lint and fix code
 
