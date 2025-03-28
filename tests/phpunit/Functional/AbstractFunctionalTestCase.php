@@ -189,12 +189,14 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
    *   Repository location.
    * @param array<string>|string $files
    *   File or array of files.
+   * @param string $message
+   *   Optional message.
    */
-  protected function assertFilesExist(string $path, array|string $files): void {
+  protected function assertFilesExist(string $path, array|string $files, string $message = ''): void {
     $files = is_array($files) ? $files : [$files];
 
     foreach ($files as $file) {
-      $this->assertFileExists($path . DIRECTORY_SEPARATOR . $file);
+      $this->assertFileExists($path . DIRECTORY_SEPARATOR . $file, $message);
     }
   }
 
@@ -205,12 +207,14 @@ abstract class AbstractFunctionalTestCase extends AbstractUnitTestCase {
    *   Repository location.
    * @param array<string>|string $files
    *   File or array of files.
+   * @param string $message
+   *   Optional message.
    */
-  protected function assertFilesNotExist(string $path, array|string $files): void {
+  protected function assertFilesNotExist(string $path, array|string $files, string $message = ''): void {
     $files = is_array($files) ? $files : [$files];
 
     foreach ($files as $file) {
-      $this->assertFileDoesNotExist($path . DIRECTORY_SEPARATOR . $file);
+      $this->assertFileDoesNotExist($path . DIRECTORY_SEPARATOR . $file, $message);
     }
   }
 

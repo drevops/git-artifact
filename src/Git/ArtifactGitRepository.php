@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Git;
 
+use CzProject\GitPhp\GitException;
 use CzProject\GitPhp\GitRepository;
 use CzProject\GitPhp\IRunner;
 use CzProject\GitPhp\RunnerResult;
@@ -22,9 +23,14 @@ class ArtifactGitRepository extends GitRepository {
   use LoggerTrait;
 
   /**
-   * The gitignore file path.
+   * The standard gitignore file path.
    */
-  protected string $gitignoreFile;
+  protected ?string $gitignore = NULL;
+
+  /**
+   * The custom gitignore file path.
+   */
+  protected ?string $gitignoreCustom = NULL;
 
   /**
    * {@inheritdoc}
@@ -37,14 +43,34 @@ class ArtifactGitRepository extends GitRepository {
     if ($logger instanceof LoggerInterface) {
       $this->logger = $logger;
     }
+
+    $this->gitignore = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.gitignore';
   }
 
   /**
    * {@inheritdoc}
    */
   public function run(...$args): RunnerResult {
-    $command = array_shift($args);
-    array_unshift($args, '--no-pager', $command);
+    $command = reset($args);
+
+    $no_pager = [
+      'add',
+      'commit',
+      'checkout',
+      'clone',
+      'init',
+      'status',
+      'config',
+      'push',
+      'pull',
+      'fetch',
+      'merge',
+      'rebase',
+      'reset',
+    ];
+    if (!in_array($command, $no_pager)) {
+      array_unshift($args, '--no-pager');
+    }
 
     return parent::run(...$args);
   }
@@ -52,8 +78,8 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Set gitignore file.
    */
-  public function setGitignoreFile(string $filename): static {
-    $this->gitignoreFile = $filename;
+  public function setGitignoreCustom(string $filename): static {
+    $this->gitignoreCustom = $filename;
 
     return $this;
   }
@@ -250,33 +276,18 @@ class ArtifactGitRepository extends GitRepository {
    * Remove ignored files.
    */
   public function removeIgnoredFiles(): static {
-    if (!empty($this->gitignoreFile)) {
-      $gitignore = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.gitignore';
-      $this->logger->debug(sprintf('Copying custom .gitignore file from %s to %s', $this->gitignoreFile, $gitignore));
-      $this->fs->copy($this->gitignoreFile, $gitignore, TRUE);
+    $files = [];
 
-      // Remove custom .gitignore file if it is within the repository.
-      // @todo Review if this is "magic" and should be explicitly listed in
-      // the file itself. Alternatively, we could add a check if the custom
-      // gitignore is ignored within itself and add it if it is not.
-      if (str_starts_with($this->gitignoreFile, $this->getRepositoryPath())) {
-        $this->fs->remove($this->gitignoreFile);
-      }
+    if ($this->gitignore !== NULL && file_exists($this->gitignore)) {
+      $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
+      $files = array_merge($files, array_filter($files));
+    }
 
-      // Custom .gitignore may contain rules that will change the list of
-      // ignored files. We need to add these files as changes so that they
-      // could be reported as excluded by the command below.
-      $this->addAllChanges();
-
-      $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $gitignore]) ?: [];
-      $files = array_filter($files);
-
-      foreach ($files as $file) {
-        $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
-        if ($this->fs->exists($filename)) {
-          $this->logger->debug(sprintf('Removing ignored file %s', $filename));
-          $this->fs->remove($filename);
-        }
+    foreach ($files as $file) {
+      $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
+      if ($this->fs->exists($filename) || is_link($filename)) {
+        $this->logger->debug(sprintf('Removing ignored file %s', $filename));
+        $this->fs->remove($filename);
       }
     }
 
@@ -373,6 +384,72 @@ class ArtifactGitRepository extends GitRepository {
       'external' => $is_external,
       default => throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided', $type)),
     };
+  }
+
+  /**
+   * Reset to the previous commit.
+   */
+  public function resetToPreviousCommit(): static {
+    $this->run('reset', '--soft', 'HEAD~1');
+
+    return $this;
+  }
+
+  /**
+   * Replace .gitignore with content from custom .gitignore file.
+   */
+  public function replaceGitignoreFromCustom(): static {
+    if ($this->gitignoreCustom !== NULL && !empty($this->gitignoreCustom) && $this->gitignore !== NULL) {
+      $this->logger->debug(sprintf('Copying custom .gitignore file from %s to %s', $this->gitignoreCustom, $this->gitignore));
+      $this->fs->rename($this->gitignoreCustom, $this->gitignore, TRUE);
+    }
+
+    return $this;
+  }
+
+  /**
+   * Restore .gitignore content to custom .gitignore file if it existed.
+   */
+  public function restoreGitignoreToCustom(): static {
+    if ($this->gitignoreCustom !== NULL && $this->gitignore !== NULL && file_exists($this->gitignore)) {
+      $this->logger->debug(sprintf('Restoring custom .gitignore file from %s to %s', $this->gitignore, $this->gitignoreCustom));
+      $this->fs->rename($this->gitignore, $this->gitignoreCustom, TRUE);
+    }
+
+    return $this;
+  }
+
+  /**
+   * Unstage all changes.
+   */
+  public function unstageAllChanges(): static {
+    $this->run('reset', 'HEAD');
+
+    return $this;
+  }
+
+  /**
+   * Check if file is ignored.
+   *
+   * @param string $file
+   *   File to check.
+   *
+   * @return bool
+   *   TRUE if file is ignored, FALSE otherwise.
+   */
+  public function isFileIgnored(string $file): bool {
+    try {
+      $this->extractFromCommand(['check-ignore', '-v', $file]);
+    }
+    catch (GitException $exception) {
+      if ($exception->getCode() === 1) {
+        return FALSE;
+      }
+
+      throw $exception;
+    }
+
+    return TRUE;
   }
 
 }
