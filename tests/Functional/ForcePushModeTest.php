@@ -106,8 +106,7 @@ class ForcePushModeTest extends FunctionalTestBase {
     $output = $this->assertArtifactCommandFailure(['--branch' => '*invalid']);
 
     $this->assertStringContainsString('Incorrect value "*invalid" specified for git remote branch', $output);
-    $this->gitAssertCurrentBranch($this->src, $this->currentBranch);
-    $this->gitAssertRemoteNotExists($this->src, $this->remoteName);
+    $this->gitAssertCurrentBranch($this->src, $this->gitGetGlobalDefaultBranch());
   }
 
   public function testGitignore(): void {

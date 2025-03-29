@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Unit;
 
+use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Traits\TokenTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(TokenTrait::class)]
+#[CoversClass(ArtifactCommand::class)]
 class TokenTest extends UnitTestBase {
 
   #[DataProvider('dataProviderTokenProcess')]
