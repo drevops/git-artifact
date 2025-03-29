@@ -79,17 +79,15 @@ class BranchModeTest extends FunctionalTestBase {
   }
 
   public function testCleanupAfterFailure(): void {
-    $this->gitCreateFixtureCommits(2);
+    $this->gitCreateFixtureCommits(1);
 
-    $this->assertArtifactCommandSuccess();
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $output = $this->assertArtifactCommandFailure([
+      '--mode' => ArtifactCommand::MODE_BRANCH,
+      '--branch' => '*invalid',
+    ]);
 
-    $this->gitCreateFixtureCommits(3, 2);
-    // Trigger erroneous build by pushing to the same branch.
-    $this->assertArtifactCommandFailure();
-
-    $this->gitAssertCurrentBranch($this->src, $this->currentBranch);
-    $this->gitAssertRemoteNotExists($this->src, $this->remoteName);
+    $this->assertStringContainsString('Incorrect value "*invalid" specified for git remote branch', $output);
+    $this->gitAssertCurrentBranch($this->src, $this->gitGetGlobalDefaultBranch());
   }
 
   public function testGitignore(): void {

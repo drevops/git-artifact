@@ -61,6 +61,39 @@ class GeneralTest extends FunctionalTestBase {
     $this->assertFilesNotExist($this->dst, 'f1');
   }
 
+  public function testSrcDefault(): void {
+    $this->gitCreateFixtureCommits(1);
+
+    $old_fixture_dir = $this->fixtureDir;
+    $this->fixtureDir = $this->src;
+
+    $this->src = '';
+
+    $output = $this->runArtifactCommand(['--dry-run' => TRUE]);
+
+    $this->assertStringContainsString('Source repository:     ' . $this->fixtureDir, $output);
+
+    $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
+
+    $this->fixtureDir = $old_fixture_dir;
+  }
+
+  public function testModeInvalid(): void {
+    $this->gitCreateFixtureCommits(1);
+
+    $output = $this->assertArtifactCommandFailure(['--mode' => 'invalid']);
+
+    $this->assertStringContainsString('Invalid mode provided. Allowed modes are: force-push, branch', $output);
+  }
+
+  public function testRemoteInvalid(): void {
+    $this->gitCreateFixtureCommits(1);
+
+    $output = $this->assertArtifactCommandFailure(['remote' => 'git://user/repo']);
+
+    $this->assertStringContainsString('Invalid remote URL provided: git://user/repo', $output);
+  }
+
   public function testNoCleanup(): void {
     $this->gitCreateFixtureCommits(1);
 

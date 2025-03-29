@@ -58,56 +58,16 @@ trait FilesystemTrait {
    *   script was started from or current working directory.
    */
   protected function fsGetRootDir(): string {
-    if (isset($this->fsRootDir)) {
-      return $this->fsRootDir;
+    if (!isset($this->fsRootDir)) {
+      if (isset($_SERVER['PWD']) && is_string($_SERVER['PWD']) && !empty($_SERVER['PWD'])) {
+        $this->fsRootDir = $_SERVER['PWD'];
+      }
+      else {
+        $this->fsRootDir = (string) getcwd();
+      }
     }
 
-    if (isset($_SERVER['PWD']) && is_string($_SERVER['PWD']) && !empty($_SERVER['PWD'])) {
-      return $_SERVER['PWD'];
-    }
-
-    return (string) getcwd();
-  }
-
-  /**
-   * Set current working directory.
-   *
-   * It is important to note that this should be called in pair with
-   * cwdRestore().
-   *
-   * @param string $dir
-   *   Path to the current directory.
-   *
-   * @return static
-   *   The called object.
-   */
-  protected function fsSetCwd(string $dir): static {
-    chdir($dir);
-    $this->fsOriginalCwdStack[] = $dir;
-
-    return $this;
-  }
-
-  /**
-   * Set current working directory to a previously saved path.
-   *
-   * It is important to note that this should be called in pair with cwdSet().
-   */
-  protected function fsCwdRestore(): void {
-    $dir = array_shift($this->fsOriginalCwdStack);
-    if ($dir) {
-      chdir($dir);
-    }
-  }
-
-  /**
-   * Get current working directory.
-   *
-   * @return string
-   *   Full path of current working directory.
-   */
-  protected function fsCwdGet(): string {
-    return (string) getcwd();
+    return $this->fsRootDir;
   }
 
   /**
@@ -139,14 +99,14 @@ trait FilesystemTrait {
    */
   protected function fsGetAbsolutePath(string $file, ?string $root = NULL): string {
     if ($this->fs->isAbsolutePath($file)) {
-      return $this->fsRealpath($file);
+      return static::fsRealpath($file);
     }
 
     $root = $root ? $root : $this->fsGetRootDir();
-    $root = $this->fsRealpath($root);
+    $root = static::fsRealpath($root);
     $file = $root . DIRECTORY_SEPARATOR . $file;
 
-    return $this->fsRealpath($file);
+    return static::fsRealpath($file);
   }
 
   /**
@@ -192,16 +152,16 @@ trait FilesystemTrait {
    *
    * @see https://stackoverflow.com/a/29372360/712666
    */
-  protected function fsRealpath(string $path): string {
+  protected static function fsRealpath(string $path): string {
     // Whether $path is unix or not.
-    $unipath = $path === '' || $path[0] !== '/';
+    $is_unix_path = $path === '' || $path[0] !== '/';
     $unc = str_starts_with($path, '\\\\');
 
     // Attempt to detect if path is relative in which case, add cwd.
-    if (!str_contains($path, ':') && $unipath && !$unc) {
+    if (!str_contains($path, ':') && $is_unix_path && !$unc) {
       $path = getcwd() . DIRECTORY_SEPARATOR . $path;
       if ($path[0] === '/') {
-        $unipath = FALSE;
+        $is_unix_path = FALSE;
       }
     }
 
@@ -225,20 +185,20 @@ trait FilesystemTrait {
     }
 
     $path = implode(DIRECTORY_SEPARATOR, $absolutes);
+    // Put initial separator that could have been lost.
+    $path = $is_unix_path ? $path : '/' . $path;
+    $path = $unc ? '\\\\' . $path : $path;
 
     // Resolve any symlinks.
-    if (function_exists('readlink') && file_exists($path) && linkinfo($path) > 0) {
+    if (function_exists('readlink') && file_exists($path) && is_link($path) > 0) {
       $path = readlink($path);
 
       if (!$path) {
+        // @codeCoverageIgnoreStart
         throw new \Exception(sprintf('Could not resolve symlink for path: %s', $path));
+        // @codeCoverageIgnoreEnd
       }
     }
-
-    // Put initial separator that could have been lost.
-    $path = $unipath ? $path : '/' . $path;
-
-    $path = $unc ? '\\\\' . $path : $path;
 
     if (str_starts_with($path, sys_get_temp_dir())) {
       $tmp_realpath = realpath(sys_get_temp_dir());
