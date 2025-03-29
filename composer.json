@@ -68,7 +68,7 @@
             "rector --clear-cache",
             "phpcbf"
         ],
-        "reset": "rm -Rf vendor vendor-bin composer.lock",
+        "reset": "rm -Rf vendor vendor-bin",
         "test": "phpunit --no-coverage",
         "test-coverage": "phpunit"
     }

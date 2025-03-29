@@ -3,6 +3,5 @@
 
 /.build
 /.logs
-/composer.lock
 /vendor
 /vendor-bin

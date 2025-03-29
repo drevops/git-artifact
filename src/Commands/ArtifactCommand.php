@@ -313,7 +313,7 @@ class ArtifactCommand extends Command {
 
     $this->remoteUrl = $url;
     $this->now = empty($options['now']) ? time() : (int) $options['now'];
-    $this->remoteName = sprintf('%s-%s', self::GIT_REMOTE_NAME, $this->now);
+    $this->remoteName = sprintf('%s-%s-%s', self::GIT_REMOTE_NAME, $this->now, rand(1000, 9999));
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->isDryRun = !empty($options['dry-run']);
