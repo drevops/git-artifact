@@ -21,17 +21,13 @@ abstract class FunctionalTestBase extends UnitTestBase {
 
   /**
    * Fixture source repository directory.
-   *
-   * @var string
    */
-  protected $src;
+  protected string $src;
 
   /**
    * Fixture remote repository directory.
-   *
-   * @var string
    */
-  protected $dst;
+  protected string $dst;
 
   /**
    * Remote name.
@@ -92,7 +88,7 @@ abstract class FunctionalTestBase extends UnitTestBase {
    * {@inheritdoc}
    */
   protected function tearDown(): void {
-    if ($this->fs->exists($this->fixtureDir)) {
+    if ($this->fixtureDir && $this->fs->exists($this->fixtureDir)) {
       $this->fs->remove($this->fixtureDir);
     }
   }
@@ -168,15 +164,18 @@ abstract class FunctionalTestBase extends UnitTestBase {
       $input = [
         '--root' => $this->fixtureDir,
         '--now' => $this->now,
-        '--src' => $this->src,
         'remote' => $this->dst,
       ];
 
-      if ($this->mode) {
+      if (!empty($this->src)) {
+        $input['--src'] = $this->src;
+      }
+
+      if (!empty($this->mode)) {
         $input['--mode'] = $this->mode;
       }
 
-      $input += $args;
+      $input = $args + $input;
     }
 
     return $this->consoleApplicationRun($input, [], $expect_fail);

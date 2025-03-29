@@ -185,7 +185,7 @@ class ArtifactCommand extends Command {
     $this->loggerInit((string) $this->getName(), $input, $output);
 
     $remote = $input->getArgument('remote');
-    if (empty($remote) || !is_string($remote)) {
+    if (!is_string($remote) || empty(trim($remote))) {
       throw new \RuntimeException('Remote argument must be a non-empty string');
     }
 
@@ -259,7 +259,9 @@ class ArtifactCommand extends Command {
     catch (GitException $exception) {
       $result = $exception->getRunnerResult();
       if (!$result) {
+        // @codeCoverageIgnoreStart
         throw new \Exception('Unknown error occurred', $exception->getCode(), $exception);
+        // @codeCoverageIgnoreEnd
       }
 
       $error = $result->getOutputAsString();
@@ -268,13 +270,13 @@ class ArtifactCommand extends Command {
       }
     }
     catch (\Exception $exception) {
-      // Capture message and allow to rollback.
+      // Capture message to allow showing a report.
       $error = $exception->getMessage();
     }
 
     $this->showReport(is_null($error));
 
-    if ($this->needCleanup) {
+    if ($this->needCleanup && is_null($error)) {
       $this->logger->notice('Cleaning up');
       $this->repo->resetToPreviousCommit();
       $this->repo->restoreGitignoreToCustom();
@@ -343,7 +345,9 @@ class ArtifactCommand extends Command {
 
       $contents = file_get_contents($gitignore);
       if (!$contents) {
+        // @codeCoverageIgnoreStart
         throw new \Exception('Unable to load contents of ' . $gitignore);
+        // @codeCoverageIgnoreEnd
       }
 
       $this->logger->debug('-----Custom .gitignore---------');
@@ -436,11 +440,12 @@ class ArtifactCommand extends Command {
    * Check that there all requirements are met in order to to run this command.
    */
   protected function checkRequirements(): void {
-    // @todo Refactor this into more generic implementation.
     $this->logger->notice('Checking requirements');
 
     if (!$this->fsIsCommandAvailable('git')) {
+      // @codeCoverageIgnoreStart
       throw new \RuntimeException('Git command is not available');
+      // @codeCoverageIgnoreEnd
     }
 
     $this->logger->notice('All requirements were met');
@@ -472,7 +477,9 @@ class ArtifactCommand extends Command {
     $replacement = preg_replace('/[^a-z0-9-]/i', '-', strtolower($name));
 
     if (empty($replacement)) {
+      // @codeCoverageIgnoreStart
       throw new \Exception('Safe branch name is empty');
+      // @codeCoverageIgnoreEnd
     }
 
     return $replacement;
