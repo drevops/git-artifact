@@ -6,8 +6,10 @@
 /.github         export-ignore
 /.gitignore      export-ignore
 /box.json        export-ignore
-/tests           export-ignore
 /phpcs.xml       export-ignore
 /phpmd.xml       export-ignore
 /phpstan.neon    export-ignore
 /phpunit.xml     export-ignore
+/rector.php      export-ignore
+/renovate.json   export-ignore
+/tests           export-ignore
