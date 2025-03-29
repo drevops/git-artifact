@@ -31,8 +31,6 @@ class ArtifactCommand extends Command {
 
   const MODE_FORCE_PUSH = 'force-push';
 
-  const MODE_DIFF = 'diff';
-
   /**
    * Current Git repository.
    */
@@ -46,7 +44,7 @@ class ArtifactCommand extends Command {
   /**
    * Mode in which current build is going to run.
    *
-   * Available modes: branch, force-push, diff.
+   * Available modes: branch, force-push.
    */
   protected string $mode;
 
@@ -152,11 +150,11 @@ class ArtifactCommand extends Command {
     // phpcs:disable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
     // phpcs:disable Drupal.WhiteSpace.Comma.TooManySpaces
     $this
-      ->addOption('branch',       NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.',                                    '[branch]')
+      ->addOption('branch',       NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.',                                                    '[branch]')
       ->addOption('dry-run',      NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
       ->addOption('gitignore',    NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
-      ->addOption('message',      NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.',                                        'Deployment commit')
-      ->addOption('mode',         NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push or diff. Defaults to force-push.', static::MODE_FORCE_PUSH)
+      ->addOption('message',      NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.',                                                        'Deployment commit')
+      ->addOption('mode',         NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push. Defaults to force-push.',                         static::MODE_FORCE_PUSH)
       ->addOption('no-cleanup',   NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
       ->addOption('now',          NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('log',          NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
@@ -424,14 +422,10 @@ class ArtifactCommand extends Command {
         }
         break;
 
-      case self::MODE_DIFF:
-        throw new \RuntimeException('Diff mode is not yet implemented.');
-
       default:
         throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: %s', implode(', ', [
           self::MODE_FORCE_PUSH,
           self::MODE_BRANCH,
-          self::MODE_DIFF,
         ])));
     }
 
