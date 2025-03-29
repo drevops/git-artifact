@@ -46,7 +46,7 @@ Push the packaged artifact to the **same branch** in the _destination_ repositor
 This will carry over the branch history from the _source_ repository and will overwrite
 the existing branch history in the _destination_ repository.
 
-```            
+```
 ==================================================
  🏃 Run 1
 ==================================================
@@ -101,7 +101,7 @@ branch `feature/123` would update the _destination_ repository branch
 ### `branch` mode
 
 Push the packaged artifact to the **new branch** in the _destination_ repository.
-This will carry over the branch history from the _source_ repository to a 
+This will carry over the branch history from the _source_ repository to a
 dedicated branch in the _destination_ repository. The follow-up pushes to the
 branch in the _destination_ repository will be blocked.
 
@@ -165,11 +165,15 @@ destination repository.
 
 ## 📥 Installation
 
-```shell
-composer require --dev drevops/git-artifact
-```
+This package is intended to be used as a standalone binary. You will need to
+have PHP installed on your system to run the binary.
 
-or download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
+Download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
+
+You may also install the package globally using Composer:
+```shell
+composer global require --dev drevops/git-artifact
+```
 
 ## ▶️ Usage
 
@@ -180,9 +184,9 @@ or download the latest release from the [GitHub releases page](https://github.co
 This will create an artifact from current directory and will send it to the
 specified remote repository into the same branch as a current one.
 
-Note that sending an artifact containing development depencnies is not a good idea,
-so you can setup your CI to build with non-dev depencies, export the code, and use
-it as a source for the artifact. Our CI examples below 
+Avoid including development dependencies in your artifacts. Instead, configure
+your CI to build with production-only dependencies, export the resulting code,
+and use that as the artifact source. See our CI examples below.
 
 Call from the CI configuration or deployment script:
 
@@ -193,8 +197,8 @@ export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
   --push
 ```
 
-CI providers may report branches differently when running builds triggered by tags. 
-We encourage you to check out our constantly automatically tested examples:
+CI providers may report branches differently when running builds triggered by tags.
+We encourage you to explore our continuously and automatically tested examples:
 
 - [GitHub Actions](.github/workflows/test-php.yml)
 - [CircleCI](.circleci/config.yml)
