@@ -63,7 +63,7 @@ Local repo                  Remote repo
  `mybranch`                      `mybranch`
 
                                      👆
-                            Branch name as at source
+                        Branch name identical to source
 
 ==================================================
  🏃 Run 2
@@ -85,7 +85,7 @@ Local repo                    Remote repo
  `mybranch`                      `mybranch`
 
                                      👆
-                           Branch name as at source
+                       Branch name identical to source
 
 ```
 
