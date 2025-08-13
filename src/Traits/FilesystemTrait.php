@@ -167,7 +167,7 @@ trait FilesystemTrait {
 
     // Resolve path parts (single dot, double dot and double delimiters).
     $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function ($part): bool {
+    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function (string $part): bool {
       return strlen($part) > 0;
     });
 
