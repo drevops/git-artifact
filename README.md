@@ -36,7 +36,7 @@ in [Artifact branches](https://github.com/drevops/git-artifact-destination/branc
 
 1️⃣ 🧑‍💻 Develop in the _source_ repository<br/>
 2️⃣ 📦 CI installs dependencies and runs **git-artifact** to package and push code to _destination_ repository<br/>
-3️⃣ 🚀 Deployment triggered whan code received<br/>
+3️⃣ 🚀 Hosting receives the code artifact and triggers a deployment<br/>
 
 ## 🎚️ Modes
 
