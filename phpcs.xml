@@ -6,6 +6,9 @@
     <rule ref="Drupal">
         <exclude name="Drupal.Commenting.ClassComment.Short" />
     </rule>
+    <rule ref="Generic.PHP.RequireStrictTypes" />
+    <rule ref="DrevOps.NamingConventions.LocalVariableSnakeCase"/>
+    <rule ref="DrevOps.NamingConventions.ParameterSnakeCase"/>
 
     <!-- Show sniff codes in all reports -->
     <arg value="s"/>
