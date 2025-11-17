@@ -20,7 +20,7 @@ class BranchModeTest extends FunctionalTestCase {
     parent::setUp();
   }
 
-  public function testBuild(): void {
+  public function testPackage(): void {
     $this->gitCreateFixtureCommits(2);
 
     $output = $this->assertArtifactCommandSuccess();
@@ -31,7 +31,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
   }
 
-  public function testBuildMoreCommitsSameBranch(): void {
+  public function testPackageMoreCommitsSameBranch(): void {
     $this->gitCreateFixtureCommits(2);
 
     $this->assertArtifactCommandSuccess();
@@ -45,7 +45,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
   }
 
-  public function testBuildMoreCommits(): void {
+  public function testPackageMoreCommits(): void {
     $this->gitCreateFixtureCommits(2);
 
     $this->now = time() - rand(1, 10 * 60);

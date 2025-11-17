@@ -1,6 +1,6 @@
 {
     "name": "drevops/git-artifact",
-    "description": "Build artifact from your codebase in CI and push it to a separate git repo.",
+    "description": "Package artifact from your codebase in CI and push it to a separate git repo.",
     "license": "GPL-2.0-or-later",
     "type": "package",
     "authors": [
