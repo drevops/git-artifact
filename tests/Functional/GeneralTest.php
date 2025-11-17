@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class GeneralTest extends FunctionalTestBase {
+class GeneralTest extends FunctionalTestCase {
 
   public function testHelp(): void {
     $output = $this->runArtifactCommand(['--help' => TRUE]);

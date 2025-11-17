@@ -9,7 +9,7 @@ use DrevOps\GitArtifact\Tests\Traits\MockTrait;
 use DrevOps\GitArtifact\Tests\Traits\ReflectionTrait;
 use PHPUnit\Framework\TestCase;
 
-abstract class UnitTestBase extends TestCase {
+abstract class UnitTestCase extends TestCase {
 
   use MockTrait;
   use ReflectionTrait;
