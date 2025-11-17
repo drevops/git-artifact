@@ -8,6 +8,7 @@ use CzProject\GitPhp\GitException;
 use CzProject\GitPhp\GitRepository;
 use CzProject\GitPhp\IRunner;
 use CzProject\GitPhp\RunnerResult;
+use DrevOps\GitArtifact\Exception\BranchNotFoundException;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
 use DrevOps\GitArtifact\Traits\LoggerTrait;
 use Psr\Log\LoggerInterface;
@@ -265,7 +266,35 @@ class ArtifactGitRepository extends GitRepository {
       }
 
       if (empty($branch)) {
-        throw new \Exception('Unable to determine a detachment source');
+        // Get current commit hash.
+        $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
+
+        throw new BranchNotFoundException(
+          'Unable to determine a detachment source',
+          $commit_hash
+        );
+      }
+
+      // Validate that the extracted value is actually a branch or tag, not just
+      // a commit hash. If it's only a commit hash, we cannot determine the
+      // original branch.
+      try {
+        $this->execute(['show-ref', '--verify', 'refs/heads/' . $branch]);
+      }
+      catch (GitException $e1) {
+        try {
+          $this->execute(['show-ref', '--verify', 'refs/tags/' . $branch]);
+        }
+        catch (GitException $e2) {
+          // Not a branch or tag - just a commit hash.
+          // Get current commit hash.
+          $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
+
+          throw new BranchNotFoundException(
+            'Unable to determine a detachment source',
+            $commit_hash
+          );
+        }
       }
     }
 

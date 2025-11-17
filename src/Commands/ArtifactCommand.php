@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Commands;
 
 use CzProject\GitPhp\GitException;
+use DrevOps\GitArtifact\Exception\BranchNotFoundException;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
 use DrevOps\GitArtifact\Traits\LoggerTrait;
@@ -106,6 +107,19 @@ class ArtifactCommand extends Command {
   protected bool $showChanges = FALSE;
 
   /**
+   * Flag to fail deployment when branch is missing.
+   *
+   * By default (false), deployment is skipped with exit code 0.
+   * When true, deployment fails with exit code 1.
+   */
+  protected bool $failOnMissingBranch = FALSE;
+
+  /**
+   * Flag indicating deployment was skipped due to missing branch.
+   */
+  protected bool $deploymentSkipped = FALSE;
+
+  /**
    * Flag to specify if push was successful.
    */
   protected bool $pushSuccessful = FALSE;
@@ -150,17 +164,18 @@ class ArtifactCommand extends Command {
     // phpcs:disable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
     // phpcs:disable Drupal.WhiteSpace.Comma.TooManySpaces
     $this
-      ->addOption('branch',       NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.',                                                    '[branch]')
-      ->addOption('dry-run',      NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
-      ->addOption('gitignore',    NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
-      ->addOption('message',      NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.',                                                        'Deployment commit')
-      ->addOption('mode',         NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push. Defaults to force-push.',                         static::MODE_FORCE_PUSH)
-      ->addOption('no-cleanup',   NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
-      ->addOption('now',          NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
-      ->addOption('log',          NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
-      ->addOption('root',         NULL, InputOption::VALUE_REQUIRED, 'Path to the root for file path resolution. If not specified, current directory is used.')
-      ->addOption('show-changes', NULL, InputOption::VALUE_NONE,     'Show changes made to the repo by the build in the output.')
-      ->addOption('src',          NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.');
+      ->addOption('branch',                 NULL, InputOption::VALUE_REQUIRED, 'Destination branch with optional tokens.', '[branch]')
+      ->addOption('dry-run',                NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
+      ->addOption('gitignore',              NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
+      ->addOption('message',                NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.', 'Deployment commit')
+      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push. Defaults to force-push.', static::MODE_FORCE_PUSH)
+      ->addOption('no-cleanup',             NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
+      ->addOption('now',                    NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
+      ->addOption('log',                    NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
+      ->addOption('root',                   NULL, InputOption::VALUE_REQUIRED, 'Path to the root for file path resolution. If not specified, current directory is used.')
+      ->addOption('show-changes',           NULL, InputOption::VALUE_NONE,     'Show changes made to the repo by the build in the output.')
+      ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
+      ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail deployment if source branch cannot be determined. By default, deployment is skipped gracefully.');
     // @formatter:on
     // phpcs:enable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
     // phpcs:enable Drupal.WhiteSpace.Comma.TooManySpaces
@@ -193,6 +208,11 @@ class ArtifactCommand extends Command {
       $this->checkRequirements();
 
       $this->resolveOptions($remote, $input->getOptions());
+
+      // Check if deployment was skipped due to missing branch.
+      if ($this->deploymentSkipped) {
+        return Command::SUCCESS;
+      }
 
       $this->doExecute();
     }
@@ -317,6 +337,7 @@ class ArtifactCommand extends Command {
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->isDryRun = !empty($options['dry-run']);
+    $this->failOnMissingBranch = !empty($options['fail-on-missing-branch']);
     $this->logFile = empty($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
 
     $this->setMode($options['mode'], $options);
@@ -327,7 +348,28 @@ class ArtifactCommand extends Command {
     $this->repo = new ArtifactGitRepository($this->sourceDir, NULL, $this->logger);
 
     // Set original, destination, artifact branch names.
-    $this->originalBranch = $this->repo->getOriginalBranch();
+    try {
+      $this->originalBranch = $this->repo->getOriginalBranch();
+    }
+    catch (BranchNotFoundException $exception) {
+      if ($this->failOnMissingBranch) {
+        // Strict mode: fail deployment.
+        throw new \RuntimeException('Unable to determine source branch. Deployment failed. ' . $exception->getMessage(), $exception->getCode(), $exception);
+      }
+
+      $commit_hash = $exception->getCommitHash();
+      $this->logger->notice('Source branch not found. Deployment will be skipped.');
+      $this->logger->notice('Commit: ' . $commit_hash);
+
+      $this->output->writeln('<comment>Source branch not found. Deployment skipped.</comment>');
+      $this->output->writeln('<comment>Commit: ' . $commit_hash . '</comment>');
+      $this->output->writeln('<info>Use --fail-on-missing-branch to fail deployment instead.</info>');
+
+      // Set flag to skip deployment and return early from execute().
+      $this->deploymentSkipped = TRUE;
+
+      return;
+    }
 
     $branch = $this->tokenProcess($options['branch']);
     if (!ArtifactGitRepository::isValidBranchName($branch)) {
