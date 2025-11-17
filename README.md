@@ -165,20 +165,24 @@ destination repository.
 
 ## 📥 Installation
 
-This package is intended to be used as a standalone binary. You will need to
+### As a standalone binary
+
+This tool is intended to be used as a standalone binary. You will need to
 have PHP installed on your system to run the binary.
 
 Download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
 
-You may also install the package globally using Composer:
+### As a Composer dependency
+
+You may also install this tool globally using Composer:
 ```shell
 composer global require --dev drevops/git-artifact:~1.1
 ```
 
-### 📌 Version constraint
+#### 📌 Version constraint
 
 When using `git-artifact` in CI/CD scripts, we recommend using **Tilde Version Range Operator** to ensure stability.
-The tilde constraint allows patch updates (e.g., `1.0.0` → `1.1.1`) but blocks minor version updates (e.g., `1.1.0` → `1.2.0`). 
+The tilde constraint allows patch updates (e.g., `1.0.0` → `1.1.1`) but blocks minor version updates (e.g., `1.1.0` → `1.2.0`).
 
 This ensures that:
 - **Security fixes and bug patches** are automatically applied

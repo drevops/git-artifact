@@ -107,17 +107,17 @@ class ArtifactCommand extends Command {
   protected bool $showChanges = FALSE;
 
   /**
-   * Flag to fail deployment when branch is missing.
+   * Flag to fail artifact packaging when branch is missing.
    *
-   * By default (false), deployment is skipped with exit code 0.
-   * When true, deployment fails with exit code 1.
+   * By default (false), artifact packaging is skipped with exit code 0.
+   * When true, artifact packaging fails with exit code 1.
    */
   protected bool $failOnMissingBranch = FALSE;
 
   /**
-   * Flag indicating deployment was skipped due to missing branch.
+   * Flag indicating artifact packaging was skipped due to missing branch.
    */
-  protected bool $deploymentSkipped = FALSE;
+  protected bool $packagingSkipped = FALSE;
 
   /**
    * Flag to specify if push was successful.
@@ -175,7 +175,7 @@ class ArtifactCommand extends Command {
       ->addOption('root',                   NULL, InputOption::VALUE_REQUIRED, 'Path to the root for file path resolution. If not specified, current directory is used.')
       ->addOption('show-changes',           NULL, InputOption::VALUE_NONE,     'Show changes made to the repo by the build in the output.')
       ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
-      ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail deployment if source branch cannot be determined. By default, deployment is skipped gracefully.');
+      ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully.');
     // @formatter:on
     // phpcs:enable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
     // phpcs:enable Drupal.WhiteSpace.Comma.TooManySpaces
@@ -209,8 +209,8 @@ class ArtifactCommand extends Command {
 
       $this->resolveOptions($remote, $input->getOptions());
 
-      // Check if deployment was skipped due to missing branch.
-      if ($this->deploymentSkipped) {
+      // Check if artifact packaging was skipped due to missing branch.
+      if ($this->packagingSkipped) {
         return Command::SUCCESS;
       }
 
@@ -225,7 +225,7 @@ class ArtifactCommand extends Command {
       return Command::FAILURE;
     }
 
-    $this->output->writeln('<info>Deployment finished successfully.</info>');
+    $this->output->writeln('<info>Artifact packaged successfully.</info>');
 
     return Command::SUCCESS;
   }
@@ -353,20 +353,20 @@ class ArtifactCommand extends Command {
     }
     catch (BranchNotFoundException $exception) {
       if ($this->failOnMissingBranch) {
-        // Strict mode: fail deployment.
-        throw new \RuntimeException('Unable to determine source branch. Deployment failed. ' . $exception->getMessage(), $exception->getCode(), $exception);
+        // Strict mode: fail artifact packaging.
+        throw new \RuntimeException('Unable to determine source branch. Artifact packaging failed. ' . $exception->getMessage(), $exception->getCode(), $exception);
       }
 
       $commit_hash = $exception->getCommitHash();
-      $this->logger->notice('Source branch not found. Deployment will be skipped.');
+      $this->logger->notice('Source branch not found. Artifact packaging will be skipped.');
       $this->logger->notice('Commit: ' . $commit_hash);
 
-      $this->output->writeln('<comment>Source branch not found. Deployment skipped.</comment>');
+      $this->output->writeln('<comment>Source branch not found. Artifact packaging skipped.</comment>');
       $this->output->writeln('<comment>Commit: ' . $commit_hash . '</comment>');
-      $this->output->writeln('<info>Use --fail-on-missing-branch to fail deployment instead.</info>');
+      $this->output->writeln('<info>Use --fail-on-missing-branch to fail artifact packaging instead.</info>');
 
-      // Set flag to skip deployment and return early from execute().
-      $this->deploymentSkipped = TRUE;
+      // Set flag to skip artifact packaging and return early from execute().
+      $this->packagingSkipped = TRUE;
 
       return;
     }

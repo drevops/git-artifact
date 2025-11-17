@@ -113,7 +113,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
 
     $this->assertStringNotContainsString('[error]', $output);
     $this->assertStringContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $branch, $commit), $output);
-    $this->assertStringContainsString('Deployment finished successfully.', $output);
+    $this->assertStringContainsString('Artifact packaged successfully.', $output);
     $this->assertStringNotContainsString('Processing failed with an error:', $output);
 
     return $output;
@@ -138,7 +138,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
     $output = $this->runArtifactCommand($args, TRUE);
 
     $this->assertStringNotContainsString(sprintf('Pushed branch "%s" with commit message "%s"', $args['--branch'], $commit), $output);
-    $this->assertStringNotContainsString('Deployment finished successfully.', $output);
+    $this->assertStringNotContainsString('Artifact packaged successfully.', $output);
     $this->assertStringContainsString('Processing failed with an error:', $output);
 
     return $output;
