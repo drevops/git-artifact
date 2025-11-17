@@ -14,10 +14,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 class MissingBranchTest extends FunctionalTestCase {
 
   /**
-   * Test deployment skips gracefully when branch is missing (default).
+   * Test artifact packaging skips gracefully when branch is missing (default).
    *
    * This simulates the scenario where a branch was deleted after PR merge.
-   * Default behavior should skip deployment with exit code 0.
+   * Default behavior should skip artifact packaging with exit code 0.
    */
   public function testMissingBranchDefaultBehavior(): void {
     $this->gitCreateFixtureCommits(1);
@@ -44,23 +44,23 @@ class MissingBranchTest extends FunctionalTestCase {
     // Checkout the orphaned commit - now it's truly not on any branch.
     $repo->checkout($commit_hash);
 
-    // Default behavior: should skip deployment with exit code 0.
+    // Default behavior: should skip artifact packaging with exit code 0.
     // Use explicit branch name (no tokens) to avoid token processing issues.
     $output = $this->runArtifactCommand([
       '--branch' => 'testbranch',
       '--dry-run' => TRUE,
     ]);
 
-    $this->assertStringContainsString('Source branch not found. Deployment skipped.', $output);
+    $this->assertStringContainsString('Source branch not found. Artifact packaging skipped.', $output);
     $this->assertStringContainsString('Commit: ' . $commit_hash, $output);
-    $this->assertStringContainsString('Use --fail-on-missing-branch to fail deployment instead', $output);
+    $this->assertStringContainsString('Use --fail-on-missing-branch to fail artifact packaging instead', $output);
     $this->assertStringNotContainsString('Processing failed with an error:', $output);
   }
 
   /**
-   * Test deployment fails when branch is missing with flag.
+   * Test artifact packaging fails when branch is missing with flag.
    *
-   * With --fail-on-missing-branch flag, deployment should fail.
+   * With --fail-on-missing-branch flag, artifact packaging should fail.
    */
   public function testMissingBranchWithFlag(): void {
     $this->gitCreateFixtureCommits(1);
@@ -100,18 +100,18 @@ class MissingBranchTest extends FunctionalTestCase {
   }
 
   /**
-   * Test normal deployment when branch exists.
+   * Test normal artifact packaging when branch exists.
    *
    * Verifies that normal operation still works when branch is available.
    */
   public function testNormalDeploymentWithBranch(): void {
     $this->gitCreateFixtureCommits(1);
 
-    // Normal deployment with existing branch should work.
+    // Normal artifact packaging with existing branch should work.
     $output = $this->assertArtifactCommandSuccess();
 
     $this->assertStringContainsString('Pushed branch "testbranch" with commit message "Deployment commit"', $output);
-    $this->assertStringContainsString('Deployment finished successfully.', $output);
+    $this->assertStringContainsString('Artifact packaged successfully.', $output);
 
     // Verify the branch exists in destination.
     $this->gitCheckout($this->dst, 'testbranch');
@@ -119,10 +119,10 @@ class MissingBranchTest extends FunctionalTestCase {
   }
 
   /**
-   * Test deployment works with tag in detached HEAD state.
+   * Test artifact packaging works with tag in detached HEAD state.
    *
    * When checked out at a tag, getOriginalBranch() should validate that
-   * the tag exists and allow deployment to proceed.
+   * the tag exists and allow artifact packaging to proceed.
    */
   public function testDeploymentWithTagDetachedHead(): void {
     $this->gitCreateFixtureCommits(1);
@@ -135,11 +135,11 @@ class MissingBranchTest extends FunctionalTestCase {
     // Checkout the tag to enter detached HEAD state.
     $repo->checkout('v1.0.0');
 
-    // Deployment should work because tag is a valid detachment source.
+    // Artifact packaging should work because tag is a valid detachment source.
     $output = $this->assertArtifactCommandSuccess();
 
     $this->assertStringContainsString('Pushed branch "testbranch" with commit message "Deployment commit"', $output);
-    $this->assertStringContainsString('Deployment finished successfully.', $output);
+    $this->assertStringContainsString('Artifact packaged successfully.', $output);
   }
 
 }
