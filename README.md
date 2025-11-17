@@ -172,8 +172,20 @@ Download the latest release from the [GitHub releases page](https://github.com/d
 
 You may also install the package globally using Composer:
 ```shell
-composer global require --dev drevops/git-artifact
+composer global require --dev drevops/git-artifact:~1.1
 ```
+
+### 📌 Version constraint
+
+When using `git-artifact` in CI/CD scripts, we recommend using **Tilde Version Range Operator** to ensure stability.
+The tilde constraint allows patch updates (e.g., `1.0.0` → `1.1.1`) but blocks minor version updates (e.g., `1.1.0` → `1.2.0`). 
+
+This ensures that:
+- **Security fixes and bug patches** are automatically applied
+- **CI/CD pipelines remain stable** - no unexpected breaking changes
+- **Minor version updates are blocked** - these may introduce behavioral changes that could affect deployments
+
+This is especially important in CI/CD environments where deployment reliability is critical and changes should be tested before adoption.
 
 ## ▶️ Usage
 
