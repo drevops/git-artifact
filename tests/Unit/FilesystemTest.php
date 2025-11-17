@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(ArtifactCommand::class)]
-class FilesystemTest extends UnitTestBase {
+class FilesystemTest extends UnitTestCase {
 
   #[DataProvider('dataProviderRealpath')]
   public function testRealpath(string $path, string $expected): void {

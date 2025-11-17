@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(ArtifactCommand::class)]
-class TokenTest extends UnitTestBase {
+class TokenTest extends UnitTestCase {
 
   #[DataProvider('dataProviderTokenProcess')]
   public function testTokenProcess(string $string, string $expected): void {

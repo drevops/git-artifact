@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  */
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class FilePermissionsTest extends FunctionalTestBase {
+class FilePermissionsTest extends FunctionalTestCase {
 
   /**
    * {@inheritdoc}

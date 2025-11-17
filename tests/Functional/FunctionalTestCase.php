@@ -8,11 +8,11 @@ use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Tests\Traits\ConsoleTrait;
 use DrevOps\GitArtifact\Tests\Traits\FixtureTrait;
 use DrevOps\GitArtifact\Tests\Traits\GitTrait;
-use DrevOps\GitArtifact\Tests\Unit\UnitTestBase;
+use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
 use Symfony\Component\Filesystem\Filesystem;
 
-abstract class FunctionalTestBase extends UnitTestBase {
+abstract class FunctionalTestCase extends UnitTestCase {
 
   use ConsoleTrait;
   use FilesystemTrait;
