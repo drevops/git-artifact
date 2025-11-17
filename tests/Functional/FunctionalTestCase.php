@@ -94,10 +94,10 @@ abstract class FunctionalTestCase extends UnitTestCase {
   }
 
   /**
-   * Build the artifact and assert success.
+   * Package the artifact and assert success.
    *
    * @param array $args
-   *   Array of arguments to pass to the build.
+   *   Array of arguments to pass to packaging.
    * @param string $branch
    *   Expected branch name.
    * @param string $commit
@@ -120,10 +120,10 @@ abstract class FunctionalTestCase extends UnitTestCase {
   }
 
   /**
-   * Build the artifact and assert failure.
+   * Package the artifact and assert failure.
    *
    * @param array $args
-   *   *   Array of arguments to pass to the build.
+   *   *   Array of arguments to pass to packaging.
    *   * @param string $branch
    *   *   Expected branch name.
    * @param string $commit
@@ -145,7 +145,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
   }
 
   /**
-   * Run artifact build.
+   * Run artifact packaging.
    *
    * @param array $args
    *   Additional arguments or options as an associative array. If NULL, no

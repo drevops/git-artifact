@@ -20,7 +20,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     parent::setUp();
   }
 
-  public function testBuild(): void {
+  public function testPackage(): void {
     $this->gitCreateFixtureCommits(2);
 
     $output = $this->assertArtifactCommandSuccess();
@@ -30,7 +30,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
   }
 
-  public function testBuildMoreCommits(): void {
+  public function testPackageMoreCommits(): void {
     $this->gitCreateFixtureCommits(2);
 
     $this->assertArtifactCommandSuccess();
@@ -165,7 +165,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     // Now, remove the .gitignore and push again.
     // We have to create 'uic' file since it was rightfully
-    // removed during previous build run and the source repo branch was not
+    // removed during previous packaging run and the source repo branch was not
     // reset (uncommitted files would be removed, unless they are excluded
     // in .gitignore).
     $this->fixtureCreateFile($this->src, 'uic');
@@ -266,7 +266,7 @@ class ForcePushModeTest extends FunctionalTestCase {
       'dir_other/node_modules',
     ]);
 
-    // Run the build.
+    // Run the packaging.
     $this->assertArtifactCommandSuccess([
       '-vvv' => TRUE,
       '--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore',
@@ -305,7 +305,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     ]);
   }
 
-  public function testBuildSafebranch(): void {
+  public function testPackageSafebranch(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitCreateBranch($this->src, 'Feature/so1me/f3ature');
     $this->gitCheckout($this->src, 'Feature/so1me/f3ature');
@@ -314,7 +314,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertArtifactCommandSuccess(['--branch' => '[safebranch]'], 'feature-so1me-f3ature');
   }
 
-  public function testBuildTag(): void {
+  public function testPackageTag(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
 
@@ -323,7 +323,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits(2, $this->dst, 'tag1', ['Deployment commit']);
   }
 
-  public function testBuildMultipleTags(): void {
+  public function testPackageMultipleTags(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
     $this->gitAddTag($this->src, 'tag2');
@@ -337,7 +337,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits(3, $this->dst, 'tag3', ['Deployment commit']);
   }
 
-  public function testBuildMultipleTagsMissingTags(): void {
+  public function testPackageMultipleTagsMissingTags(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
     $this->gitCreateFixtureCommit(3);
@@ -345,7 +345,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertArtifactCommandFailure(['--branch' => '[tags]']);
   }
 
-  public function testBuildMultipleTagsDelimiter(): void {
+  public function testPackageMultipleTagsDelimiter(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');
     $this->gitAddTag($this->src, 'tag2');

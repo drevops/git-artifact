@@ -43,7 +43,7 @@ class ArtifactCommand extends Command {
   protected string $sourceDir = '';
 
   /**
-   * Mode in which current build is going to run.
+   * Mode in which artifact packaging is going to run.
    *
    * Available modes: branch, force-push.
    */
@@ -92,7 +92,7 @@ class ArtifactCommand extends Command {
   protected bool $isDryRun = FALSE;
 
   /**
-   * Flag to specify if cleanup is required to run after the build.
+   * Flag to specify if cleanup is required to run after packaging.
    */
   protected bool $needCleanup = TRUE;
 
@@ -102,7 +102,7 @@ class ArtifactCommand extends Command {
   protected string $logFile = '';
 
   /**
-   * Flag to show changes made to the repo by the build in the output.
+   * Flag to show changes made to the repo during packaging in the output.
    */
   protected bool $showChanges = FALSE;
 
@@ -168,12 +168,12 @@ class ArtifactCommand extends Command {
       ->addOption('dry-run',                NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
       ->addOption('gitignore',              NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
       ->addOption('message',                NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.', 'Deployment commit')
-      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact build: branch, force-push. Defaults to force-push.', static::MODE_FORCE_PUSH)
+      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact packaging: branch, force-push. Defaults to force-push.', static::MODE_FORCE_PUSH)
       ->addOption('no-cleanup',             NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
       ->addOption('now',                    NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('log',                    NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
       ->addOption('root',                   NULL, InputOption::VALUE_REQUIRED, 'Path to the root for file path resolution. If not specified, current directory is used.')
-      ->addOption('show-changes',           NULL, InputOption::VALUE_NONE,     'Show changes made to the repo by the build in the output.')
+      ->addOption('show-changes',           NULL, InputOption::VALUE_NONE,     'Show changes made to the repo during packaging in the output.')
       ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
       ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully.');
     // @formatter:on
@@ -402,13 +402,13 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Show artifact build information.
+   * Show artifact packaging information.
    */
   protected function showInfo(): void {
     $lines[] = ('----------------------------------------------------------------------');
     $lines[] = (' Artifact information');
     $lines[] = ('----------------------------------------------------------------------');
-    $lines[] = (' Build timestamp:       ' . date('Y/m/d H:i:s', $this->now));
+    $lines[] = (' Packaging timestamp:   ' . date('Y/m/d H:i:s', $this->now));
     $lines[] = (' Mode:                  ' . $this->mode);
     $lines[] = (' Source repository:     ' . $this->sourceDir);
     $lines[] = (' Remote repository:     ' . $this->remoteUrl);
@@ -431,7 +431,7 @@ class ArtifactCommand extends Command {
     $lines[] = '----------------------------------------------------------------------';
     $lines[] = ' Artifact report';
     $lines[] = '----------------------------------------------------------------------';
-    $lines[] = ' Build timestamp:   ' . date('Y/m/d H:i:s', $this->now);
+    $lines[] = ' Packaging timestamp: ' . date('Y/m/d H:i:s', $this->now);
     $lines[] = ' Mode:              ' . $this->mode;
     $lines[] = ' Source repository: ' . $this->sourceDir;
     $lines[] = ' Remote repository: ' . $this->remoteUrl;
@@ -447,7 +447,7 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Set build mode.
+   * Set packaging mode.
    *
    * @param string $mode
    *   Mode to set.

@@ -201,7 +201,7 @@ This will create an artifact from current directory and will send it to the
 specified remote repository into the same branch as a current one.
 
 Avoid including development dependencies in your artifacts. Instead, configure
-your CI to build with production-only dependencies, export the resulting code,
+your CI to install production-only dependencies, export the resulting code,
 and use that as the artifact source. See our CI examples below.
 
 Call from the CI configuration or deployment script:
@@ -213,7 +213,7 @@ export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
   --push
 ```
 
-CI providers may report branches differently when running builds triggered by tags.
+CI providers may report branches differently when packaging is triggered by tags.
 We encourage you to explore our continuously and automatically tested examples:
 
 - [GitHub Actions](.github/workflows/test-php.yml)
@@ -227,7 +227,7 @@ fully-configured [example in the Vortex project](https://github.com/drevops/vort
 
 | Name                   | Default value       | Description                                                                                    |
 |------------------------|---------------------|------------------------------------------------------------------------------------------------|
-| `--mode`               | `force-push`        | Mode of artifact build: `branch`, `force-push`                                                 |
+| `--mode`               | `force-push`        | Mode of artifact packaging: `branch`, `force-push`                                             |
 | `--branch`             | `[branch]`          | Destination branch with optional tokens (see below)                                            |
 | `--gitignore`          |                     | Path to the `.gitignore` file to replace the current `.gitignore`                              |
 | `--src`                |                     | Directory where source repository is located. Uses root directory if not specified             |
@@ -235,7 +235,7 @@ fully-configured [example in the Vortex project](https://github.com/drevops/vort
 | `--message`            | `Deployment commit` | Commit message with optional tokens (see below)                                                |
 | `--no-cleanup`         |                     | Do not cleanup after run                                                                       |
 | `--log`                |                     | Path to the log file                                                                           |
-| `--show-changes`       |                     | Show changes made to the repo by the build in the output                                       |
+| `--show-changes`       |                     | Show changes made to the repo during packaging in the output                                   |
 | `--dry-run`            |                     | Run without pushing to the remote repository                                                   |
 | `--now`                |                     | Internal value used to set internal time                                                       |
 | `-h, --help`           |                     | Display help for the given command                                                             |
@@ -248,7 +248,7 @@ fully-configured [example in the Vortex project](https://github.com/drevops/vort
 ## 🧹 Modifying artifact content
 
 `--gitignore` option allows to specify the path to the artifact's `.gitignore`
-file that replaces existing `.gitignore` (if any) during the build. Any files no
+file that replaces existing `.gitignore` (if any) during packaging. Any files no
 longer ignored by the replaced artifact's `.gitignore` are added into the
 deployment commit. If there are no no-longer-excluded files, the deployment
 commit is still created, to make sure that the deployment timestamp is
