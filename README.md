@@ -225,25 +225,26 @@ fully-configured [example in the Vortex project](https://github.com/drevops/vort
 
 ## 🎛️ Options
 
-| Name                   | Default value       | Description                                                                                    |
-|------------------------|---------------------|------------------------------------------------------------------------------------------------|
-| `--mode`               | `force-push`        | Mode of artifact packaging: `branch`, `force-push`                                             |
-| `--branch`             | `[branch]`          | Destination branch with optional tokens (see below)                                            |
-| `--gitignore`          |                     | Path to the `.gitignore` file to replace the current `.gitignore`                              |
-| `--src`                |                     | Directory where source repository is located. Uses root directory if not specified             |
-| `--root`               |                     | Path to the root for file path resolution. Uses current directory if not specified             |
-| `--message`            | `Deployment commit` | Commit message with optional tokens (see below)                                                |
-| `--no-cleanup`         |                     | Do not cleanup after run                                                                       |
-| `--log`                |                     | Path to the log file                                                                           |
-| `--show-changes`       |                     | Show changes made to the repo during packaging in the output                                   |
-| `--dry-run`            |                     | Run without pushing to the remote repository                                                   |
-| `--now`                |                     | Internal value used to set internal time                                                       |
-| `-h, --help`           |                     | Display help for the given command                                                             |
-| `-q, --quiet`          |                     | Do not output any messages                                                                     |
-| `-V, --version`        |                     | Display this application version                                                               |
-| `--ansi`               |                     | Force ANSI output. Use `--no-ansi` to disable                                                  |
-| `-n, --no-interaction` |                     | Do not ask any interactive question                                                            |
-| `-v, --verbose`        |                     | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug              |
+| Name                       | Default value       | Description                                                                                                         |
+|----------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------|
+| `--ansi`                   |                     | Force ANSI output. Use `--no-ansi` to disable                                                                       |
+| `--branch`                 | `[branch]`          | Destination branch with optional tokens (see below)                                                                 |
+| `--dry-run`                |                     | Run without pushing to the remote repository                                                                        |
+| `--fail-on-missing-branch` |                     | Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully |
+| `--gitignore`              |                     | Path to the `.gitignore` file to replace the current `.gitignore`                                                   |
+| `--log`                    |                     | Path to the log file                                                                                                |
+| `--message`                | `Deployment commit` | Commit message with optional tokens (see below)                                                                     |
+| `--mode`                   | `force-push`        | Mode of artifact packaging: `branch`, `force-push`                                                                  |
+| `--no-cleanup`             |                     | Do not cleanup after run                                                                                            |
+| `--now`                    |                     | Internal value used to set internal time                                                                            |
+| `--root`                   |                     | Path to the root for file path resolution. Uses current directory if not specified                                  |
+| `--show-changes`           |                     | Show changes made to the repo during packaging in the output                                                        |
+| `--src`                    |                     | Directory where source repository is located. Uses root directory if not specified                                  |
+| `-V, --version`            |                     | Display this application version                                                                                    |
+| `-h, --help`               |                     | Display help for the given command                                                                                  |
+| `-n, --no-interaction`     |                     | Do not ask any interactive question                                                                                 |
+| `-q, --quiet`              |                     | Do not output any messages                                                                                          |
+| `-v, --verbose`            |                     | Increase the verbosity of messages: 1 for normal, 2 for more verbose, 3 for debug                                   |
 
 ## 🧹 Modifying artifact content
 
