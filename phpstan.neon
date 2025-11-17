@@ -13,6 +13,7 @@ parameters:
   excludePaths:
     - vendor/*
     - node_modules/*
+    - tests/Unit/Traits/FilesystemTraitTestClass.php
 
   ignoreErrors:
     -
