@@ -27,7 +27,7 @@
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8.2",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
-        "drevops/phpcs-standard": "^0.3.0",
+        "drevops/phpcs-standard": "^0.4.0",
         "drupal/coder": "^8.3.31",
         "ergebnis/composer-normalize": "^2.48.2",
         "phpstan/phpstan": "^2.1.32",
