@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fc12bb9651f0f2c9ab3f009c2c184703",
+    "content-hash": "c8d68e52ac971c62632e9fbaa30cc4ca",
     "packages": [
         {
             "name": "czproject/git-php",
@@ -2054,16 +2054,16 @@
         },
         {
             "name": "drevops/phpcs-standard",
-            "version": "0.4.0",
+            "version": "0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drevops/phpcs-standard.git",
-                "reference": "fb78c592fb00cd2d6e33eceaafac93ec80a774da"
+                "reference": "094fa981f2803d14ecc61ad5183dbc3784a7b1a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drevops/phpcs-standard/zipball/fb78c592fb00cd2d6e33eceaafac93ec80a774da",
-                "reference": "fb78c592fb00cd2d6e33eceaafac93ec80a774da",
+                "url": "https://api.github.com/repos/drevops/phpcs-standard/zipball/094fa981f2803d14ecc61ad5183dbc3784a7b1a1",
+                "reference": "094fa981f2803d14ecc61ad5183dbc3784a7b1a1",
                 "shasum": ""
             },
             "require": {
@@ -2118,7 +2118,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-11-20T08:02:02+00:00"
+            "time": "2025-11-23T03:38:07+00:00"
         },
         {
             "name": "drupal/coder",
