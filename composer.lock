@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8d68e52ac971c62632e9fbaa30cc4ca",
+    "content-hash": "ff98762af48e520ef31e71f4a177078a",
     "packages": [
         {
             "name": "czproject/git-php",
@@ -2054,16 +2054,16 @@
         },
         {
             "name": "drevops/phpcs-standard",
-            "version": "0.5.0",
+            "version": "0.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drevops/phpcs-standard.git",
-                "reference": "094fa981f2803d14ecc61ad5183dbc3784a7b1a1"
+                "reference": "08ceac68b88f1662a7cde32df0d3f3c7202547cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drevops/phpcs-standard/zipball/094fa981f2803d14ecc61ad5183dbc3784a7b1a1",
-                "reference": "094fa981f2803d14ecc61ad5183dbc3784a7b1a1",
+                "url": "https://api.github.com/repos/drevops/phpcs-standard/zipball/08ceac68b88f1662a7cde32df0d3f3c7202547cb",
+                "reference": "08ceac68b88f1662a7cde32df0d3f3c7202547cb",
                 "shasum": ""
             },
             "require": {
@@ -2102,8 +2102,19 @@
                     "role": "Maintainer"
                 }
             ],
-            "description": "DrevOps PHP_CodeSniffer rules: enforce snake_case for variables and parameters.",
+            "description": "DrevOps PHP_CodeSniffer rules: enforce consistent naming (snakeCase or camelCase) for variables and parameters, PHPUnit data provider conventions.",
             "homepage": "https://github.com/drevops/phpcs-standard",
+            "keywords": [
+                "PHPCodeSniffer",
+                "camelcase",
+                "code-quality",
+                "data-providers",
+                "naming-conventions",
+                "phpcs",
+                "phpunit",
+                "snakecase",
+                "standards"
+            ],
             "support": {
                 "issues": "https://github.com/drevops/phpcs-standard/issues",
                 "source": "https://github.com/drevops/phpcs-standard"
@@ -2118,7 +2129,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-11-23T03:38:07+00:00"
+            "time": "2025-11-24T12:16:33+00:00"
         },
         {
             "name": "drupal/coder",
