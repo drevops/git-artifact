@@ -2055,16 +2055,16 @@
         },
         {
             "name": "drevops/phpcs-standard",
-            "version": "0.6.0",
+            "version": "0.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/drevops/phpcs-standard.git",
-                "reference": "08ceac68b88f1662a7cde32df0d3f3c7202547cb"
+                "reference": "dc77cbf46d4c6ddf9632b8ffe98116309751fa8e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/drevops/phpcs-standard/zipball/08ceac68b88f1662a7cde32df0d3f3c7202547cb",
-                "reference": "08ceac68b88f1662a7cde32df0d3f3c7202547cb",
+                "url": "https://api.github.com/repos/drevops/phpcs-standard/zipball/dc77cbf46d4c6ddf9632b8ffe98116309751fa8e",
+                "reference": "dc77cbf46d4c6ddf9632b8ffe98116309751fa8e",
                 "shasum": ""
             },
             "require": {
@@ -2130,7 +2130,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-11-24T12:16:33+00:00"
+            "time": "2025-12-16T22:46:38+00:00"
         },
         {
             "name": "drupal/coder",
