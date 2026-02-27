@@ -31,7 +31,7 @@
         "drupal/coder": "^8.3.31",
         "ergebnis/composer-normalize": "^2.49.0",
         "phpstan/phpstan": "^2.1.38",
-        "phpunit/phpunit": "^11.5.50",
+        "phpunit/phpunit": "^13.0.0",
         "rector/rector": "^2.3.5"
     },
     "autoload": {
