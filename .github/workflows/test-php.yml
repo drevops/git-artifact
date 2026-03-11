@@ -61,6 +61,10 @@ jobs:
           composer --verbose validate
           composer normalize --dry-run
 
+      - name: Audit composer.json
+        run: |
+          composer audit --no-dev
+
       - name: Check coding standards
         run: composer lint
         continue-on-error: ${{ vars.CI_LINT_IGNORE_FAILURE == '1' }}
