@@ -1,5 +1,13 @@
 {
     "extends": ["config:recommended"],
     "automerge": true,
-    "dependencyDashboard": true
+    "rangeStrategy": "bump",
+    "dependencyDashboard": true,
+    "pinDigests": true,
+    "major": {
+        "enabled": false
+    },
+    "groupName": "all dependencies",
+    "groupSlug": "all",
+    "branchPrefix": "deps/"
 }
