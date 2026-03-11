@@ -44,7 +44,7 @@ jobs:
           ini-values: pcov.directory=.
 
       - name: Setup SSH private key
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
@@ -163,7 +163,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
 
       - name: Setup SSH private key
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
@@ -259,7 +259,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
 
       - name: Setup SSH private key
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
