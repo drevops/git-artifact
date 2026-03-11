@@ -87,13 +87,13 @@ trait ConsoleTrait {
     }
     catch (\RuntimeException $exception) {
       if (!$expect_fail) {
-        throw new AssertionFailedError('Application exited with an error:' . PHP_EOL . $exception->getMessage());
+        throw new AssertionFailedError('Application exited with an error:' . PHP_EOL . $exception->getMessage(), $exception->getCode(), $exception);
       }
       $output = $exception->getMessage();
     }
     catch (\Exception $exception) {
       if (!$expect_fail) {
-        throw new AssertionFailedError('Application exited with an error:' . PHP_EOL . $exception->getMessage());
+        throw new AssertionFailedError('Application exited with an error:' . PHP_EOL . $exception->getMessage(), $exception->getCode(), $exception);
       }
     }
 

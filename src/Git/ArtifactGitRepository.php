@@ -290,10 +290,7 @@ class ArtifactGitRepository extends GitRepository {
           // Get current commit hash.
           $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
-          throw new BranchNotFoundException(
-            'Unable to determine a detachment source',
-            $commit_hash
-          );
+          throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $e1);
         }
       }
     }
