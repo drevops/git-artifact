@@ -7,6 +7,7 @@
     "major": {
         "enabled": false
     },
+    "ignoreDeps": ["php"],
     "groupName": "all dependencies",
     "groupSlug": "all",
     "branchPrefix": "deps/"
