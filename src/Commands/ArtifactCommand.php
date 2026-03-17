@@ -332,17 +332,17 @@ class ArtifactCommand extends Command {
     }
 
     $this->remoteUrl = $url;
-    $this->now = empty($options['now']) ? time() : (int) $options['now'];
+    $this->now = empty($options['now']) ? time() : (is_scalar($options['now']) ? (int) $options['now'] : time());
     $this->remoteName = sprintf('%s-%s-%s', self::GIT_REMOTE_NAME, $this->now, rand(1000, 9999));
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->isDryRun = !empty($options['dry-run']);
     $this->failOnMissingBranch = !empty($options['fail-on-missing-branch']);
-    $this->logFile = empty($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
+    $this->logFile = empty($options['log']) || !is_string($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
 
-    $this->setMode($options['mode'], $options);
+    $this->setMode(is_string($options['mode']) ? $options['mode'] : '', $options);
 
-    $this->sourceDir = empty($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
+    $this->sourceDir = empty($options['src']) || !is_string($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
 
     // Setup Git repository from source path.
     $this->repo = new ArtifactGitRepository($this->sourceDir, NULL, $this->logger);
@@ -371,7 +371,7 @@ class ArtifactCommand extends Command {
       return;
     }
 
-    $branch = $this->tokenProcess($options['branch']);
+    $branch = $this->tokenProcess(is_string($options['branch']) ? $options['branch'] : '');
     if (!ArtifactGitRepository::isValidBranchName($branch)) {
       throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch', $branch));
     }
@@ -379,9 +379,9 @@ class ArtifactCommand extends Command {
 
     $this->artifactBranch = $this->destinationBranch . '-artifact';
 
-    $this->commitMessage = $this->tokenProcess($options['message']);
+    $this->commitMessage = $this->tokenProcess(is_string($options['message']) ? $options['message'] : '');
 
-    if (!empty($options['gitignore'])) {
+    if (!empty($options['gitignore']) && is_string($options['gitignore'])) {
       $gitignore = $this->fsGetAbsolutePath($options['gitignore']);
       $this->fsAssertPathsExist($gitignore);
 
