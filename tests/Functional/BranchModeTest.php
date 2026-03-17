@@ -58,7 +58,7 @@ class BranchModeTest extends FunctionalTestCase {
 
     $this->gitCreateFixtureCommits(3, 2);
 
-    $this->now = time() - rand(1, 10 * 60);
+    $this->now -= rand(1, 10 * 60);
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $output = $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
     $this->assertStringContainsString('Remote branch:         ' . $branch2, $output);
@@ -105,7 +105,7 @@ class BranchModeTest extends FunctionalTestCase {
     // Now, remove the .gitignore and push again.
     $this->fixtureRemoveFile($this->src, '.gitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
-    $this->now = time() - rand(1, 10 * 60);
+    $this->now -= rand(1, 10 * 60);
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
 
@@ -135,7 +135,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->fixtureCreateFile($this->src, 'f3');
     $this->fixtureRemoveFile($this->src, 'mygitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
-    $this->now = time() - rand(1, 10 * 60);
+    $this->now -= rand(1, 10 * 60);
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
 
