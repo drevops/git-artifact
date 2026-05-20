@@ -59,7 +59,10 @@
             "abandoned": "report",
             "block-insecure": true
         },
-        "bump-after-update": true
+        "bump-after-update": true,
+        "platform": {
+            "php": "8.3.0"
+        }
     },
     "scripts": {
         "build": [
