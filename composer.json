@@ -33,7 +33,7 @@
         "phpstan/phpstan": "^2.1.55",
         "phpunit/phpunit": "^11.5.55",
         "pyrech/composer-changelogs": "^2.2",
-        "rector/rector": "^2.4.3"
+        "rector/rector": "^2.4.4"
     },
     "autoload": {
         "psr-4": {
