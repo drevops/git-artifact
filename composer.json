@@ -30,10 +30,10 @@
         "drevops/phpcs-standard": "^0.7.0",
         "drupal/coder": "^8.3.31",
         "ergebnis/composer-normalize": "^2.52.0",
-        "phpstan/phpstan": "^2.1.55",
+        "phpstan/phpstan": "^2.1.56",
         "phpunit/phpunit": "^11.5.55",
         "pyrech/composer-changelogs": "^2.2",
-        "rector/rector": "^2.4.4"
+        "rector/rector": "^2.4.5"
     },
     "autoload": {
         "psr-4": {
