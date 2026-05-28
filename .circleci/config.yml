@@ -5,7 +5,7 @@ aliases:
   - &container_config
     working_directory: /workspace/code
     docker:
-      - image: drevops/ci-runner:24.11.0
+      - image: drevops/ci-runner:26.5.0@sha256:b7fe267124a98cd4b51fac244ae9572b3a5f58de1d8d7ca9173b77fe071c8bed
         environment:
           COMPOSER_ALLOW_SUPERUSER: 1
           DEPLOY_SSH_FINGERPRINT: *deploy_ssh_fingerprint
