@@ -185,7 +185,7 @@ docker run --rm \
   -e GIT_AUTHOR_NAME="Deployer" -e GIT_AUTHOR_EMAIL="deployer@example.com" \
   -e GIT_COMMITTER_NAME="Deployer" -e GIT_COMMITTER_EMAIL="deployer@example.com" \
   drevops/git-artifact \
-  git@github.com:yourorg/your-repo-destination.git --branch=main
+  https://github.com/yourorg/your-repo-destination.git --branch=main
 ```
 
 The `GIT_AUTHOR_*` and `GIT_COMMITTER_*` variables set the identity for the deployment commit. To push to an SSH remote, also mount your SSH credentials read-only:

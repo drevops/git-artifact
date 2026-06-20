@@ -43,10 +43,10 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# The image operates on a repository bind-mounted from the host, which is owned
-# by an arbitrary host user while the container runs as root, so git must be
-# told to trust it regardless of ownership.
-RUN git config --system --add safe.directory '*'
+# The source repository is bind-mounted at the WORKDIR from the host, so it is
+# owned by an arbitrary host user while the container runs as root; trust that
+# mount point so git does not reject it for dubious ownership.
+RUN git config --system --add safe.directory /app
 
 WORKDIR /app
 
