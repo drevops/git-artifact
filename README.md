@@ -12,7 +12,9 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/git-artifact)
 [![codecov](https://codecov.io/gh/drevops/git-artifact/branch/main/graph/badge.svg?token=QNBXCIBK5J)](https://codecov.io/gh/drevops/git-artifact)
 [![Total Downloads](https://poser.pugx.org/drevops/behat-screenshot/downloads)](https://packagist.org/packages/drevops/git-artifact)
-[![Docker Pulls](https://img.shields.io/docker/pulls/drevops/git-artifact.svg)](https://hub.docker.com/r/drevops/git-artifact)
+[![Docker Pulls](https://img.shields.io/docker/pulls/drevops/git-artifact?logo=docker)](https://hub.docker.com/r/drevops/git-artifact)
+![amd64](https://img.shields.io/badge/arch-linux%2Famd64-brightgreen)
+![arm64](https://img.shields.io/badge/arch-linux%2Farm64-brightgreen)
 ![LICENSE](https://img.shields.io/github/license/drevops/git-artifact)
 ![Renovate](https://img.shields.io/badge/renovate-enabled-green?logo=renovatebot)
 
@@ -200,7 +202,15 @@ docker run --rm \
   git@github.com:yourorg/your-repo-destination.git --branch=main
 ```
 
-Use the `drevops/git-artifact:canary` tag to test the latest unreleased changes from the `main` branch.
+#### Image tags
+
+Cross-platform (`linux/amd64`, `linux/arm64`) images are built by GitHub Actions and pushed to [Docker Hub](https://hub.docker.com/r/drevops/git-artifact):
+
+- `<version>` (e.g. `1.2.3`) - published when a release tag is created on GitHub.
+- `latest` - published when a release tag is created on GitHub.
+- `canary` - published on every push to the `main` branch (latest unreleased changes).
+
+Pin to a specific `<version>` tag for reproducible deployments and use `canary` only to try out unreleased changes.
 
 ### As a Composer dependency
 
