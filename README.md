@@ -12,10 +12,14 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/git-artifact)
 [![codecov](https://codecov.io/gh/drevops/git-artifact/branch/main/graph/badge.svg?token=QNBXCIBK5J)](https://codecov.io/gh/drevops/git-artifact)
 [![Total Downloads](https://poser.pugx.org/drevops/behat-screenshot/downloads)](https://packagist.org/packages/drevops/git-artifact)
+[![Docker Pulls](https://img.shields.io/docker/pulls/drevops/git-artifact?logo=docker)](https://hub.docker.com/r/drevops/git-artifact)
+![amd64](https://img.shields.io/badge/arch-linux%2Famd64-brightgreen)
+![arm64](https://img.shields.io/badge/arch-linux%2Farm64-brightgreen)
 ![LICENSE](https://img.shields.io/github/license/drevops/git-artifact)
 ![Renovate](https://img.shields.io/badge/renovate-enabled-green?logo=renovatebot)
 
 [![Test PHP](https://github.com/drevops/git-artifact/actions/workflows/test-php.yml/badge.svg)](https://github.com/drevops/git-artifact/actions/workflows/test-php.yml)
+[![Test Docker](https://github.com/drevops/git-artifact/actions/workflows/test-docker.yml/badge.svg)](https://github.com/drevops/git-artifact/actions/workflows/test-docker.yml)
 [![CircleCI](https://circleci.com/gh/drevops/git-artifact.svg?style=shield)](https://circleci.com/gh/drevops/git-artifact)
 
 [![Vortex Ecosystem](https://img.shields.io/badge/%F0%9F%8C%80-Vortex%20Ecosystem-2C5A68?style=for-the-badge&labelColor=65ACBC)](https://github.com/drevops/vortex)
@@ -172,6 +176,41 @@ This tool is intended to be used as a standalone binary. You will need to
 have PHP installed on your system to run the binary.
 
 Download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
+
+### As a Docker container
+
+The tool is also published as a multi-architecture (`linux/amd64`, `linux/arm64`) Docker image at [`drevops/git-artifact`](https://hub.docker.com/r/drevops/git-artifact), with `git` and an SSH client bundled in - no local PHP required. Mount your source repository at `/app` and pass the same arguments you would pass to the binary:
+
+```shell
+docker run --rm \
+  -v "${PWD}":/app \
+  -e GIT_AUTHOR_NAME="Deployer" -e GIT_AUTHOR_EMAIL="deployer@example.com" \
+  -e GIT_COMMITTER_NAME="Deployer" -e GIT_COMMITTER_EMAIL="deployer@example.com" \
+  drevops/git-artifact \
+  https://github.com/yourorg/your-repo-destination.git --branch=main
+```
+
+The `GIT_AUTHOR_*` and `GIT_COMMITTER_*` variables set the identity for the deployment commit. To push to an SSH remote, also mount your SSH credentials read-only:
+
+```shell
+docker run --rm \
+  -v "${PWD}":/app \
+  -v "${HOME}/.ssh":/root/.ssh:ro \
+  -e GIT_AUTHOR_NAME="Deployer" -e GIT_AUTHOR_EMAIL="deployer@example.com" \
+  -e GIT_COMMITTER_NAME="Deployer" -e GIT_COMMITTER_EMAIL="deployer@example.com" \
+  drevops/git-artifact \
+  git@github.com:yourorg/your-repo-destination.git --branch=main
+```
+
+#### Image tags
+
+Cross-platform (`linux/amd64`, `linux/arm64`) images are built by GitHub Actions and pushed to [Docker Hub](https://hub.docker.com/r/drevops/git-artifact):
+
+- `<version>` (e.g. `1.2.3`) - published when a release tag is created on GitHub.
+- `latest` - published when a release tag is created on GitHub.
+- `canary` - published on every push to the `main` branch (latest unreleased changes).
+
+Pin to a specific `<version>` tag for reproducible deployments and use `canary` only to try out unreleased changes.
 
 ### As a Composer dependency
 

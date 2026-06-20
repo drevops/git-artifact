@@ -1,0 +1,109 @@
+name: Test Docker
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+
+      - name: Build Docker image
+        run: docker build -t "drevops/git-artifact:test" .
+
+      - name: Test that the image packages and pushes an artifact
+        run: |
+          set -ex
+
+          src="${RUNNER_TEMP}/src"
+          dst="${RUNNER_TEMP}/dst.git"
+
+          # Prepare a source repository with a tracked file.
+          mkdir -p "${src}"
+          git -C "${src}" init -b main
+          git -C "${src}" config user.name "Test"
+          git -C "${src}" config user.email "test@example.com"
+          echo "artifact content" > "${src}/file.txt"
+          git -C "${src}" add -A
+          git -C "${src}" commit -m "Initial commit"
+
+          # Prepare a bare destination repository to receive the artifact.
+          git init --bare -b main "${dst}"
+
+          # Package and push the artifact from inside the container. The source
+          # is mounted at the WORKDIR and the destination is mounted as a local
+          # remote. The commit identity is supplied via the environment (the
+          # image trusts mounted repositories via a baked-in safe.directory).
+          docker run --rm \
+            -e GIT_AUTHOR_NAME="Test" \
+            -e GIT_AUTHOR_EMAIL="test@example.com" \
+            -e GIT_COMMITTER_NAME="Test" \
+            -e GIT_COMMITTER_EMAIL="test@example.com" \
+            -v "${src}":/app \
+            -v "${dst}":/dst.git \
+            drevops/git-artifact:test \
+            /dst.git --branch=artifact --mode=force-push -vvv
+
+          # Assert the file landed on the destination branch.
+          git -C "${dst}" show artifact:file.txt | grep -q "artifact content"
+
+  push-canary-to-registry:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    needs:
+      - test-docker
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6
+        with:
+          images: drevops/git-artifact
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
+        with:
+          context: .
+          push: true
+          tags: drevops/git-artifact:canary
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
