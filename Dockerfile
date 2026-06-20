@@ -43,10 +43,12 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# The source repository is bind-mounted at the WORKDIR from the host, so it is
-# owned by an arbitrary host user while the container runs as root; trust that
-# mount point so git does not reject it for dubious ownership.
-RUN git config --system --add safe.directory /app
+# The container operates on repositories bind-mounted from the host at runtime -
+# a source and a destination whose paths are chosen by the caller and unknown at
+# build time - while running as root. Trust all directories so git does not
+# reject these host-owned mounts for dubious ownership; the container is
+# single-purpose and ephemeral, so the wildcard is an acceptable trust boundary.
+RUN git config --system --add safe.directory '*'
 
 WORKDIR /app
 
