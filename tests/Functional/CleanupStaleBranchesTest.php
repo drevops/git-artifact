@@ -80,8 +80,8 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
 
     $this->assertStringContainsString('Deleted stale branch "deployment/old"', $output);
     $this->gitAssertBranchesNotExist($this->dst, ['deployment/old']);
-    // Both the just-pushed branch and the remote default branch match the "*"
-    // pattern and are old enough to be stale, but are always preserved.
+    // The just-pushed branch (fresh) and the remote default branch (stale) both
+    // match the "*" pattern but are always preserved regardless of their age.
     $this->gitAssertBranchesExist($this->dst, ['testbranch', $this->currentBranch]);
   }
 
