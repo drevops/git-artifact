@@ -8,4 +8,4 @@
 .logs
 tests
 vendor
-vendor-bin
+vendor-bin/*/vendor
