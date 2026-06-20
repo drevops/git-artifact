@@ -3,10 +3,12 @@
     "compression": "GZ",
     "finder": [
         {
-            "in": "./",
+            "in": [
+                "src",
+                "vendor"
+            ],
             "exclude": [
-                "php-script",
-                "tests"
+                "bin"
             ]
         }
     ]

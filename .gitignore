@@ -4,4 +4,4 @@
 /.build
 /.logs
 /vendor
-/vendor-bin
+/vendor-bin/*/vendor
