@@ -218,6 +218,85 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
+   * Get remote branches with their tip commit timestamps.
+   *
+   * A shallow fetch populates the remote-tracking refs; only the tip commit
+   * metadata is required to determine branch age, so the fetch is limited to a
+   * depth of one.
+   *
+   * @param string $remote
+   *   Remote name.
+   *
+   * @return array<string, int>
+   *   Branch names keyed to the Unix timestamp of their tip commit.
+   */
+  public function getRemoteBranchesInfo(string $remote): array {
+    $this->run('fetch', '--depth=1', $remote);
+
+    $lines = $this->extractFromCommand(['for-each-ref', '--format=%(refname:lstrip=3)|%(committerdate:unix)', 'refs/remotes/' . $remote]) ?: [];
+
+    $branches = [];
+    foreach ($lines as $line) {
+      if (!str_contains($line, '|')) {
+        continue;
+      }
+
+      [$name, $timestamp] = explode('|', $line, 2);
+
+      if ($name === '' || $name === 'HEAD' || !is_numeric($timestamp)) {
+        continue;
+      }
+
+      $branches[$name] = (int) $timestamp;
+    }
+
+    return $branches;
+  }
+
+  /**
+   * Get the default branch of a remote.
+   *
+   * @param string $remote
+   *   Remote name.
+   *
+   * @return string|null
+   *   The default branch name, or NULL if it cannot be determined.
+   */
+  public function getRemoteDefaultBranch(string $remote): ?string {
+    try {
+      $lines = $this->extractFromCommand(['ls-remote', '--symref', $remote, 'HEAD']) ?: [];
+    }
+    catch (GitException) {
+      return NULL;
+    }
+
+    foreach ($lines as $line) {
+      if (preg_match('#^ref:\s+refs/heads/(\S+)\s+HEAD#', $line, $matches)) {
+        return $matches[1];
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Delete a branch in the remote repository.
+   *
+   * @param string $remote
+   *   Remote name.
+   * @param string $branch
+   *   Branch name to delete.
+   *
+   * @return static
+   *   The git repository.
+   */
+  public function deleteRemoteBranch(string $remote, string $branch): static {
+    $this->run('push', $remote, '--delete', $branch);
+
+    return $this;
+  }
+
+  /**
    * Get tag pointing to HEAD.
    *
    * @return string[]
@@ -431,6 +510,49 @@ class ArtifactGitRepository extends GitRepository {
       'external' => $is_external,
       default => throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided', $type)),
     };
+  }
+
+  /**
+   * Filter branches down to those eligible for stale cleanup.
+   *
+   * @param array<string, int> $branches
+   *   Branch names keyed to the Unix timestamp of their tip commit.
+   * @param string $pattern
+   *   Glob pattern; only branches matching it are eligible.
+   * @param int $max_age
+   *   Maximum allowed age in seconds; branches older than this are stale.
+   * @param int $now
+   *   Reference "current" Unix timestamp to measure age against.
+   * @param array<string> $protected_branches
+   *   Branch names that must never be returned.
+   *
+   * @return array<string>
+   *   Names of stale branches, sorted for deterministic output.
+   */
+  public static function filterStaleBranches(array $branches, string $pattern, int $max_age, int $now, array $protected_branches = []): array {
+    $stale = [];
+
+    foreach ($branches as $name => $timestamp) {
+      $name = (string) $name;
+
+      if (in_array($name, $protected_branches, TRUE)) {
+        continue;
+      }
+
+      if (!fnmatch($pattern, $name)) {
+        continue;
+      }
+
+      if (($now - $timestamp) <= $max_age) {
+        continue;
+      }
+
+      $stale[] = $name;
+    }
+
+    sort($stale);
+
+    return $stale;
   }
 
   /**

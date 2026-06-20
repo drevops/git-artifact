@@ -32,6 +32,8 @@ class ArtifactCommand extends Command {
 
   const MODE_FORCE_PUSH = 'force-push';
 
+  const CLEANUP_STALE_AGE_DEFAULT = 7;
+
   /**
    * Current Git repository.
    */
@@ -125,6 +127,21 @@ class ArtifactCommand extends Command {
   protected bool $pushSuccessful = FALSE;
 
   /**
+   * Flag to enable deletion of stale branches in the remote repository.
+   */
+  protected bool $cleanupStale = FALSE;
+
+  /**
+   * Glob pattern of remote branches eligible for stale cleanup.
+   */
+  protected string $cleanupPattern = '';
+
+  /**
+   * Age in days after which a matching remote branch is considered stale.
+   */
+  protected int $cleanupAge = self::CLEANUP_STALE_AGE_DEFAULT;
+
+  /**
    * Internal option to set current timestamp.
    */
   protected int $now;
@@ -175,7 +192,10 @@ class ArtifactCommand extends Command {
       ->addOption('root',                   NULL, InputOption::VALUE_REQUIRED, 'Path to the root for file path resolution. If not specified, current directory is used.')
       ->addOption('show-changes',           NULL, InputOption::VALUE_NONE,     'Show changes made to the repo during packaging in the output.')
       ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
-      ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully.');
+      ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully.')
+      ->addOption('cleanup-stale',          NULL, InputOption::VALUE_NONE,     'Delete stale branches in the remote repository that match --cleanup-pattern and are older than --cleanup-age days.')
+      ->addOption('cleanup-pattern',        NULL, InputOption::VALUE_REQUIRED, 'Glob pattern of remote branches eligible for stale cleanup (e.g. "deployment/*"). Required when --cleanup-stale is set.')
+      ->addOption('cleanup-age',            NULL, InputOption::VALUE_REQUIRED, 'Age in days after which a matching remote branch is considered stale.', (string) self::CLEANUP_STALE_AGE_DEFAULT);
     // @formatter:on
     // phpcs:enable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
     // phpcs:enable Drupal.WhiteSpace.Comma.TooManySpaces
@@ -275,6 +295,8 @@ class ArtifactCommand extends Command {
 
         $this->output->writeln(sprintf('<info>Pushed branch "%s" with commit message "%s"</info>', $this->destinationBranch, $this->commitMessage));
       }
+
+      $this->cleanupStaleBranches();
     }
     catch (GitException $exception) {
       $result = $exception->getRunnerResult();
@@ -319,6 +341,65 @@ class ArtifactCommand extends Command {
   }
 
   /**
+   * Delete stale branches in the remote repository.
+   *
+   * Eligible branches are those matching the configured pattern whose tip commit
+   * is older than the configured age. The branch that was just pushed and the
+   * remote's default branch are always preserved. Cleanup is best-effort: any
+   * failure is logged and never fails the deployment, which has already
+   * succeeded by this point.
+   */
+  protected function cleanupStaleBranches(): void {
+    if (!$this->cleanupStale) {
+      return;
+    }
+
+    try {
+      $branches = $this->repo->getRemoteBranchesInfo($this->remoteName);
+    }
+    catch (GitException $exception) {
+      $this->output->writeln('<comment>Unable to list remote branches for cleanup.</comment>');
+      $this->logger->warning('Unable to list remote branches for cleanup: ' . $exception->getMessage());
+
+      return;
+    }
+
+    $protected_branches = [$this->destinationBranch];
+    $default_branch = $this->repo->getRemoteDefaultBranch($this->remoteName);
+    if ($default_branch !== NULL) {
+      $protected_branches[] = $default_branch;
+    }
+
+    $stale = ArtifactGitRepository::filterStaleBranches($branches, $this->cleanupPattern, $this->cleanupAge * 86400, $this->now, $protected_branches);
+
+    if ($stale === []) {
+      $this->output->writeln('<info>No stale branches to clean up.</info>');
+      $this->logger->notice('No stale branches to clean up.');
+
+      return;
+    }
+
+    foreach ($stale as $branch) {
+      if ($this->isDryRun) {
+        $this->output->writeln(sprintf('<info>Would delete stale branch "%s"</info>', $branch));
+        $this->logger->notice(sprintf('Would delete stale branch "%s"', $branch));
+
+        continue;
+      }
+
+      try {
+        $this->repo->deleteRemoteBranch($this->remoteName, $branch);
+        $this->output->writeln(sprintf('<info>Deleted stale branch "%s"</info>', $branch));
+        $this->logger->notice(sprintf('Deleted stale branch "%s"', $branch));
+      }
+      catch (GitException $exception) {
+        $this->output->writeln(sprintf('<comment>Failed to delete stale branch "%s"</comment>', $branch));
+        $this->logger->warning(sprintf('Failed to delete stale branch "%s": %s', $branch, $exception->getMessage()));
+      }
+    }
+  }
+
+  /**
    * Resolve and validate CLI options values into internal values.
    *
    * @param string $url
@@ -339,6 +420,21 @@ class ArtifactCommand extends Command {
     $this->isDryRun = !empty($options['dry-run']);
     $this->failOnMissingBranch = !empty($options['fail-on-missing-branch']);
     $this->logFile = empty($options['log']) || !is_string($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
+
+    $this->cleanupStale = !empty($options['cleanup-stale']);
+    if ($this->cleanupStale) {
+      $pattern = isset($options['cleanup-pattern']) && is_string($options['cleanup-pattern']) ? trim($options['cleanup-pattern']) : '';
+      if ($pattern === '') {
+        throw new \RuntimeException('The --cleanup-pattern option is required when --cleanup-stale is set.');
+      }
+      $this->cleanupPattern = $pattern;
+
+      $age = $options['cleanup-age'] ?? NULL;
+      if (!is_numeric($age) || (float) $age != (int) $age || (int) $age < 1) {
+        throw new \RuntimeException('The --cleanup-age option must be a positive integer number of days.');
+      }
+      $this->cleanupAge = (int) $age;
+    }
 
     $this->setMode(is_string($options['mode']) ? $options['mode'] : '', $options);
 
@@ -415,6 +511,9 @@ class ArtifactCommand extends Command {
     $lines[] = (' Remote branch:         ' . $this->destinationBranch);
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
+    if ($this->cleanupStale) {
+      $lines[] = (' Cleanup stale:         ' . sprintf('Yes (pattern "%s", older than %d days)', $this->cleanupPattern, $this->cleanupAge));
+    }
     $lines[] = ('----------------------------------------------------------------------');
 
     $this->output->writeln($lines);
