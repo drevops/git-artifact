@@ -1,0 +1,11 @@
+.artifacts
+.build
+.circleci
+.claude
+.git
+.github
+.idea
+.logs
+tests
+vendor
+vendor-bin
