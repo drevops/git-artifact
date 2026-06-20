@@ -31,8 +31,8 @@ class ArtifactCommandTest extends UnitTestCase {
 
   public function testCleanupStaleBranchesHandlesDeleteFailure(): void {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
-      'getRemoteBranchesInfo' => ['deployment/old' => 1000],
-      'getRemoteDefaultBranch' => NULL,
+      'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
+      'getRemoteDefaultBranch' => fn(): ?string => NULL,
       'deleteRemoteBranch' => fn(): never => throw new GitException('boom'),
     ], FALSE);
 
@@ -46,6 +46,10 @@ class ArtifactCommandTest extends UnitTestCase {
 
   /**
    * Build a command instance wired for cleanupStaleBranches() in isolation.
+   *
+   * The command's collaborators are normally populated by execute(); here they
+   * are injected directly via reflection so cleanupStaleBranches() can be
+   * exercised on its own, without bootstrapping the full command run.
    *
    * @param \PHPUnit\Framework\MockObject\MockObject $repo
    *   Repository mock to operate on.
