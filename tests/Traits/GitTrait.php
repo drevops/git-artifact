@@ -382,7 +382,7 @@ trait GitTrait {
   protected function gitCreateBranchWithCommitDate(string $path, string $branch, int $timestamp): void {
     (new Git())->open($path)->createBranch($branch, TRUE);
 
-    $filename = 'file_' . (string) preg_replace('/[^a-z0-9]+/i', '_', $branch);
+    $filename = 'file_' . preg_replace('/[^a-z0-9]+/i', '_', $branch);
     $this->gitCommitFileWithDate($path, $filename, $timestamp, 'Commit for ' . $branch);
   }
 

@@ -233,7 +233,8 @@ class ArtifactGitRepository extends GitRepository {
   public function getRemoteBranchesInfo(string $remote): array {
     $this->run('fetch', '--depth=1', $remote);
 
-    $lines = $this->extractFromCommand(['for-each-ref', '--format=%(refname:lstrip=3)|%(committerdate:unix)', 'refs/remotes/' . $remote]) ?: [];
+    $format = '%(refname:lstrip=3)|%(committerdate:unix)';
+    $lines = $this->extractFromCommand(['for-each-ref', '--format=' . $format, 'refs/remotes/' . $remote]) ?: [];
 
     $branches = [];
     foreach ($lines as $line) {
@@ -539,7 +540,7 @@ class ArtifactGitRepository extends GitRepository {
         continue;
       }
 
-      if (!fnmatch($pattern, $name)) {
+      if (!self::matchesGlob($pattern, $name)) {
         continue;
       }
 
@@ -553,6 +554,26 @@ class ArtifactGitRepository extends GitRepository {
     sort($stale);
 
     return $stale;
+  }
+
+  /**
+   * Test whether a branch name matches a shell-style glob pattern.
+   *
+   * Converts the glob into a regular expression so the match honours the
+   * same '*' and '?' semantics as a shell glob without using fnmatch().
+   *
+   * @param string $pattern
+   *   The glob pattern to match against (e.g. 'deployment/*').
+   * @param string $subject
+   *   The string to test.
+   *
+   * @return bool
+   *   TRUE when the subject matches the pattern.
+   */
+  protected static function matchesGlob(string $pattern, string $subject): bool {
+    $regex = '/^' . str_replace(['\*', '\?'], ['.*', '.'], preg_quote($pattern, '/')) . '$/';
+
+    return (bool) preg_match($regex, $subject);
   }
 
   /**

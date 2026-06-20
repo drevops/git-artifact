@@ -343,11 +343,11 @@ class ArtifactCommand extends Command {
   /**
    * Delete stale branches in the remote repository.
    *
-   * Eligible branches are those matching the configured pattern whose tip commit
-   * is older than the configured age. The branch that was just pushed and the
-   * remote's default branch are always preserved. Cleanup is best-effort: any
-   * failure is logged and never fails the deployment, which has already
-   * succeeded by this point.
+   * Eligible branches are those matching the configured pattern whose tip
+   * commit is older than the configured age. The branch that was just pushed
+   * and the remote's default branch are always preserved. Cleanup is
+   * best-effort: any failure is logged and never fails the deployment, which
+   * has already succeeded by this point.
    */
   protected function cleanupStaleBranches(): void {
     if (!$this->cleanupStale) {

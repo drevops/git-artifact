@@ -125,6 +125,12 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
   /**
    * @param array<string, int> $branches
    *   Branches keyed to tip timestamps.
+   * @param string $pattern
+   *   Glob pattern to match eligible branches.
+   * @param int $max_age
+   *   Maximum allowed age in seconds.
+   * @param int $now
+   *   Reference Unix timestamp.
    * @param array<string> $protected_branches
    *   Protected branch names.
    * @param array<string> $expected
