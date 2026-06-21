@@ -168,6 +168,31 @@ repository would create a branch `deployment/1.2.3` in the destination
 repository. The addition of the new tags would create new unique branches in the
 destination repository.
 
+#### Cleanup of stale branches
+
+In `branch` mode the _destination_ repository accumulates a new branch for every
+deployment. Enable `--cleanup-stale` to remove old ones automatically after a
+successful push:
+
+```shell
+./git-artifact git@github.com:yourorg/your-repo-destination.git \
+  --mode=branch \
+  --branch="deployment/[tags:.]" \
+  --cleanup-stale \
+  --cleanup-pattern="deployment/*" \
+  --cleanup-age=3
+```
+
+Any branch in the _destination_ repository that matches `--cleanup-pattern` and
+whose last commit is older than `--cleanup-age` days is deleted. The branch that
+was just pushed and the _destination_ repository's default branch are never
+deleted. `--cleanup-pattern` is required - it is the only way to identify the
+branches created by your deployments - and is matched as a shell glob. Add
+`--dry-run` to preview deletions without performing them.
+
+Because deletion uses standard Git, this works with any remote (GitHub, GitLab,
+Bitbucket, self-hosted), not only GitHub.
+
 ## 📥 Installation
 
 ### As a standalone binary
@@ -269,6 +294,9 @@ fully-configured [example in the Vortex project](https://github.com/drevops/vort
 |----------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------|
 | `--ansi`                   |                     | Force ANSI output. Use `--no-ansi` to disable                                                                       |
 | `--branch`                 | `[branch]`          | Destination branch with optional tokens (see below)                                                                 |
+| `--cleanup-age`            | `7`                 | Age in days after which a matching remote branch is considered stale; used with `--cleanup-stale`                    |
+| `--cleanup-pattern`        |                     | Glob pattern of remote branches eligible for stale cleanup (e.g. `deployment/*`); required with `--cleanup-stale`    |
+| `--cleanup-stale`          |                     | Delete stale remote branches that match `--cleanup-pattern` and are older than `--cleanup-age` days                  |
 | `--dry-run`                |                     | Run without pushing to the remote repository                                                                        |
 | `--fail-on-missing-branch` |                     | Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully |
 | `--gitignore`              |                     | Path to the `.gitignore` file to replace the current `.gitignore`                                                   |

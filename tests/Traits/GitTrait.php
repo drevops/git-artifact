@@ -342,6 +342,101 @@ trait GitTrait {
   }
 
   /**
+   * Commit a new file on the current branch with a specific commit date.
+   *
+   * @param string $path
+   *   Path to the repository.
+   * @param string $filename
+   *   Name of the file to create and commit.
+   * @param int $timestamp
+   *   Unix timestamp to use for both author and committer dates.
+   * @param string $message
+   *   Commit message.
+   */
+  protected function gitCommitFileWithDate(string $path, string $filename, int $timestamp, string $message): void {
+    (new Filesystem())->dumpFile($path . DIRECTORY_SEPARATOR . $filename, $filename);
+
+    $previous_author_date = getenv('GIT_AUTHOR_DATE');
+    $previous_committer_date = getenv('GIT_COMMITTER_DATE');
+
+    $date = date('c', $timestamp);
+    putenv('GIT_AUTHOR_DATE=' . $date);
+    putenv('GIT_COMMITTER_DATE=' . $date);
+
+    try {
+      (new Git())->open($path)->addFile($filename)->commit($message);
+    }
+    finally {
+      putenv($previous_author_date === FALSE ? 'GIT_AUTHOR_DATE' : 'GIT_AUTHOR_DATE=' . $previous_author_date);
+      putenv($previous_committer_date === FALSE ? 'GIT_COMMITTER_DATE' : 'GIT_COMMITTER_DATE=' . $previous_committer_date);
+    }
+  }
+
+  /**
+   * Create a branch with a single commit dated at a given time.
+   *
+   * @param string $path
+   *   Path to the repository.
+   * @param string $branch
+   *   Branch name to create and check out.
+   * @param int $timestamp
+   *   Unix timestamp to use for the commit author and committer dates.
+   */
+  protected function gitCreateBranchWithCommitDate(string $path, string $branch, int $timestamp): void {
+    (new Git())->open($path)->createBranch($branch, TRUE);
+
+    $filename = 'file_' . preg_replace('/[^a-z0-9]+/i', '_', $branch);
+    $this->gitCommitFileWithDate($path, $filename, $timestamp, 'Commit for ' . $branch);
+  }
+
+  /**
+   * Get the list of local branch names in a repository.
+   *
+   * @param string $path
+   *   Path to the repository.
+   *
+   * @return array<string>
+   *   Branch names with any decoration removed.
+   */
+  protected function gitGetBranchList(string $path): array {
+    $branches = (new Git())->open($path)->getBranches() ?: [];
+
+    return array_map(static fn(string $branch): string => trim(ltrim($branch, '* ')), $branches);
+  }
+
+  /**
+   * Assert that branches exist in a repository.
+   *
+   * @param string $path
+   *   Path to the repository.
+   * @param array<string> $branches
+   *   Branch names to assert as present.
+   */
+  protected function gitAssertBranchesExist(string $path, array $branches): void {
+    $existing = $this->gitGetBranchList($path);
+
+    foreach ($branches as $branch) {
+      $this->assertContains($branch, $existing, sprintf('Branch "%s" exists', $branch));
+    }
+  }
+
+  /**
+   * Assert that branches do not exist in a repository.
+   *
+   * @param string $path
+   *   Path to the repository.
+   * @param array<string> $branches
+   *   Branch names to assert as absent.
+   */
+  protected function gitAssertBranchesNotExist(string $path, array $branches): void {
+    $existing = $this->gitGetBranchList($path);
+
+    foreach ($branches as $branch) {
+      $this->assertNotContains($branch, $existing, sprintf('Branch "%s" does not exist', $branch));
+    }
+  }
+
+  /**
    * Get global default branch.
    *
    * @return string

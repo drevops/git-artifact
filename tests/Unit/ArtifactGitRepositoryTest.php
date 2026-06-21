@@ -122,4 +122,52 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
     ];
   }
 
+  /**
+   * @param array<string, int> $branches
+   *   Branches keyed to tip timestamps.
+   * @param string $pattern
+   *   Glob pattern to match eligible branches.
+   * @param int $max_age
+   *   Maximum allowed age in seconds.
+   * @param int $now
+   *   Reference Unix timestamp.
+   * @param array<string> $protected_branches
+   *   Protected branch names.
+   * @param array<string> $expected
+   *   Expected stale branch names.
+   */
+  #[DataProvider('dataProviderFilterStaleBranches')]
+  public function testFilterStaleBranches(array $branches, string $pattern, int $max_age, int $now, array $protected_branches, array $expected): void {
+    $this->assertSame($expected, ArtifactGitRepository::filterStaleBranches($branches, $pattern, $max_age, $now, $protected_branches));
+  }
+
+  /**
+   * @return array<string, mixed>
+   *   Test data.
+   */
+  public static function dataProviderFilterStaleBranches(): array {
+    $now = 1000000000;
+    $day = 86400;
+
+    return [
+      'empty' => [[], '*', 3 * $day, $now, [], []],
+      'no pattern match' => [['feature/x' => $now - 10 * $day], 'deployment/*', 3 * $day, $now, [], []],
+      'stale match' => [['deployment/a' => $now - 10 * $day], 'deployment/*', 3 * $day, $now, [], ['deployment/a']],
+      'fresh kept' => [['deployment/a' => $now - $day], 'deployment/*', 3 * $day, $now, [], []],
+      'boundary equal kept' => [['deployment/a' => $now - 3 * $day], 'deployment/*', 3 * $day, $now, [], []],
+      'boundary just over' => [['deployment/a' => $now - 3 * $day - 1], 'deployment/*', 3 * $day, $now, [], ['deployment/a']],
+      'protected excluded' => [['deployment/a' => $now - 10 * $day], 'deployment/*', 3 * $day, $now, ['deployment/a'], []],
+      'future timestamp kept' => [['deployment/a' => $now + 5 * $day], 'deployment/*', 3 * $day, $now, [], []],
+      'sorted output' => [
+        ['deployment/c' => $now - 10 * $day, 'deployment/a' => $now - 10 * $day, 'deployment/b' => $now - 10 * $day],
+        'deployment/*', 3 * $day, $now, [], ['deployment/a', 'deployment/b', 'deployment/c'],
+      ],
+      'numeric branch name' => [['123' => $now - 10 * $day], '*', 3 * $day, $now, [], ['123']],
+      'wildcard all but protected' => [
+        ['a' => $now - 10 * $day, 'b' => $now - 10 * $day],
+        '*', 3 * $day, $now, ['b'], ['a'],
+      ],
+    ];
+  }
+
 }
