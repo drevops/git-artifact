@@ -356,6 +356,9 @@ trait GitTrait {
   protected function gitCommitFileWithDate(string $path, string $filename, int $timestamp, string $message): void {
     (new Filesystem())->dumpFile($path . DIRECTORY_SEPARATOR . $filename, $filename);
 
+    $previous_author_date = getenv('GIT_AUTHOR_DATE');
+    $previous_committer_date = getenv('GIT_COMMITTER_DATE');
+
     $date = date('c', $timestamp);
     putenv('GIT_AUTHOR_DATE=' . $date);
     putenv('GIT_COMMITTER_DATE=' . $date);
@@ -364,8 +367,8 @@ trait GitTrait {
       (new Git())->open($path)->addFile($filename)->commit($message);
     }
     finally {
-      putenv('GIT_AUTHOR_DATE');
-      putenv('GIT_COMMITTER_DATE');
+      putenv($previous_author_date === FALSE ? 'GIT_AUTHOR_DATE' : 'GIT_AUTHOR_DATE=' . $previous_author_date);
+      putenv($previous_committer_date === FALSE ? 'GIT_COMMITTER_DATE' : 'GIT_COMMITTER_DATE=' . $previous_committer_date);
     }
   }
 

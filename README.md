@@ -174,7 +174,7 @@ In `branch` mode the _destination_ repository accumulates a new branch for every
 deployment. Enable `--cleanup-stale` to remove old ones automatically after a
 successful push:
 
-```
+```shell
 ./git-artifact git@github.com:yourorg/your-repo-destination.git \
   --mode=branch \
   --branch="deployment/[tags:.]" \

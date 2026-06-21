@@ -32,7 +32,7 @@ class ArtifactCommandTest extends UnitTestCase {
   public function testCleanupStaleBranchesHandlesDeleteFailure(): void {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
       'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
-      'getRemoteDefaultBranch' => fn(): ?string => NULL,
+      'getRemoteDefaultBranch' => fn(): string => 'main',
       'deleteRemoteBranch' => fn(): never => throw new GitException('boom'),
     ], FALSE);
 
@@ -42,6 +42,20 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->callProtectedMethod($command, 'cleanupStaleBranches');
 
     $this->assertStringContainsString('Failed to delete stale branch "deployment/old"', $output->fetch());
+  }
+
+  public function testCleanupStaleBranchesSkipsWhenDefaultBranchUnknown(): void {
+    $repo = $this->prepareMock(ArtifactGitRepository::class, [
+      'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
+      'getRemoteDefaultBranch' => fn(): ?string => NULL,
+    ], FALSE);
+
+    $output = new BufferedOutput();
+    $command = $this->createCleanupCommand($repo, $output);
+
+    $this->callProtectedMethod($command, 'cleanupStaleBranches');
+
+    $this->assertStringContainsString('Unable to determine the remote default branch', $output->fetch());
   }
 
   /**

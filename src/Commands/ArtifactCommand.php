@@ -364,11 +364,15 @@ class ArtifactCommand extends Command {
       return;
     }
 
-    $protected_branches = [$this->destinationBranch];
     $default_branch = $this->repo->getRemoteDefaultBranch($this->remoteName);
-    if ($default_branch !== NULL) {
-      $protected_branches[] = $default_branch;
+    if ($default_branch === NULL) {
+      $this->output->writeln('<comment>Unable to determine the remote default branch; skipping stale cleanup for safety.</comment>');
+      $this->logger->warning('Unable to determine the remote default branch; skipping stale cleanup for safety.');
+
+      return;
     }
+
+    $protected_branches = [$this->destinationBranch, $default_branch];
 
     $stale = ArtifactGitRepository::filterStaleBranches($branches, $this->cleanupPattern, $this->cleanupAge * 86400, $this->now, $protected_branches);
 
