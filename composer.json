@@ -18,9 +18,9 @@
         "php": ">=8.3",
         "czproject/git-php": "^4.6",
         "monolog/monolog": "^3.10",
-        "symfony/console": "^7.4.13",
+        "symfony/console": "^7.4.14",
         "symfony/filesystem": "^7.4.11",
-        "symfony/finder": "^7.4.8",
+        "symfony/finder": "^7.4.14",
         "symfony/monolog-bridge": "^7.4.12",
         "symfony/process": "^7.4.13"
     },
