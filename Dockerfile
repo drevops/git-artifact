@@ -1,4 +1,4 @@
-FROM php:8.5-cli@sha256:1a5fd40baaeb88045a5cdfcec6b26bafcf40e3c2867f525b91cb746eb26d8fd9 AS builder
+FROM php:8.5-cli@sha256:5749d0780f2d0c993a63b4eac18501f74d2ca8735aeb97d7fd7c8efb7b9b7467 AS builder
 
 # hadolint ignore=DL3008
 RUN apt-get update && \
@@ -33,7 +33,7 @@ COPY . /app
 
 RUN composer build
 
-FROM php:8.5-cli@sha256:1a5fd40baaeb88045a5cdfcec6b26bafcf40e3c2867f525b91cb746eb26d8fd9
+FROM php:8.5-cli@sha256:5749d0780f2d0c993a63b4eac18501f74d2ca8735aeb97d7fd7c8efb7b9b7467
 
 # git is required because the tool shells out to the git binary; openssh-client
 # enables pushing to SSH remotes such as git@github.com:org/repo.git.
