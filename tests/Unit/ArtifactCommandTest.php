@@ -78,7 +78,7 @@ class ArtifactCommandTest extends UnitTestCase {
 
     $this->setProtectedValue($command, 'repo', $repo);
     $this->setProtectedValue($command, 'cleanupStale', TRUE);
-    $this->setProtectedValue($command, 'cleanupPattern', '*');
+    $this->setProtectedValue($command, 'cleanupPatterns', ['*']);
     $this->setProtectedValue($command, 'cleanupAge', 3);
     $this->setProtectedValue($command, 'now', 100000000);
     $this->setProtectedValue($command, 'remoteName', 'dst');
