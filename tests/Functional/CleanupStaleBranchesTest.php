@@ -45,6 +45,76 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['deployment/fresh', 'feature/keep', 'testbranch', $this->currentBranch]);
   }
 
+  public function testPrunesStaleBranchesCommaSeparatedGlobs(): void {
+    $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
+    $this->gitCreateBranchWithCommitDate($this->dst, 'feature/old', $this->now - 10 * 86400);
+    $this->gitCreateBranchWithCommitDate($this->dst, 'bugfix/old', $this->now - 10 * 86400);
+    $this->gitCreateBranchWithCommitDate($this->dst, 'release/keep', $this->now - 10 * 86400);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+
+    $this->gitCreateFixtureCommits(2);
+
+    $output = $this->assertArtifactCommandSuccess([
+      '--cleanup-stale' => TRUE,
+      '--cleanup-pattern' => 'feature/*,,bugfix/*',
+      '--cleanup-age' => '3',
+    ]);
+
+    $this->assertStringContainsString('Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)', $output);
+    $this->assertStringContainsString('Deleted stale branch "bugfix/old"', $output);
+    $this->assertStringContainsString('Deleted stale branch "feature/old"', $output);
+
+    $this->gitAssertBranchesNotExist($this->dst, ['feature/old', 'bugfix/old']);
+    $this->gitAssertBranchesExist($this->dst, ['release/keep', 'testbranch', $this->currentBranch]);
+  }
+
+  public function testPrunesStaleBranchesMultiplePatterns(): void {
+    $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
+    $this->gitCreateBranchWithCommitDate($this->dst, 'feature/old', $this->now - 10 * 86400);
+    $this->gitCreateBranchWithCommitDate($this->dst, 'bugfix/old', $this->now - 10 * 86400);
+    $this->gitCreateBranchWithCommitDate($this->dst, 'release/keep', $this->now - 10 * 86400);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+
+    $this->gitCreateFixtureCommits(2);
+
+    $output = $this->assertArtifactCommandSuccess([
+      '--cleanup-stale' => TRUE,
+      '--cleanup-pattern' => ['feature/*', 'bugfix/*'],
+      '--cleanup-age' => '3',
+    ]);
+
+    $this->assertStringContainsString('Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)', $output);
+    $this->assertStringContainsString('Deleted stale branch "bugfix/old"', $output);
+    $this->assertStringContainsString('Deleted stale branch "feature/old"', $output);
+
+    $this->gitAssertBranchesNotExist($this->dst, ['feature/old', 'bugfix/old']);
+    $this->gitAssertBranchesExist($this->dst, ['release/keep', 'testbranch', $this->currentBranch]);
+  }
+
+  public function testPrunesStaleBranchesRegex(): void {
+    $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
+    $this->gitCreateBranchWithCommitDate($this->dst, 'feature/single', $this->now - 10 * 86400);
+    $this->gitCreateBranchWithCommitDate($this->dst, 'feature/nested/deep', $this->now - 10 * 86400);
+    $this->gitCreateBranchWithCommitDate($this->dst, 'bugfix/one', $this->now - 10 * 86400);
+    $this->gitCheckout($this->dst, $this->currentBranch);
+
+    $this->gitCreateFixtureCommits(2);
+
+    $output = $this->assertArtifactCommandSuccess([
+      '--cleanup-stale' => TRUE,
+      '--cleanup-pattern' => '/^feature\/[^\/]+$/',
+      '--cleanup-age' => '3',
+    ]);
+
+    $this->assertStringContainsString('Cleanup stale:         Yes (pattern "/^feature\/[^\/]+$/", older than 3 days)', $output);
+    $this->assertStringContainsString('Deleted stale branch "feature/single"', $output);
+
+    $this->gitAssertBranchesNotExist($this->dst, ['feature/single']);
+    // The regex allows a single path segment only, so the nested branch and the
+    // bugfix branch are preserved even though both are stale.
+    $this->gitAssertBranchesExist($this->dst, ['feature/nested/deep', 'bugfix/one', 'testbranch', $this->currentBranch]);
+  }
+
   public function testDryRunDoesNotPrune(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'deployment/old', $this->now - 10 * 86400);
@@ -117,6 +187,30 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     ], TRUE);
 
     $this->assertStringContainsString('The --cleanup-pattern option is required when --cleanup-stale is set.', $output);
+  }
+
+  public function testRequiresNonEmptyPattern(): void {
+    $this->gitCreateFixtureCommits(2);
+
+    $output = $this->runArtifactCommand([
+      '--cleanup-stale' => TRUE,
+      '--cleanup-pattern' => ['  ', ''],
+      '--branch' => 'testbranch',
+    ], TRUE);
+
+    $this->assertStringContainsString('The --cleanup-pattern option is required when --cleanup-stale is set.', $output);
+  }
+
+  public function testRejectsInvalidRegex(): void {
+    $this->gitCreateFixtureCommits(2);
+
+    $output = $this->runArtifactCommand([
+      '--cleanup-stale' => TRUE,
+      '--cleanup-pattern' => '/(/',
+      '--branch' => 'testbranch',
+    ], TRUE);
+
+    $this->assertStringContainsString('The --cleanup-pattern value "/(/" is not a valid regular expression.', $output);
   }
 
   #[DataProvider('dataProviderRejectsInvalidAge')]

@@ -518,8 +518,9 @@ class ArtifactGitRepository extends GitRepository {
    *
    * @param array<string, int> $branches
    *   Branch names keyed to the Unix timestamp of their tip commit.
-   * @param string $pattern
-   *   Glob pattern; only branches matching it are eligible.
+   * @param array<string> $patterns
+   *   Cleanup patterns (globs or regex literals); a branch matching any of them
+   *   is eligible.
    * @param int $max_age
    *   Maximum allowed age in seconds; branches older than this are stale.
    * @param int $now
@@ -530,7 +531,7 @@ class ArtifactGitRepository extends GitRepository {
    * @return array<string>
    *   Names of stale branches, sorted for deterministic output.
    */
-  public static function filterStaleBranches(array $branches, string $pattern, int $max_age, int $now, array $protected_branches = []): array {
+  public static function filterStaleBranches(array $branches, array $patterns, int $max_age, int $now, array $protected_branches = []): array {
     $stale = [];
 
     foreach ($branches as $name => $timestamp) {
@@ -540,7 +541,7 @@ class ArtifactGitRepository extends GitRepository {
         continue;
       }
 
-      if (!self::matchesGlob($pattern, $name)) {
+      if (!self::matchesAnyPattern($patterns, $name)) {
         continue;
       }
 
@@ -554,6 +555,84 @@ class ArtifactGitRepository extends GitRepository {
     sort($stale);
 
     return $stale;
+  }
+
+  /**
+   * Determine whether a cleanup token is a regex rather than a glob.
+   *
+   * A Git branch name can never begin with a slash, so a leading slash
+   * unambiguously marks a PCRE literal (delimiters and flags included), e.g.
+   * '/^feature\/[^\/]+$/'. Everything else is treated as a shell-style glob.
+   *
+   * @param string $pattern
+   *   The cleanup token to inspect.
+   *
+   * @return bool
+   *   TRUE when the token should be interpreted as a regular expression.
+   */
+  public static function isRegexPattern(string $pattern): bool {
+    return str_starts_with($pattern, '/');
+  }
+
+  /**
+   * Test whether a string is a usable PCRE pattern.
+   *
+   * @param string $pattern
+   *   A regex literal including its delimiters and any flags.
+   *
+   * @return bool
+   *   TRUE when the pattern compiles.
+   */
+  public static function isValidRegex(string $pattern): bool {
+    set_error_handler(static fn(): bool => TRUE);
+
+    try {
+      return preg_match($pattern, '') !== FALSE;
+    }
+    finally {
+      restore_error_handler();
+    }
+  }
+
+  /**
+   * Test whether a branch name matches any of the given patterns.
+   *
+   * @param array<string> $patterns
+   *   Cleanup patterns, each a shell glob or a regex literal (see
+   *   ::isRegexPattern()).
+   * @param string $subject
+   *   The branch name to test.
+   *
+   * @return bool
+   *   TRUE when the subject matches at least one pattern.
+   */
+  protected static function matchesAnyPattern(array $patterns, string $subject): bool {
+    foreach ($patterns as $pattern) {
+      if (self::matchesPattern($pattern, $subject)) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Test whether a branch name matches a single cleanup pattern.
+   *
+   * @param string $pattern
+   *   A shell glob or a regex literal (see ::isRegexPattern()).
+   * @param string $subject
+   *   The branch name to test.
+   *
+   * @return bool
+   *   TRUE when the subject matches the pattern.
+   */
+  protected static function matchesPattern(string $pattern, string $subject): bool {
+    if (self::isRegexPattern($pattern)) {
+      return preg_match($pattern, $subject) === 1;
+    }
+
+    return self::matchesGlob($pattern, $subject);
   }
 
   /**

@@ -132,9 +132,14 @@ class ArtifactCommand extends Command {
   protected bool $cleanupStale = FALSE;
 
   /**
-   * Glob pattern of remote branches eligible for stale cleanup.
+   * Patterns of remote branches eligible for stale cleanup.
+   *
+   * Each entry is a shell glob or a regex literal, as distinguished by
+   * ArtifactGitRepository::isRegexPattern().
+   *
+   * @var list<string>
    */
-  protected string $cleanupPattern = '';
+  protected array $cleanupPatterns = [];
 
   /**
    * Age in days after which a matching remote branch is considered stale.
@@ -194,7 +199,7 @@ class ArtifactCommand extends Command {
       ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
       ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully.')
       ->addOption('cleanup-stale',          NULL, InputOption::VALUE_NONE,     'Delete stale branches in the remote repository that match --cleanup-pattern and are older than --cleanup-age days.')
-      ->addOption('cleanup-pattern',        NULL, InputOption::VALUE_REQUIRED, 'Glob pattern of remote branches eligible for stale cleanup (e.g. "deployment/*"). Required when --cleanup-stale is set.')
+      ->addOption('cleanup-pattern',        NULL, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Remote branches eligible for stale cleanup. Repeatable; each value is a comma-separated list of globs (e.g. "feature/*,bugfix/*") or a single regex literal (e.g. "/^feature\/.+$/"). A branch matching any pattern is eligible. Required when --cleanup-stale is set.')
       ->addOption('cleanup-age',            NULL, InputOption::VALUE_REQUIRED, 'Age in days after which a matching remote branch is considered stale.', (string) self::CLEANUP_STALE_AGE_DEFAULT);
     // @formatter:on
     // phpcs:enable Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma
@@ -374,7 +379,7 @@ class ArtifactCommand extends Command {
 
     $protected_branches = [$this->destinationBranch, $default_branch];
 
-    $stale = ArtifactGitRepository::filterStaleBranches($branches, $this->cleanupPattern, $this->cleanupAge * 86400, $this->now, $protected_branches);
+    $stale = ArtifactGitRepository::filterStaleBranches($branches, $this->cleanupPatterns, $this->cleanupAge * 86400, $this->now, $protected_branches);
 
     if ($stale === []) {
       $this->output->writeln('<info>No stale branches to clean up.</info>');
@@ -427,11 +432,44 @@ class ArtifactCommand extends Command {
 
     $this->cleanupStale = !empty($options['cleanup-stale']);
     if ($this->cleanupStale) {
-      $pattern = isset($options['cleanup-pattern']) && is_string($options['cleanup-pattern']) ? trim($options['cleanup-pattern']) : '';
-      if ($pattern === '') {
+      $raw_patterns = $options['cleanup-pattern'] ?? [];
+      $raw_patterns = is_array($raw_patterns) ? $raw_patterns : [$raw_patterns];
+      $raw_patterns = array_filter($raw_patterns, 'is_string');
+
+      $patterns = [];
+      foreach ($raw_patterns as $raw_pattern) {
+        $raw_pattern = trim($raw_pattern);
+        if ($raw_pattern === '') {
+          continue;
+        }
+
+        // A value is either a single regex literal or a comma-separated list of
+        // globs, so only globs are split - commas inside a regex are preserved.
+        if (ArtifactGitRepository::isRegexPattern($raw_pattern)) {
+          $patterns[] = $raw_pattern;
+          continue;
+        }
+
+        foreach (explode(',', $raw_pattern) as $glob) {
+          $glob = trim($glob);
+          if ($glob !== '') {
+            $patterns[] = $glob;
+          }
+        }
+      }
+
+      $patterns = array_values(array_unique($patterns));
+      if ($patterns === []) {
         throw new \RuntimeException('The --cleanup-pattern option is required when --cleanup-stale is set.');
       }
-      $this->cleanupPattern = $pattern;
+
+      foreach ($patterns as $pattern) {
+        if (ArtifactGitRepository::isRegexPattern($pattern) && !ArtifactGitRepository::isValidRegex($pattern)) {
+          throw new \RuntimeException(sprintf('The --cleanup-pattern value "%s" is not a valid regular expression.', $pattern));
+        }
+      }
+
+      $this->cleanupPatterns = $patterns;
 
       $age = $options['cleanup-age'] ?? NULL;
       if (!is_numeric($age) || (float) $age != (int) $age || (int) $age < 1) {
@@ -516,7 +554,9 @@ class ArtifactCommand extends Command {
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
     if ($this->cleanupStale) {
-      $lines[] = (' Cleanup stale:         ' . sprintf('Yes (pattern "%s", older than %d days)', $this->cleanupPattern, $this->cleanupAge));
+      $label = count($this->cleanupPatterns) === 1 ? 'pattern' : 'patterns';
+      $list = implode(', ', array_map(static fn(string $pattern): string => sprintf('"%s"', $pattern), $this->cleanupPatterns));
+      $lines[] = (' Cleanup stale:         ' . sprintf('Yes (%s %s, older than %d days)', $label, $list, $this->cleanupAge));
     }
     $lines[] = ('----------------------------------------------------------------------');
 
