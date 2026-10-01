@@ -473,14 +473,14 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Check if provided branch name can be used in Git.
    *
-   * @param string $name
+   * @param string $branch
    *   Branch name to check.
    *
    * @return bool
    *   TRUE if it is a valid Git branch, FALSE otherwise.
    */
-  public static function isValidBranchName(string $name): bool {
-    return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $name) && strlen($name) < 255;
+  public static function isValidBranchName(string $branch): bool {
+    return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $branch) && strlen($branch) < 255;
   }
 
   /**
