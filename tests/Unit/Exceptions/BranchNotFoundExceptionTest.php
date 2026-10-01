@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Tests\Unit\Exception;
+namespace DrevOps\GitArtifact\Tests\Unit\Exceptions;
 
-use DrevOps\GitArtifact\Exception\BranchNotFoundException;
-use DrevOps\GitArtifact\Exception\GitArtifactException;
-use DrevOps\GitArtifact\Exception\GitException;
+use DrevOps\GitArtifact\Exceptions\BranchNotFoundException;
+use DrevOps\GitArtifact\Exceptions\GitArtifactException;
+use DrevOps\GitArtifact\Exceptions\GitException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

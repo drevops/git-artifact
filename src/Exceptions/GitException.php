@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Exception;
+namespace DrevOps\GitArtifact\Exceptions;
 
 /**
  * Exception for Git-related errors.

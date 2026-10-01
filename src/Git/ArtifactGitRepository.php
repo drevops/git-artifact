@@ -8,7 +8,7 @@ use CzProject\GitPhp\GitException;
 use CzProject\GitPhp\GitRepository;
 use CzProject\GitPhp\IRunner;
 use CzProject\GitPhp\RunnerResult;
-use DrevOps\GitArtifact\Exception\BranchNotFoundException;
+use DrevOps\GitArtifact\Exceptions\BranchNotFoundException;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
 use DrevOps\GitArtifact\Traits\LoggerTrait;
 use Psr\Log\LoggerInterface;
