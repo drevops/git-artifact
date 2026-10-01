@@ -24,7 +24,7 @@ class FilesystemTest extends UnitTestCase {
     }
 
     do {
-      $tmp_dir = sprintf('%s%s%s%s', sys_get_temp_dir(), DIRECTORY_SEPARATOR, 'unit', mt_rand(100000, mt_getrandmax()));
+      $tmp_dir = sprintf('%s%s%s%s', sys_get_temp_dir(), DIRECTORY_SEPARATOR, 'unit', rand(100000, getrandmax()));
     } while (!mkdir($tmp_dir, 0755, TRUE));
 
     $tmp_realpath = realpath($tmp_dir) ?: $tmp_dir;
