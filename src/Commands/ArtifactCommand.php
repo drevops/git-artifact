@@ -307,7 +307,7 @@ class ArtifactCommand extends Command {
       $result = $exception->getRunnerResult();
       if (!$result) {
         // @codeCoverageIgnoreStart
-        throw new \Exception('Unknown error occurred', $exception->getCode(), $exception);
+        throw new \RuntimeException('Unknown error occurred', $exception->getCode(), $exception);
         // @codeCoverageIgnoreEnd
       }
 
@@ -341,7 +341,7 @@ class ArtifactCommand extends Command {
 
     if (!is_null($error)) {
       $error = empty($error) ? 'Unknown error occurred' : $error;
-      throw new \Exception($error);
+      throw new \RuntimeException($error);
     }
   }
 
@@ -526,7 +526,7 @@ class ArtifactCommand extends Command {
       $contents = file_get_contents($gitignore);
       if (!$contents) {
         // @codeCoverageIgnoreStart
-        throw new \Exception('Unable to load contents of ' . $gitignore);
+        throw new \RuntimeException('Unable to load contents of ' . $gitignore);
         // @codeCoverageIgnoreEnd
       }
 
@@ -663,7 +663,7 @@ class ArtifactCommand extends Command {
 
     if (empty($replacement)) {
       // @codeCoverageIgnoreStart
-      throw new \Exception('Safe branch name is empty');
+      throw new \RuntimeException('Safe branch name is empty');
       // @codeCoverageIgnoreEnd
     }
 

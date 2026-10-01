@@ -310,7 +310,7 @@ class ArtifactGitRepository extends GitRepository {
     $tags = $this->extractFromCommand(['tag', ['--points-at', 'HEAD']]);
 
     if (empty($tags)) {
-      throw new \Exception('No tags found in the latest commit.');
+      throw new \RuntimeException('No tags found in the latest commit.');
     }
 
     return $tags;

@@ -94,7 +94,7 @@ class FilesystemTraitTest extends TestCase {
   public function testFsAssertPathsExistWithNonExistingPathStrict(): void {
     $test_class = new FilesystemTraitTestClass();
 
-    $this->expectException(\Exception::class);
+    $this->expectException(\RuntimeException::class);
     $this->expectExceptionMessage('One of the files or directories does not exist');
 
     $test_class->callFsAssertPathsExist('/non/existing/path', TRUE);

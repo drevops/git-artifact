@@ -129,7 +129,7 @@ trait FilesystemTrait {
 
     if (!$this->fs->exists($paths)) {
       if ($strict) {
-        throw new \Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
+        throw new \RuntimeException(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
       }
 
       return FALSE;
@@ -195,7 +195,7 @@ trait FilesystemTrait {
 
       if (!$path) {
         // @codeCoverageIgnoreStart
-        throw new \Exception(sprintf('Could not resolve symlink for path: %s', $path));
+        throw new \RuntimeException(sprintf('Could not resolve symlink for path: %s', $path));
         // @codeCoverageIgnoreEnd
       }
     }
