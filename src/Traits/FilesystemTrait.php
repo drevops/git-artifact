@@ -177,13 +177,15 @@ trait FilesystemTrait {
     $path = $unc ? '\\\\' . $path : $path;
 
     if (function_exists('readlink') && file_exists($path) && is_link($path) > 0) {
-      $path = readlink($path);
+      $target = readlink($path);
 
-      if (!$path) {
+      if ($target === FALSE) {
         // @codeCoverageIgnoreStart
         throw new \RuntimeException(sprintf('Could not resolve symlink for path: %s', $path));
         // @codeCoverageIgnoreEnd
       }
+
+      $path = $target;
     }
 
     if (str_starts_with($path, sys_get_temp_dir())) {
