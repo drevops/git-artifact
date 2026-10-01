@@ -63,7 +63,7 @@ trait LoggerTrait {
       $this->logger->pushHandler($stream_handler);
     }
 
-    $this->logger->debug('Debug messages enabled');
+    $this->logger->debug('Debug messages enabled.');
   }
 
   /**

@@ -20,7 +20,7 @@ class BranchNotFoundException extends GitException {
    *   Previous exception.
    */
   public function __construct(
-    string $message = 'Unable to determine source branch',
+    string $message = 'Unable to determine source branch.',
     protected string $commitHash = '',
     ?\Throwable $previous = NULL,
   ) {

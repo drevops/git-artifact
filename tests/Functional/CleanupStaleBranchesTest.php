@@ -38,8 +38,8 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     ]);
 
     $this->assertStringContainsString('Cleanup stale:         Yes (pattern "deployment/*", older than 3 days)', $output);
-    $this->assertStringContainsString('Deleted stale branch "deployment/old1"', $output);
-    $this->assertStringContainsString('Deleted stale branch "deployment/old2"', $output);
+    $this->assertStringContainsString('Deleted stale branch "deployment/old1".', $output);
+    $this->assertStringContainsString('Deleted stale branch "deployment/old2".', $output);
 
     $this->gitAssertBranchesNotExist($this->dst, ['deployment/old1', 'deployment/old2']);
     $this->gitAssertBranchesExist($this->dst, ['deployment/fresh', 'feature/keep', 'testbranch', $this->currentBranch]);
@@ -61,8 +61,8 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     ]);
 
     $this->assertStringContainsString('Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)', $output);
-    $this->assertStringContainsString('Deleted stale branch "bugfix/old"', $output);
-    $this->assertStringContainsString('Deleted stale branch "feature/old"', $output);
+    $this->assertStringContainsString('Deleted stale branch "bugfix/old".', $output);
+    $this->assertStringContainsString('Deleted stale branch "feature/old".', $output);
 
     $this->gitAssertBranchesNotExist($this->dst, ['feature/old', 'bugfix/old']);
     $this->gitAssertBranchesExist($this->dst, ['release/keep', 'testbranch', $this->currentBranch]);
@@ -84,8 +84,8 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     ]);
 
     $this->assertStringContainsString('Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)', $output);
-    $this->assertStringContainsString('Deleted stale branch "bugfix/old"', $output);
-    $this->assertStringContainsString('Deleted stale branch "feature/old"', $output);
+    $this->assertStringContainsString('Deleted stale branch "bugfix/old".', $output);
+    $this->assertStringContainsString('Deleted stale branch "feature/old".', $output);
 
     $this->gitAssertBranchesNotExist($this->dst, ['feature/old', 'bugfix/old']);
     $this->gitAssertBranchesExist($this->dst, ['release/keep', 'testbranch', $this->currentBranch]);
@@ -107,7 +107,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     ]);
 
     $this->assertStringContainsString('Cleanup stale:         Yes (pattern "/^feature\/[^\/]+$/", older than 3 days)', $output);
-    $this->assertStringContainsString('Deleted stale branch "feature/single"', $output);
+    $this->assertStringContainsString('Deleted stale branch "feature/single".', $output);
 
     $this->gitAssertBranchesNotExist($this->dst, ['feature/single']);
     // The regex allows a single path segment only, so the nested branch and the
@@ -130,7 +130,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
       '--branch' => 'testbranch',
     ]);
 
-    $this->assertStringContainsString('Would delete stale branch "deployment/old"', $output);
+    $this->assertStringContainsString('Would delete stale branch "deployment/old".', $output);
     $this->assertStringNotContainsString('Deleted stale branch', $output);
     $this->gitAssertBranchesExist($this->dst, ['deployment/old']);
   }
@@ -148,7 +148,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
       '--cleanup-age' => '3',
     ]);
 
-    $this->assertStringContainsString('Deleted stale branch "deployment/old"', $output);
+    $this->assertStringContainsString('Deleted stale branch "deployment/old".', $output);
     $this->gitAssertBranchesNotExist($this->dst, ['deployment/old']);
     // The just-pushed branch (fresh) and the remote default branch (stale) both
     // match the "*" pattern but are always preserved regardless of their age.

@@ -68,13 +68,25 @@ class FilesystemTraitTest extends UnitTestCase {
     unlink($tmp_file);
   }
 
-  public function testFsAssertPathsExistWithNonExistingPathStrict(): void {
+  #[DataProvider('dataProviderFsAssertPathsExistWithNonExistingPathStrict')]
+  public function testFsAssertPathsExistWithNonExistingPathStrict(string|array $paths, string $expected): void {
     $test_class = $this->createTestClass();
 
     $this->expectException(\RuntimeException::class);
-    $this->expectExceptionMessage('One of the files or directories does not exist');
+    $this->expectExceptionMessage($expected);
 
-    $this->callProtectedMethod($test_class, 'fsAssertPathsExist', ['/non/existing/path', TRUE]);
+    $this->callProtectedMethod($test_class, 'fsAssertPathsExist', [$paths, TRUE]);
+  }
+
+  public static function dataProviderFsAssertPathsExistWithNonExistingPathStrict(): array {
+    return [
+      'single path' => ['/non/existing/path', 'One of the files or directories does not exist: "/non/existing/path".'],
+      'multiple paths' => [
+        ['/non/existing/path1', '/non/existing/path2'],
+        'One of the files or directories does not exist: "/non/existing/path1", "/non/existing/path2".',
+      ],
+      'path with spaces' => ['/non/existing/path with spaces', 'One of the files or directories does not exist: "/non/existing/path with spaces".'],
+    ];
   }
 
   public function testFsAssertPathsExistWithNonExistingPathNonStrict(): void {

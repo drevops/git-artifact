@@ -29,7 +29,7 @@ class BranchNotFoundExceptionTest extends UnitTestCase {
   public function testDefaultValues(): void {
     $exception = new BranchNotFoundException();
 
-    $this->assertEquals('Unable to determine source branch', $exception->getMessage());
+    $this->assertEquals('Unable to determine source branch.', $exception->getMessage());
     $this->assertEquals('', $exception->getCommitHash());
     $this->assertEquals(0, $exception->getCode());
   }

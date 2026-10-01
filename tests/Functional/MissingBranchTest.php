@@ -41,7 +41,7 @@ class MissingBranchTest extends FunctionalTestCase {
 
     $this->assertStringContainsString('Source branch not found. Artifact packaging skipped.', $output);
     $this->assertStringContainsString('Commit: ' . $commit_hash, $output);
-    $this->assertStringContainsString('Use --fail-on-missing-branch to fail artifact packaging instead', $output);
+    $this->assertStringContainsString('Use --fail-on-missing-branch to fail artifact packaging instead.', $output);
     $this->assertStringNotContainsString('Processing failed with an error:', $output);
   }
 
@@ -73,7 +73,7 @@ class MissingBranchTest extends FunctionalTestCase {
     ], TRUE);
 
     $this->assertStringContainsString('Processing failed with an error:', $output);
-    $this->assertStringContainsString('Unable to determine source branch', $output);
+    $this->assertStringContainsString('Unable to determine source branch. Artifact packaging failed. Unable to determine a detachment source.', $output);
   }
 
   public function testPackageWithBranch(): void {
@@ -81,7 +81,7 @@ class MissingBranchTest extends FunctionalTestCase {
 
     $output = $this->assertArtifactCommandSuccess();
 
-    $this->assertStringContainsString('Pushed branch "testbranch" with commit message "Deployment commit"', $output);
+    $this->assertStringContainsString('Pushed branch "testbranch" with commit message "Deployment commit".', $output);
     $this->assertStringContainsString('Artifact packaged successfully.', $output);
 
     $this->gitCheckout($this->dst, 'testbranch');
@@ -98,7 +98,7 @@ class MissingBranchTest extends FunctionalTestCase {
     // A tag is a valid detachment source, so artifact packaging succeeds.
     $output = $this->assertArtifactCommandSuccess();
 
-    $this->assertStringContainsString('Pushed branch "testbranch" with commit message "Deployment commit"', $output);
+    $this->assertStringContainsString('Pushed branch "testbranch" with commit message "Deployment commit".', $output);
     $this->assertStringContainsString('Artifact packaged successfully.', $output);
   }
 

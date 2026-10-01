@@ -118,7 +118,9 @@ trait FilesystemTrait {
 
     if (!$this->fs->exists($paths)) {
       if ($strict) {
-        throw new \RuntimeException(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
+        $list = implode(', ', array_map(static fn(string $path): string => sprintf('"%s"', $path), $paths));
+
+        throw new \RuntimeException(sprintf('One of the files or directories does not exist: %s.', $list));
       }
 
       return FALSE;
@@ -177,13 +179,15 @@ trait FilesystemTrait {
     $path = $unc ? '\\\\' . $path : $path;
 
     if (function_exists('readlink') && file_exists($path) && is_link($path) > 0) {
-      $path = readlink($path);
+      $target = readlink($path);
 
-      if (!$path) {
+      if ($target === FALSE) {
         // @codeCoverageIgnoreStart
-        throw new \RuntimeException(sprintf('Could not resolve symlink for path: %s', $path));
+        throw new \RuntimeException(sprintf('Could not resolve symlink for path: "%s".', $path));
         // @codeCoverageIgnoreEnd
       }
+
+      $path = $target;
     }
 
     if (str_starts_with($path, sys_get_temp_dir())) {

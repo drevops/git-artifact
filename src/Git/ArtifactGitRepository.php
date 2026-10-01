@@ -90,7 +90,7 @@ class ArtifactGitRepository extends GitRepository {
    */
   public function addRemote($name, $url, ?array $options = NULL): static {
     if (!self::isValidRemote($url)) {
-      throw new \InvalidArgumentException(sprintf('Invalid remote URL provided: %s', $url));
+      throw new \InvalidArgumentException(sprintf('Invalid remote URL provided: "%s".', $url));
     }
 
     return parent::addRemote($name, $url, $options);
@@ -186,7 +186,7 @@ class ArtifactGitRepository extends GitRepository {
     $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info' . DIRECTORY_SEPARATOR . 'exclude';
 
     if ($this->fs->exists($filename)) {
-      $this->logger->debug('Disabling local exclude');
+      $this->logger->debug('Disabling local exclude.');
       $this->fs->rename($filename, $filename . '.bak');
     }
 
@@ -200,7 +200,7 @@ class ArtifactGitRepository extends GitRepository {
     $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'info' . DIRECTORY_SEPARATOR . 'exclude';
 
     if ($this->fs->exists($filename . '.bak')) {
-      $this->logger->debug('Restoring local exclude');
+      $this->logger->debug('Restoring local exclude.');
       $this->fs->rename($filename . '.bak', $filename);
     }
 
@@ -346,10 +346,7 @@ class ArtifactGitRepository extends GitRepository {
       if (empty($branch)) {
         $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
-        throw new BranchNotFoundException(
-          'Unable to determine a detachment source',
-          $commit_hash
-        );
+        throw new BranchNotFoundException('Unable to determine a detachment source.', $commit_hash);
       }
 
       // The extracted value may be a commit hash rather than a branch or tag.
@@ -364,7 +361,7 @@ class ArtifactGitRepository extends GitRepository {
         catch (GitException) {
           $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
-          throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $exception);
+          throw new BranchNotFoundException('Unable to determine a detachment source.', $commit_hash, $exception);
         }
       }
     }
@@ -401,7 +398,7 @@ class ArtifactGitRepository extends GitRepository {
     foreach ($files as $file) {
       $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
       if ($this->fs->exists($filename) || is_link($filename)) {
-        $this->logger->debug(sprintf('Removing ignored file %s', $filename));
+        $this->logger->debug(sprintf('Removing ignored file "%s".', $filename));
         $this->fs->remove($filename);
       }
     }
@@ -421,7 +418,7 @@ class ArtifactGitRepository extends GitRepository {
     foreach ($files as $file) {
       $filename = $this->getRepositoryPath() . DIRECTORY_SEPARATOR . $file;
       if ($this->fs->exists($filename)) {
-        $this->logger->debug(sprintf('Removing other file %s', $filename));
+        $this->logger->debug(sprintf('Removing other file "%s".', $filename));
         $this->fs->remove($filename);
       }
     }
@@ -447,7 +444,7 @@ class ArtifactGitRepository extends GitRepository {
     foreach ($dirs as $dir) {
       $dir = $dir->getPathname();
       $this->fs->remove($dir);
-      $this->logger->debug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
+      $this->logger->debug(sprintf('Removing sub-repository "%s".', $this->fsGetAbsolutePath((string) $dir)));
     }
 
     // Files tracked by the removed sub-repositories now belong to the current
@@ -496,7 +493,7 @@ class ArtifactGitRepository extends GitRepository {
       'any' => $is_local || $is_external,
       'local' => $is_local,
       'external' => $is_external,
-      default => throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided', $type)),
+      default => throw new \InvalidArgumentException(sprintf('Invalid argument "%s" provided.', $type)),
     };
   }
 
@@ -656,7 +653,7 @@ class ArtifactGitRepository extends GitRepository {
    */
   public function replaceGitignoreFromCustom(): static {
     if ($this->gitignoreCustom !== NULL && !empty($this->gitignoreCustom) && $this->gitignore !== NULL) {
-      $this->logger->debug(sprintf('Copying custom .gitignore file from %s to %s', $this->gitignoreCustom, $this->gitignore));
+      $this->logger->debug(sprintf('Copying custom .gitignore file from "%s" to "%s".', $this->gitignoreCustom, $this->gitignore));
       $this->fs->rename($this->gitignoreCustom, $this->gitignore, TRUE);
     }
 
@@ -668,7 +665,7 @@ class ArtifactGitRepository extends GitRepository {
    */
   public function restoreGitignoreToCustom(): static {
     if ($this->gitignoreCustom !== NULL && $this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
-      $this->logger->debug(sprintf('Restoring custom .gitignore file from %s to %s', $this->gitignore, $this->gitignoreCustom));
+      $this->logger->debug(sprintf('Restoring custom .gitignore file from "%s" to "%s".', $this->gitignore, $this->gitignoreCustom));
       $this->fs->rename($this->gitignore, $this->gitignoreCustom, TRUE);
     }
 
