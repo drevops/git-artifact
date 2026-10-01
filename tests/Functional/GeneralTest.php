@@ -21,7 +21,7 @@ class GeneralTest extends FunctionalTestCase {
 
   public function testCompulsoryParameter(): void {
     $this->dst = '';
-    $output = $this->runArtifactCommand(['remote' => ' '], TRUE);
+    $output = $this->assertArtifactCommandFailure(['remote' => ' ']);
 
     $this->assertStringContainsString('Remote argument must be a non-empty string', $output);
   }

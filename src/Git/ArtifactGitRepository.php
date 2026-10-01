@@ -77,7 +77,7 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Set gitignore file.
+   * Set the custom gitignore file path.
    */
   public function setGitignoreCustom(string $filename): static {
     $this->gitignoreCustom = $filename;
@@ -100,7 +100,7 @@ class ArtifactGitRepository extends GitRepository {
    * {@inheritdoc}
    */
   public function removeRemote($name): static {
-    if (in_array($name, $this->listRemotes())) {
+    if (in_array($name, $this->getRemotes())) {
       $this->run('remote', 'remove', $name);
     }
 
@@ -108,7 +108,7 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Switch to new branch.
+   * Switch to a branch, optionally creating it first.
    *
    * @param string $branch
    *   Branch name.
@@ -135,7 +135,7 @@ class ArtifactGitRepository extends GitRepository {
    *   Force remove or not.
    *
    * @return static
-   *   Git repository
+   *   Git repository.
    */
   public function removeBranch($name, bool $force = FALSE): static {
     if (empty($name)) {
@@ -173,7 +173,7 @@ class ArtifactGitRepository extends GitRepository {
   public function commitAllChanges(string $message): array {
     $this->addAllChanges();
 
-    // We do not use the commit method because we need return the output.
+    // Use execute() instead of commit() to return the command output.
     return $this->execute('commit', '--allow-empty', [
       '-m' => $message,
     ]);
@@ -213,16 +213,16 @@ class ArtifactGitRepository extends GitRepository {
    * @return array<string>
    *   Remotes.
    */
-  protected function listRemotes(): array {
+  protected function getRemotes(): array {
     return $this->extractFromCommand(['remote']) ?: [];
   }
 
   /**
    * Get remote branches with their tip commit timestamps.
    *
-   * A shallow fetch populates the remote-tracking refs; only the tip commit
+   * A shallow fetch populates the remote-tracking refs. Only the tip commit
    * metadata is required to determine branch age, so the fetch is limited to a
-   * depth of one.
+   * depth of 1.
    *
    * @param string $remote
    *   Remote name.
@@ -272,7 +272,7 @@ class ArtifactGitRepository extends GitRepository {
     }
 
     foreach ($lines as $line) {
-      if (preg_match('#^ref:\s+refs/heads/(\S+)\s+HEAD#', $line, $matches)) {
+      if (preg_match('/^ref:\s+refs\/heads\/(\S+)\s+HEAD/', $line, $matches)) {
         return $matches[1];
       }
     }
@@ -291,14 +291,14 @@ class ArtifactGitRepository extends GitRepository {
    * @return static
    *   The git repository.
    */
-  public function deleteRemoteBranch(string $remote, string $branch): static {
+  public function removeRemoteBranch(string $remote, string $branch): static {
     $this->run('push', $remote, '--delete', $branch);
 
     return $this;
   }
 
   /**
-   * Get tag pointing to HEAD.
+   * Get tags pointing to HEAD.
    *
    * @return string[]
    *   Array of tags from the latest commit.
@@ -306,38 +306,36 @@ class ArtifactGitRepository extends GitRepository {
    * @throws \Exception
    *   If no tags found in the latest commit.
    */
-  public function listTagsPointingToHead(): array {
+  public function getTagsPointingToHead(): array {
     $tags = $this->extractFromCommand(['tag', ['--points-at', 'HEAD']]);
 
     if (empty($tags)) {
-      throw new \Exception('No tags found in the latest commit.');
+      throw new \RuntimeException('No tags found in the latest commit.');
     }
 
     return $tags;
   }
 
   /**
-   * Ger original branch, accounting for detached repository state.
+   * Get original branch, accounting for detached repository state.
    *
-   * Usually, repository become detached when a tag is checked out.
+   * A repository usually becomes detached when a tag is checked out.
    *
    * @return string
    *   Branch or detachment source.
    *
    * @throws \Exception
-   *   If neither branch nor detachment source is not found.
+   *   If neither a branch nor a detachment source is found.
    */
   public function getOriginalBranch(): string {
     $branch = $this->getCurrentBranchName();
 
-    // Repository could be in detached state. If this the case - we need to
-    // capture the source of detachment, if it exists.
     if (str_contains($branch, 'HEAD detached')) {
       $branch = NULL;
-      $branch_list = $this->getBranches();
-      if ($branch_list) {
-        $branch_list = array_filter($branch_list);
-        foreach ($branch_list as $branch) {
+      $branches = $this->getBranches();
+      if ($branches) {
+        $branches = array_filter($branches);
+        foreach ($branches as $branch) {
           if (preg_match('/\(.*detached .* ([^)]+)\)/', $branch, $matches)) {
             $branch = $matches[1];
             break;
@@ -346,7 +344,6 @@ class ArtifactGitRepository extends GitRepository {
       }
 
       if (empty($branch)) {
-        // Get current commit hash.
         $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
         throw new BranchNotFoundException(
@@ -355,22 +352,19 @@ class ArtifactGitRepository extends GitRepository {
         );
       }
 
-      // Validate that the extracted value is actually a branch or tag, not just
-      // a commit hash. If it's only a commit hash, we cannot determine the
-      // original branch.
+      // The extracted value may be a commit hash rather than a branch or tag.
+      // A commit hash alone cannot identify the original branch.
       try {
         $this->execute(['show-ref', '--verify', 'refs/heads/' . $branch]);
       }
-      catch (GitException $e1) {
+      catch (GitException $exception) {
         try {
           $this->execute(['show-ref', '--verify', 'refs/tags/' . $branch]);
         }
-        catch (GitException $e2) {
-          // Not a branch or tag - just a commit hash.
-          // Get current commit hash.
+        catch (GitException) {
           $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
-          throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $e1);
+          throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $exception);
         }
       }
     }
@@ -384,18 +378,12 @@ class ArtifactGitRepository extends GitRepository {
   public function removeIgnoredFiles(): static {
     $files = [];
 
-    if ($this->gitignore !== NULL && file_exists($this->gitignore)) {
+    if ($this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
       $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
-      $files = array_merge($files, array_filter($files));
     }
 
-    if ($this->gitignore !== NULL && file_exists($this->gitignore)) {
-      $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
-      $files = array_merge($files, array_filter($files));
-    }
-
-    // Symlinks are not returned by the command above. We need to find them
-    // manually and check if they are ignored.
+    // The ls-files call above does not return symlinks, so find them
+    // separately and check whether each one is ignored.
     $symlinks_iterator = (new Finder())
       ->ignoreDotFiles(FALSE)
       ->ignoreVCS(TRUE)
@@ -462,9 +450,8 @@ class ArtifactGitRepository extends GitRepository {
       $this->logger->debug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
     }
 
-    // After removing sub-repositories, the files that were previously tracked
-    // in those repositories are now become a part of the current repository.
-    // We need to add them as changes.
+    // Files tracked by the removed sub-repositories now belong to the current
+    // repository, so add them as changes.
     $this->addAllChanges();
 
     return $this;
@@ -473,20 +460,20 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Check if provided branch name can be used in Git.
    *
-   * @param string $name
+   * @param string $branch
    *   Branch name to check.
    *
    * @return bool
    *   TRUE if it is a valid Git branch, FALSE otherwise.
    */
-  public static function isValidBranchName(string $name): bool {
-    return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $name) && strlen($name) < 255;
+  public static function isValidBranchName(string $branch): bool {
+    return preg_match('/^(?!\/|.*(?:[\/\.]\.|\/\/|\\|@\{))[^\040\177\s\~\^\:\?\*\[]+(?<!\.lock)(?<![\/\.])$/', $branch) && strlen($branch) < 255;
   }
 
   /**
    * Check if provided remote url is local path or remote URI.
    *
-   * @param string $uri
+   * @param string $url
    *   Local path or remote URL.
    * @param string $type
    *   One of the predefined types:
@@ -499,11 +486,11 @@ class ArtifactGitRepository extends GitRepository {
    *
    * @throws \Exception
    */
-  public static function isValidRemote(string $uri, string $type = 'any'): bool {
+  public static function isValidRemote(string $url, string $type = 'any'): bool {
     $filesystem = new Filesystem();
 
-    $is_local = $filesystem->exists($uri);
-    $is_external = (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $uri);
+    $is_local = $filesystem->exists($url);
+    $is_external = (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $url);
 
     return match ($type) {
       'any' => $is_local || $is_external,
@@ -629,7 +616,7 @@ class ArtifactGitRepository extends GitRepository {
    */
   protected static function matchesPattern(string $pattern, string $subject): bool {
     if (self::isRegexPattern($pattern)) {
-      return preg_match($pattern, $subject) === 1;
+      return (bool) preg_match($pattern, $subject);
     }
 
     return self::matchesGlob($pattern, $subject);
@@ -680,7 +667,7 @@ class ArtifactGitRepository extends GitRepository {
    * Restore .gitignore content to custom .gitignore file if it existed.
    */
   public function restoreGitignoreToCustom(): static {
-    if ($this->gitignoreCustom !== NULL && $this->gitignore !== NULL && file_exists($this->gitignore)) {
+    if ($this->gitignoreCustom !== NULL && $this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
       $this->logger->debug(sprintf('Restoring custom .gitignore file from %s to %s', $this->gitignore, $this->gitignoreCustom));
       $this->fs->rename($this->gitignore, $this->gitignoreCustom, TRUE);
     }

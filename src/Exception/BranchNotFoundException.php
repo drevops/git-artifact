@@ -6,10 +6,6 @@ namespace DrevOps\GitArtifact\Exception;
 
 /**
  * Exception when branch cannot be determined.
- *
- * This can occur in two scenarios:
- * 1. Detached HEAD state with no traceable source branch.
- * 2. Branch was deleted while CI is still running.
  */
 class BranchNotFoundException extends GitException {
 

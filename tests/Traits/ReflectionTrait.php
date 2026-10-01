@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Tests\Traits;
 
 /**
- * Trait ReflectionTrait.
- *
  * Provides methods to work with class reflection.
  */
 trait ReflectionTrait {
@@ -25,7 +23,7 @@ trait ReflectionTrait {
    * @return mixed
    *   Method result.
    */
-  protected static function callProtectedMethod(object|string $object, string $name, array $args = []) {
+  protected function callProtectedMethod(object|string $object, string $name, array $args = []): mixed {
     $object_or_class = is_object($object) ? $object::class : $object;
 
     if (!class_exists($object_or_class)) {
@@ -42,21 +40,16 @@ trait ReflectionTrait {
 
     $original_accessibility = $method->isPublic();
 
-    // Set method accessibility to true, so it can be invoked.
     $method->setAccessible(TRUE);
 
-    // If the method is static, we won't pass an object instance to invokeArgs()
-    // Otherwise, we ensure to pass the object instance.
     $invoke_object = $method->isStatic() ? NULL : (is_object($object) ? $object : NULL);
 
-    // Ensure we have an object for non-static methods.
     if (!$method->isStatic() && $invoke_object === NULL) {
       throw new \InvalidArgumentException("An object instance is required for non-static methods");
     }
 
     $result = $method->invokeArgs($invoke_object, $args);
 
-    // Reset the method's accessibility to its original state.
     $method->setAccessible($original_accessibility);
 
     return $result;
@@ -68,35 +61,16 @@ trait ReflectionTrait {
    * @param object $object
    *   Object to set the value on.
    * @param string $property
-   *   Property name to set the value. Property should exists in the object.
+   *   Name of the property to set. The property should exist on the object.
    * @param mixed $value
    *   Value to set to the property.
    */
-  protected static function setProtectedValue($object, $property, mixed $value): void {
+  protected function setProtectedValue(object $object, string $property, mixed $value): void {
     $class = new \ReflectionClass($object::class);
     $property = $class->getProperty($property);
     $property->setAccessible(TRUE);
 
     $property->setValue($object, $value);
-  }
-
-  /**
-   * Get protected value from the object.
-   *
-   * @param object $object
-   *   Object to set the value on.
-   * @param string $property
-   *   Property name to get the value. Property should exists in the object.
-   *
-   * @return mixed
-   *   Protected property value.
-   */
-  protected static function getProtectedValue($object, $property): mixed {
-    $class = new \ReflectionClass($object::class);
-    $property = $class->getProperty($property);
-    $property->setAccessible(TRUE);
-
-    return $property->getValue($class);
   }
 
 }

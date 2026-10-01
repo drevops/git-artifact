@@ -8,9 +8,6 @@ use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * Tests for file permissions preservation in artifacts.
- */
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
 class FilePermissionsTest extends FunctionalTestCase {
@@ -19,8 +16,8 @@ class FilePermissionsTest extends FunctionalTestCase {
    * {@inheritdoc}
    */
   protected function setUp(): void {
-    parent::setUp();
     $this->mode = ArtifactCommand::MODE_FORCE_PUSH;
+    parent::setUp();
   }
 
   public function testFilePermissions(): void {
@@ -38,7 +35,7 @@ class FilePermissionsTest extends FunctionalTestCase {
 
     $this->gitCommitAll($this->src, 'Added files with various permissions');
 
-    $this->assertArtifactCommandSuccess(['--branch' => 'testbranch']);
+    $this->assertArtifactCommandSuccess();
 
     $this->gitCheckout($this->dst, 'testbranch');
 

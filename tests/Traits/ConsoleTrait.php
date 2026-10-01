@@ -10,8 +10,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\ApplicationTester;
 
 /**
- * Trait ConsoleTrait.
- *
  * Helpers to work with Console.
  */
 trait ConsoleTrait {
@@ -24,15 +22,15 @@ trait ConsoleTrait {
   /**
    * Initialize application tester.
    *
-   * @param string|object $object_or_class
+   * @param object|string $object
    *   Command class or object.
    * @param bool $is_single_command
-   *   Is single command. Defaults to TRUE.
+   *   Whether to run the application as a single command. Defaults to TRUE.
    */
-  protected function consoleInitApplicationTester(string|object $object_or_class, bool $is_single_command = TRUE): void {
+  protected function consoleInitApplicationTester(object|string $object, bool $is_single_command = TRUE): void {
     $application = new Application();
 
-    $instance = is_object($object_or_class) ? $object_or_class : new $object_or_class();
+    $instance = is_object($object) ? $object : new $object();
     if (!$instance instanceof Command) {
       throw new \InvalidArgumentException('The provided object is not an instance of Command');
     }
@@ -41,11 +39,7 @@ trait ConsoleTrait {
 
     $name = $instance->getName();
     if (empty($name)) {
-      $ret = $this->getProtectedValue($instance, 'defaultName');
-      if (!empty($ret) || !is_string($ret)) {
-        throw new \InvalidArgumentException('The provided object does not have a valid name');
-      }
-      $name = $ret;
+      throw new \InvalidArgumentException('The provided object does not have a valid name');
     }
 
     $application->setDefaultCommand($name, $is_single_command);
@@ -84,6 +78,9 @@ trait ConsoleTrait {
       if ($expect_fail) {
         throw new AssertionFailedError(sprintf("Application exited successfully but should not.\nThe output was:\n%s\nThe error output was:\n%s", $this->appTester->getDisplay(), $this->appTester->getErrorOutput()));
       }
+    }
+    catch (AssertionFailedError $exception) {
+      throw $exception;
     }
     catch (\RuntimeException $exception) {
       if (!$expect_fail) {

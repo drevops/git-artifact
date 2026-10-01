@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Tests\Unit;
+namespace DrevOps\GitArtifact\Tests\Unit\Commands;
 
 use CzProject\GitPhp\GitException;
 use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
+use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
@@ -33,7 +34,7 @@ class ArtifactCommandTest extends UnitTestCase {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
       'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
       'getRemoteDefaultBranch' => fn(): string => 'main',
-      'deleteRemoteBranch' => fn(): never => throw new GitException('boom'),
+      'removeRemoteBranch' => fn(): never => throw new GitException('boom'),
     ], FALSE);
 
     $output = new BufferedOutput();
@@ -61,9 +62,9 @@ class ArtifactCommandTest extends UnitTestCase {
   /**
    * Build a command instance wired for cleanupStaleBranches() in isolation.
    *
-   * The command's collaborators are normally populated by execute(); here they
-   * are injected directly via reflection so cleanupStaleBranches() can be
-   * exercised on its own, without bootstrapping the full command run.
+   * The command's collaborators are normally populated by execute(). This
+   * helper injects them via reflection, so cleanupStaleBranches() can be
+   * called without running the whole command.
    *
    * @param \PHPUnit\Framework\MockObject\MockObject $repo
    *   Repository mock to operate on.

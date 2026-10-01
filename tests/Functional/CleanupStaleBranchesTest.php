@@ -21,7 +21,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     parent::setUp();
   }
 
-  public function testPrunesStaleBranches(): void {
+  public function testCleanupStale(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'deployment/old1', $this->now - 10 * 86400);
     $this->gitCreateBranchWithCommitDate($this->dst, 'deployment/old2', $this->now - 4 * 86400);
@@ -45,7 +45,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['deployment/fresh', 'feature/keep', 'testbranch', $this->currentBranch]);
   }
 
-  public function testPrunesStaleBranchesCommaSeparatedGlobs(): void {
+  public function testCleanupStaleCommaSeparatedGlobs(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'feature/old', $this->now - 10 * 86400);
     $this->gitCreateBranchWithCommitDate($this->dst, 'bugfix/old', $this->now - 10 * 86400);
@@ -68,7 +68,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['release/keep', 'testbranch', $this->currentBranch]);
   }
 
-  public function testPrunesStaleBranchesMultiplePatterns(): void {
+  public function testCleanupStaleMultiplePatterns(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'feature/old', $this->now - 10 * 86400);
     $this->gitCreateBranchWithCommitDate($this->dst, 'bugfix/old', $this->now - 10 * 86400);
@@ -91,7 +91,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['release/keep', 'testbranch', $this->currentBranch]);
   }
 
-  public function testPrunesStaleBranchesRegex(): void {
+  public function testCleanupStaleRegex(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'feature/single', $this->now - 10 * 86400);
     $this->gitCreateBranchWithCommitDate($this->dst, 'feature/nested/deep', $this->now - 10 * 86400);
@@ -115,7 +115,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['feature/nested/deep', 'bugfix/one', 'testbranch', $this->currentBranch]);
   }
 
-  public function testDryRunDoesNotPrune(): void {
+  public function testCleanupStaleDryRun(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'deployment/old', $this->now - 10 * 86400);
     $this->gitCheckout($this->dst, $this->currentBranch);
@@ -135,7 +135,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['deployment/old']);
   }
 
-  public function testProtectsDefaultAndPushedBranches(): void {
+  public function testCleanupStaleProtectedBranches(): void {
     $this->gitCommitFileWithDate($this->dst, 'init', $this->now - 100 * 86400, 'Initial');
     $this->gitCreateBranchWithCommitDate($this->dst, 'deployment/old', $this->now - 100 * 86400);
     $this->gitCheckout($this->dst, $this->currentBranch);
@@ -172,13 +172,13 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->gitAssertBranchesExist($this->dst, ['deployment/fresh']);
   }
 
-  public function testRemoteDefaultBranchUnknownRemoteReturnsNull(): void {
+  public function testRemoteDefaultBranchUnknownRemote(): void {
     $repo = new ArtifactGitRepository($this->src);
 
     $this->assertNull($repo->getRemoteDefaultBranch('does-not-exist'));
   }
 
-  public function testRequiresPattern(): void {
+  public function testCleanupPatternMissing(): void {
     $this->gitCreateFixtureCommits(2);
 
     $output = $this->runArtifactCommand([
@@ -189,7 +189,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->assertStringContainsString('The --cleanup-pattern option is required when --cleanup-stale is set.', $output);
   }
 
-  public function testRequiresNonEmptyPattern(): void {
+  public function testCleanupPatternEmpty(): void {
     $this->gitCreateFixtureCommits(2);
 
     $output = $this->runArtifactCommand([
@@ -201,7 +201,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->assertStringContainsString('The --cleanup-pattern option is required when --cleanup-stale is set.', $output);
   }
 
-  public function testRejectsInvalidRegex(): void {
+  public function testCleanupPatternInvalid(): void {
     $this->gitCreateFixtureCommits(2);
 
     $output = $this->runArtifactCommand([
@@ -213,8 +213,8 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
     $this->assertStringContainsString('The --cleanup-pattern value "/(/" is not a valid regular expression.', $output);
   }
 
-  #[DataProvider('dataProviderRejectsInvalidAge')]
-  public function testRejectsInvalidAge(string $age): void {
+  #[DataProvider('dataProviderCleanupAgeInvalid')]
+  public function testCleanupAgeInvalid(string $age): void {
     $this->gitCreateFixtureCommits(2);
 
     $output = $this->runArtifactCommand([
@@ -231,7 +231,7 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
    * @return array<string, array<string>>
    *   Test data.
    */
-  public static function dataProviderRejectsInvalidAge(): array {
+  public static function dataProviderCleanupAgeInvalid(): array {
     return [
       'zero' => ['0'],
       'negative' => ['-1'],

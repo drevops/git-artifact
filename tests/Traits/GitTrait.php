@@ -10,8 +10,6 @@ use CzProject\GitPhp\GitRepository;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Trait GitTrait.
- *
  * Helpers to work with Git repositories.
  */
 trait GitTrait {
@@ -23,6 +21,9 @@ trait GitTrait {
    *
    * @param string $path
    *   Path to the repository directory.
+   *
+   * @return \CzProject\GitPhp\GitRepository
+   *   The initialized repository.
    */
   protected function gitInitRepo(string $path): GitRepository {
     (new Filesystem())->mkdir($path);
@@ -51,7 +52,6 @@ trait GitTrait {
         $output = $exception->getRunnerResult()->getErrorOutput();
       }
 
-      // Re-throw exception if it is not one of the allowed ones.
       if (!isset($output) || empty(array_intersect($output, $allowed_fails))) {
         throw $exception;
       }
@@ -76,22 +76,22 @@ trait GitTrait {
    * @param string $path
    *   Path to the repo.
    */
-  protected function gitReset($path): void {
+  protected function gitReset(string $path): void {
     $repo = (new Git())->open($path);
     $repo->run('reset', ['--hard']);
     $repo->run('clean', ['-dfx']);
   }
 
   /**
-   * Get all commit hashes in the repository.
+   * Get all commits in the repository.
    *
    * @param string $path
    *   Path to the repository directory.
    * @param string $format
-   *   Format of commits.
+   *   Format of commits. Defaults to the commit subject.
    *
    * @return array<string>
-   *   Array of commit hashes, sorted from the earliest to the latest commit.
+   *   Commits in $format, sorted from the earliest to the latest commit.
    *
    * @throws \Exception
    */
@@ -99,7 +99,7 @@ trait GitTrait {
     $commits = [];
 
     try {
-      $commits = (new Git())->open($path)->run(['log', '--format=' . $format])->getOutput();
+      $commits = (new Git())->open($path)->run('log', '--format=' . $format)->getOutput();
     }
     catch (\Exception $exception) {
       // Different versions of Git may produce these expected messages.
@@ -117,35 +117,6 @@ trait GitTrait {
   }
 
   /**
-   * Get a range of commits.
-   *
-   * @param array<int> $range
-   *   Array of commit indexes, stating from 1.
-   * @param string $path
-   *   Path to the repository directory.
-   *
-   * @return array<string>
-   *   Array of commit hashes, ordered by keys in the $range.
-   *
-   * @throws \Exception
-   */
-  protected function gitGetCommitsRange(array $range, string $path): array {
-    $ret = [];
-
-    $commits = $this->gitGetAllCommits($path);
-
-    array_walk($range, static function (int &$v): void {
-      --$v;
-    });
-
-    foreach ($range as $key) {
-      $ret[] = $commits[$key];
-    }
-
-    return $ret;
-  }
-
-  /**
    * Create fixture tag with specified name and optional annotation.
    *
    * Annotated tags and lightweight tags have a different object
@@ -153,11 +124,11 @@ trait GitTrait {
    * some tests.
    *
    * @param string $path
-   *   Optional path to the repository directory.
+   *   Path to the repository directory.
    * @param string $name
    *   Tag name.
    * @param bool $annotate
-   *   Optional flag to add random annotation to the tag. Defaults to FALSE.
+   *   Whether to create an annotated tag. Defaults to FALSE.
    */
   protected function gitAddTag(string $path, string $name, bool $annotate = FALSE): void {
     $repo = (new Git())->open($path);
@@ -253,27 +224,27 @@ trait GitTrait {
    *   Remote name to assert.
    */
   protected function gitAssertRemoteNotExists(string $path, string $remote): void {
-    $remotes = (new Git())->open($path)->run(['remote'])->getErrorOutputAsString() ?: '';
+    $remotes = (new Git())->open($path)->run('remote')->getOutputAsString() ?: '';
     $this->assertStringNotContainsString($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
   }
 
   /**
    * Assert which git commits are present.
    *
-   * @param int $count
-   *   Number of commits.
    * @param string $path
    *   Path to the repo.
+   * @param int $count
+   *   Number of commits.
    * @param string $branch
    *   Branch name.
    * @param array<string> $additional_commits
    *   Array of additional commits.
    * @param bool $should_assert_files
-   *   Should assert if files are present.
+   *   Whether to assert that the files are present.
    *
    * @throws \Exception
    */
-  protected function gitAssertFixtureCommits(int $count, string $path, string $branch, array $additional_commits = [], bool $should_assert_files = TRUE): void {
+  protected function gitAssertFixtureCommits(string $path, int $count, string $branch, array $additional_commits = [], bool $should_assert_files = TRUE): void {
     $this->gitCheckout($path, $branch);
     $this->gitReset($path);
 
@@ -289,7 +260,7 @@ trait GitTrait {
     $this->assertEquals($expected_commits, $commits, 'All fixture commits are present');
 
     if ($should_assert_files) {
-      $this->assertFilesExist($this->dst, $expected_files);
+      $this->assertFilesExist($path, $expected_files);
     }
   }
 
@@ -310,7 +281,7 @@ trait GitTrait {
 
     $expected_files = is_array($expected_files) ? $expected_files : [$expected_files];
 
-    $files = (new Git())->open($path)->run(['ls-tree', '--name-only', '-r', 'HEAD'])->getOutput();
+    $files = (new Git())->open($path)->run('ls-tree', '--name-only', '-r', 'HEAD')->getOutput();
     $files = array_filter($files);
 
     $this->assertArraySimilar($expected_files, $files);
@@ -333,7 +304,7 @@ trait GitTrait {
 
     $expected_files = is_array($expected_files) ? $expected_files : [$expected_files];
 
-    $files = (new Git())->open($path)->run(['ls-tree', '--name-only', '-r', 'HEAD'])->getOutput();
+    $files = (new Git())->open($path)->run('ls-tree', '--name-only', '-r', 'HEAD')->getOutput();
     $files = array_filter($files);
 
     $intersected_files = array_intersect($files, $expected_files);

@@ -45,7 +45,7 @@ class ArtifactCommand extends Command {
   protected string $sourceDir = '';
 
   /**
-   * Mode in which artifact packaging is going to run.
+   * Mode in which artifact packaging runs.
    *
    * Available modes: branch, force-push.
    */
@@ -72,7 +72,7 @@ class ArtifactCommand extends Command {
   protected string $remoteName = '';
 
   /**
-   * Remote URL includes URI or local path.
+   * Remote URL, either a URI or a local path.
    */
   protected string $remoteUrl = '';
 
@@ -81,7 +81,7 @@ class ArtifactCommand extends Command {
    *
    * If not set, the current `.gitignore` will be used, if any.
    */
-  protected ?string $gitignoreFile = NULL;
+  protected ?string $gitignoreCustom = NULL;
 
   /**
    * Commit message with optional tokens.
@@ -119,12 +119,7 @@ class ArtifactCommand extends Command {
   /**
    * Flag indicating artifact packaging was skipped due to missing branch.
    */
-  protected bool $packagingSkipped = FALSE;
-
-  /**
-   * Flag to specify if push was successful.
-   */
-  protected bool $pushSuccessful = FALSE;
+  protected bool $isPackagingSkipped = FALSE;
 
   /**
    * Flag to enable deletion of stale branches in the remote repository.
@@ -160,16 +155,16 @@ class ArtifactCommand extends Command {
    * Artifact constructor.
    *
    * @param string|null $name
-   *   File system.
-   * @param \Symfony\Component\Filesystem\Filesystem $fs
    *   Command name.
+   * @param \Symfony\Component\Filesystem\Filesystem|null $fs
+   *   File system.
    */
   public function __construct(
     ?string $name = NULL,
     ?Filesystem $fs = NULL,
   ) {
     parent::__construct($name);
-    $this->fs = is_null($fs) ? new Filesystem() : $fs;
+    $this->fs = $fs ?? new Filesystem();
   }
 
   /**
@@ -190,7 +185,7 @@ class ArtifactCommand extends Command {
       ->addOption('dry-run',                NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
       ->addOption('gitignore',              NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
       ->addOption('message',                NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.', 'Deployment commit')
-      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact packaging: branch, force-push. Defaults to force-push.', static::MODE_FORCE_PUSH)
+      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact packaging: branch, force-push. Defaults to force-push.', self::MODE_FORCE_PUSH)
       ->addOption('no-cleanup',             NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
       ->addOption('now',                    NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('log',                    NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
@@ -224,18 +219,17 @@ class ArtifactCommand extends Command {
 
     $this->loggerInit((string) $this->getName(), $input, $output);
 
-    $remote = $input->getArgument('remote');
-    if (!is_string($remote) || empty(trim($remote))) {
-      throw new \RuntimeException('Remote argument must be a non-empty string');
-    }
-
     try {
+      $remote = $input->getArgument('remote');
+      if (!is_string($remote) || empty(trim($remote))) {
+        throw new \RuntimeException('Remote argument must be a non-empty string');
+      }
+
       $this->checkRequirements();
 
       $this->resolveOptions($remote, $input->getOptions());
 
-      // Check if artifact packaging was skipped due to missing branch.
-      if ($this->packagingSkipped) {
+      if ($this->isPackagingSkipped) {
         return Command::SUCCESS;
       }
 
@@ -256,7 +250,7 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Assemble a code artifact from your codebase.
+   * Assemble a code artifact from the codebase.
    */
   protected function doExecute(): void {
     $error = NULL;
@@ -266,15 +260,14 @@ class ArtifactCommand extends Command {
 
       $this->showInfo();
 
-      // Do not optimize this into a chained call to make it easier to debug.
+      // Keep these as separate calls; a chained call is harder to debug.
       $repo = $this->repo;
       $repo->switchToBranch($this->artifactBranch, TRUE);
       $repo->removeSubRepositories();
       $repo->disableLocalExclude();
       $repo->replaceGitignoreFromCustom();
-      // Custom .gitignore may contain rules that will change the list of
-      // ignored files. We need to add these files as changes so that they
-      // could be reported as excluded by the command below.
+      // A custom .gitignore can change the set of ignored files. Add them as
+      // changes first so that removeIgnoredFiles() reports them as excluded.
       $repo->addAllChanges();
       $repo->removeIgnoredFiles();
       $repo->removeOtherFiles();
@@ -307,7 +300,7 @@ class ArtifactCommand extends Command {
       $result = $exception->getRunnerResult();
       if (!$result) {
         // @codeCoverageIgnoreStart
-        throw new \Exception('Unknown error occurred', $exception->getCode(), $exception);
+        throw new \RuntimeException('Unknown error occurred', $exception->getCode(), $exception);
         // @codeCoverageIgnoreEnd
       }
 
@@ -321,9 +314,9 @@ class ArtifactCommand extends Command {
       $error = $exception->getMessage();
     }
 
-    $this->showReport(is_null($error));
+    $this->showReport($error === NULL);
 
-    if ($this->needCleanup && is_null($error)) {
+    if ($this->needCleanup && $error === NULL) {
       $this->logger->notice('Cleaning up');
       $this->repo->resetToPreviousCommit();
       $this->repo->restoreGitignoreToCustom();
@@ -334,25 +327,23 @@ class ArtifactCommand extends Command {
       $this->repo->removeRemote($this->remoteName);
     }
 
-    // Dump log to a file.
     if (!empty($this->logFile)) {
       $this->loggerDump($this->logFile);
     }
 
-    if (!is_null($error)) {
+    if ($error !== NULL) {
       $error = empty($error) ? 'Unknown error occurred' : $error;
-      throw new \Exception($error);
+      throw new \RuntimeException($error);
     }
   }
 
   /**
    * Delete stale branches in the remote repository.
    *
-   * Eligible branches are those matching the configured pattern whose tip
-   * commit is older than the configured age. The branch that was just pushed
-   * and the remote's default branch are always preserved. Cleanup is
-   * best-effort: any failure is logged and never fails the deployment, which
-   * has already succeeded by this point.
+   * Eligible branches match the configured patterns and have a tip commit
+   * older than the configured age. The destination branch and the remote's
+   * default branch are always preserved. Cleanup is best-effort: the push has
+   * already succeeded, so a failure is logged and never fails the deployment.
    */
   protected function cleanupStaleBranches(): void {
     if (!$this->cleanupStale) {
@@ -397,7 +388,7 @@ class ArtifactCommand extends Command {
       }
 
       try {
-        $this->repo->deleteRemoteBranch($this->remoteName, $branch);
+        $this->repo->removeRemoteBranch($this->remoteName, $branch);
         $this->output->writeln(sprintf('<info>Deleted stale branch "%s"</info>', $branch));
         $this->logger->notice(sprintf('Deleted stale branch "%s"', $branch));
       }
@@ -418,7 +409,7 @@ class ArtifactCommand extends Command {
    */
   protected function resolveOptions(string $url, array $options): void {
     if (!empty($options['root']) && is_scalar($options['root'])) {
-      $this->fsSetRootDir(strval($options['root']));
+      $this->fsSetRootDir((string) $options['root']);
     }
 
     $this->remoteUrl = $url;
@@ -482,16 +473,13 @@ class ArtifactCommand extends Command {
 
     $this->sourceDir = empty($options['src']) || !is_string($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
 
-    // Setup Git repository from source path.
     $this->repo = new ArtifactGitRepository($this->sourceDir, NULL, $this->logger);
 
-    // Set original, destination, artifact branch names.
     try {
       $this->originalBranch = $this->repo->getOriginalBranch();
     }
     catch (BranchNotFoundException $exception) {
       if ($this->failOnMissingBranch) {
-        // Strict mode: fail artifact packaging.
         throw new \RuntimeException('Unable to determine source branch. Artifact packaging failed. ' . $exception->getMessage(), $exception->getCode(), $exception);
       }
 
@@ -503,8 +491,7 @@ class ArtifactCommand extends Command {
       $this->output->writeln('<comment>Commit: ' . $commit_hash . '</comment>');
       $this->output->writeln('<info>Use --fail-on-missing-branch to fail artifact packaging instead.</info>');
 
-      // Set flag to skip artifact packaging and return early from execute().
-      $this->packagingSkipped = TRUE;
+      $this->isPackagingSkipped = TRUE;
 
       return;
     }
@@ -526,7 +513,7 @@ class ArtifactCommand extends Command {
       $contents = file_get_contents($gitignore);
       if (!$contents) {
         // @codeCoverageIgnoreStart
-        throw new \Exception('Unable to load contents of ' . $gitignore);
+        throw new \RuntimeException('Unable to load contents of ' . $gitignore);
         // @codeCoverageIgnoreEnd
       }
 
@@ -534,8 +521,8 @@ class ArtifactCommand extends Command {
       $this->logger->debug($contents);
       $this->logger->debug('-----.gitignore---------');
 
-      $this->gitignoreFile = $gitignore;
-      $this->repo->setGitignoreCustom($this->gitignoreFile);
+      $this->gitignoreCustom = $gitignore;
+      $this->repo->setGitignoreCustom($this->gitignoreCustom);
     }
   }
 
@@ -551,7 +538,7 @@ class ArtifactCommand extends Command {
     $lines[] = (' Source repository:     ' . $this->sourceDir);
     $lines[] = (' Remote repository:     ' . $this->remoteUrl);
     $lines[] = (' Remote branch:         ' . $this->destinationBranch);
-    $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
+    $lines[] = (' Gitignore file:        ' . ($this->gitignoreCustom ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
     if ($this->cleanupStale) {
       $label = count($this->cleanupPatterns) === 1 ? 'pattern' : 'patterns';
@@ -568,7 +555,10 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Dump artifact report to a file.
+   * Log the artifact report.
+   *
+   * @param bool $result
+   *   Whether the packaging run finished without an error.
    */
   protected function showReport(bool $result): void {
     $lines[] = '----------------------------------------------------------------------';
@@ -579,7 +569,7 @@ class ArtifactCommand extends Command {
     $lines[] = ' Source repository: ' . $this->sourceDir;
     $lines[] = ' Remote repository: ' . $this->remoteUrl;
     $lines[] = ' Remote branch:     ' . $this->destinationBranch;
-    $lines[] = ' Gitignore file:    ' . ($this->gitignoreFile ?: 'No');
+    $lines[] = ' Gitignore file:    ' . ($this->gitignoreCustom ?: 'No');
     $lines[] = ' Commit message:    ' . $this->commitMessage;
     $lines[] = ' Push result:       ' . ($result ? 'Success' : 'Failure');
     $lines[] = '----------------------------------------------------------------------';
@@ -604,7 +594,7 @@ class ArtifactCommand extends Command {
         break;
 
       case self::MODE_BRANCH:
-        if (is_scalar($options['branch'] ?? NULL) && !self::tokenExists(strval($options['branch']))) {
+        if (is_scalar($options['branch'] ?? NULL) && !self::tokenExists((string) $options['branch'])) {
           $this->output->writeln('<comment>WARNING! Provided branch name does not have a token.
                     Pushing of the artifact into this branch will fail on second and follow-up pushes to remote.
                     Consider adding tokens with unique values to the branch name.</comment>');
@@ -622,7 +612,7 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Check that there all requirements are met in order to to run this command.
+   * Check that all requirements are met to run this command.
    */
   protected function checkRequirements(): void {
     $this->logger->notice('Checking requirements');
@@ -663,7 +653,7 @@ class ArtifactCommand extends Command {
 
     if (empty($replacement)) {
       // @codeCoverageIgnoreStart
-      throw new \Exception('Safe branch name is empty');
+      throw new \RuntimeException('Safe branch name is empty');
       // @codeCoverageIgnoreEnd
     }
 
@@ -681,22 +671,24 @@ class ArtifactCommand extends Command {
    *
    * @throws \Exception
    */
-  protected function getTokenTags(?string $delimiter): string {
+  protected function getTokenTags(?string $delimiter = NULL): string {
     $delimiter = $delimiter ?? '-';
 
-    return implode($delimiter, $this->repo->listTagsPointingToHead());
+    return implode($delimiter, $this->repo->getTagsPointingToHead());
   }
 
   /**
    * Token callback to get current timestamp.
    *
-   * @param string $format
-   *   Date format suitable for date() function.
+   * @param string|null $format
+   *   Date format suitable for date() function. Defaults to 'Y-m-d_H-i-s'.
    *
    * @return string
    *   Date string.
    */
-  protected function getTokenTimestamp(string $format = 'Y-m-d_H-i-s'): string {
+  protected function getTokenTimestamp(?string $format = NULL): string {
+    $format = $format ?? 'Y-m-d_H-i-s';
+
     return date($format, $this->now);
   }
 

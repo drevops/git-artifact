@@ -7,8 +7,6 @@ namespace DrevOps\GitArtifact\Tests\Traits;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Trait FixtureTrait.
- *
  * Helpers to work with fixture files.
  */
 trait FixtureTrait {
@@ -26,24 +24,24 @@ trait FixtureTrait {
    * @param string|null $root
    *   Optional root directory.
    */
-  public function fixtureInit(?string $name, ?string $root = NULL): void {
-    $name = $name ?? get_class($this);
+  protected function fixtureInit(?string $name = NULL, ?string $root = NULL): void {
+    $name = $name ?? $this::class;
     $root = $root ?? sys_get_temp_dir();
-    $this->fixtureDir = $root . DIRECTORY_SEPARATOR . date('U') . DIRECTORY_SEPARATOR . $name;
+    $this->fixtureDir = $root . DIRECTORY_SEPARATOR . $name . '-' . date('U') . '-' . getmypid();
   }
 
   /**
    * Create fixture file at provided path.
    *
    * @param string $path
-   *   File path.
+   *   Directory to create the file in.
    * @param string $name
    *   Optional file name.
    * @param string|array<string> $content
    *   Optional file content.
    *
    * @return string
-   *   Created file name.
+   *   Path to the created file.
    */
   protected function fixtureCreateFile(string $path, string $name = '', string|array $content = ''): string {
     $fs = new Filesystem();
@@ -69,7 +67,7 @@ trait FixtureTrait {
    * Remove fixture file at provided path.
    *
    * @param string $path
-   *   File path.
+   *   Directory that contains the file.
    * @param string $name
    *   File name.
    */

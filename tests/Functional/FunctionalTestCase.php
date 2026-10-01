@@ -67,13 +67,13 @@ abstract class FunctionalTestCase extends UnitTestCase {
     $this->fixtureInit('git_artifact');
     $this->fixtureDir = $this->fsGetAbsolutePath($this->fixtureDir);
 
-    $this->src = $this->fsGetAbsolutePath($this->fixtureDir . DIRECTORY_SEPARATOR . 'src');
+    $this->src = $this->fixtureDir . DIRECTORY_SEPARATOR . 'src';
     $this->gitInitRepo($this->src);
 
     $this->dst = $this->fixtureDir . DIRECTORY_SEPARATOR . 'dst';
     $this->gitInitRepo($this->dst)
-      // Allow pushing into already checked out branch. We need this to
-      // avoid additional management of fixture repository.
+      // Allow pushing into the checked-out branch, so the fixture repository
+      // requires no extra management.
       ->run('config', ['receive.denyCurrentBranch', 'ignore']);
 
     $this->now = time();
@@ -123,9 +123,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
    * Package the artifact and assert failure.
    *
    * @param array $args
-   *   *   Array of arguments to pass to packaging.
-   *   * @param string $branch
-   *   *   Expected branch name.
+   *   Array of arguments to pass to packaging.
    * @param string $commit
    *   Optional commit string. Defaults to 'Deployment commit'.
    *
@@ -148,16 +146,16 @@ abstract class FunctionalTestCase extends UnitTestCase {
    * Run artifact packaging.
    *
    * @param array $args
-   *   Additional arguments or options as an associative array. If NULL, no
-   *   additional arguments are passed.
+   *   Additional arguments or options as an associative array. If NULL, the
+   *   command runs with no input, not even the default options.
    * @param bool $expect_fail
-   *   Expect on fail.
+   *   Whether the command is expected to fail.
    *
    * @return string
    *   Output string.
    */
   protected function runArtifactCommand(?array $args = [], bool $expect_fail = FALSE): string {
-    if (is_null($args)) {
+    if ($args === NULL) {
       $input = [];
     }
     else {

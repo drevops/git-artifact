@@ -23,17 +23,6 @@ trait FilesystemTrait {
   protected Filesystem $fs;
 
   /**
-   * Stack of original current working directories.
-   *
-   * This is used throughout commands to track working directories.
-   * Usually, each command would call setCwd() in the beginning and
-   * restoreCwd() at the end of the run.
-   *
-   * @var array<string>
-   */
-  protected array $fsOriginalCwdStack = [];
-
-  /**
    * Set root directory path.
    *
    * @param string|null $path
@@ -54,8 +43,8 @@ trait FilesystemTrait {
    * Get root directory.
    *
    * @return string
-   *   Get value of the root directory, the directory where the
-   *   script was started from or current working directory.
+   *   The root directory: the directory the script was started from, or the
+   *   current working directory.
    */
   protected function fsGetRootDir(): string {
     if (!isset($this->fsRootDir)) {
@@ -90,7 +79,7 @@ trait FilesystemTrait {
    * Get absolute path for provided file.
    *
    * @param string $file
-   *   File to resolve. If absolute, no resolution will be performed.
+   *   File to resolve. An absolute path is not prefixed with the root dir.
    * @param string|null $root
    *   Optional path to root dir. If not provided, internal root path is used.
    *
@@ -99,14 +88,14 @@ trait FilesystemTrait {
    */
   protected function fsGetAbsolutePath(string $file, ?string $root = NULL): string {
     if ($this->fs->isAbsolutePath($file)) {
-      return static::fsRealpath($file);
+      return self::fsRealpath($file);
     }
 
     $root = $root ? $root : $this->fsGetRootDir();
-    $root = static::fsRealpath($root);
+    $root = self::fsRealpath($root);
     $file = $root . DIRECTORY_SEPARATOR . $file;
 
-    return static::fsRealpath($file);
+    return self::fsRealpath($file);
   }
 
   /**
@@ -124,12 +113,12 @@ trait FilesystemTrait {
    * @throws \Exception
    *   If at least one file does not exist.
    */
-  protected function fsAssertPathsExist($paths, bool $strict = TRUE): bool {
+  protected function fsAssertPathsExist(string|array $paths, bool $strict = TRUE): bool {
     $paths = is_array($paths) ? $paths : [$paths];
 
     if (!$this->fs->exists($paths)) {
       if ($strict) {
-        throw new \Exception(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
+        throw new \RuntimeException(sprintf('One of the files or directories does not exist: %s', implode(', ', $paths)));
       }
 
       return FALSE;
@@ -139,9 +128,9 @@ trait FilesystemTrait {
   }
 
   /**
-   * Replacement for PHP's `realpath` resolves non-existing paths.
+   * Replacement for PHP's `realpath()` that resolves non-existing paths.
    *
-   * The main deference is that it does not return FALSE on non-existing
+   * The main difference is that it does not return FALSE on non-existing
    * paths.
    *
    * @param string $path
@@ -153,11 +142,10 @@ trait FilesystemTrait {
    * @see https://stackoverflow.com/a/29372360/712666
    */
   protected static function fsRealpath(string $path): string {
-    // Whether $path is unix or not.
     $is_unix_path = $path === '' || $path[0] !== '/';
     $unc = str_starts_with($path, '\\\\');
 
-    // Attempt to detect if path is relative in which case, add cwd.
+    // Detect a relative path and prefix it with the cwd.
     if (!str_contains($path, ':') && $is_unix_path && !$unc) {
       $path = getcwd() . DIRECTORY_SEPARATOR . $path;
       if ($path[0] === '/') {
@@ -165,7 +153,6 @@ trait FilesystemTrait {
       }
     }
 
-    // Resolve path parts (single dot, double dot and double delimiters).
     $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
     $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function (string $part): bool {
       return $part !== '';
@@ -173,10 +160,10 @@ trait FilesystemTrait {
 
     $absolutes = [];
     foreach ($parts as $part) {
-      if ('.' === $part) {
+      if ($part === '.') {
         continue;
       }
-      if ('..' === $part) {
+      if ($part === '..') {
         array_pop($absolutes);
       }
       else {
@@ -189,13 +176,12 @@ trait FilesystemTrait {
     $path = $is_unix_path ? $path : '/' . $path;
     $path = $unc ? '\\\\' . $path : $path;
 
-    // Resolve any symlinks.
     if (function_exists('readlink') && file_exists($path) && is_link($path) > 0) {
       $path = readlink($path);
 
       if (!$path) {
         // @codeCoverageIgnoreStart
-        throw new \Exception(sprintf('Could not resolve symlink for path: %s', $path));
+        throw new \RuntimeException(sprintf('Could not resolve symlink for path: %s', $path));
         // @codeCoverageIgnoreEnd
       }
     }
