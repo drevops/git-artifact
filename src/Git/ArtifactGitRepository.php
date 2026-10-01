@@ -334,10 +334,10 @@ class ArtifactGitRepository extends GitRepository {
     // capture the source of detachment, if it exists.
     if (str_contains($branch, 'HEAD detached')) {
       $branch = NULL;
-      $branch_list = $this->getBranches();
-      if ($branch_list) {
-        $branch_list = array_filter($branch_list);
-        foreach ($branch_list as $branch) {
+      $branches = $this->getBranches();
+      if ($branches) {
+        $branches = array_filter($branches);
+        foreach ($branches as $branch) {
           if (preg_match('/\(.*detached .* ([^)]+)\)/', $branch, $matches)) {
             $branch = $matches[1];
             break;
