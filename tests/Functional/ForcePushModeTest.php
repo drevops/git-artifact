@@ -184,13 +184,13 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->fixtureCreateFile($this->src, 'ii');
     $this->fixtureCreateFile($this->src, 'ic');
-    $this->fixtureCreateFile($this->src, 'd/cc');
-    $this->fixtureCreateFile($this->src, 'd/ci');
+    $this->fixtureCreateFile($this->src, 'd_cc/cc');
+    $this->fixtureCreateFile($this->src, 'd_cc/ci');
     $this->gitCreateFixtureCommits(2);
     $this->gitCommitAll($this->src, 'Custom third commit');
     $this->fixtureCreateFile($this->src, 'ui');
     $this->fixtureCreateFile($this->src, 'uc');
-    $this->gitAssertFilesCommitted($this->src, ['.gitignore', 'f1', 'f2', 'd/cc', 'd/ci']);
+    $this->gitAssertFilesCommitted($this->src, ['.gitignore', 'f1', 'f2', 'd_cc/cc', 'd_cc/ci']);
     $this->gitAssertFilesNotCommitted($this->src, ['ii', 'ic', 'ui', 'uc']);
 
     $this->fixtureCreateFile($this->src, 'mygitignore', ['f1', 'ii', 'ci', 'ui']);
@@ -198,10 +198,10 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertArtifactCommandSuccess(['--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore']);
 
     $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
-    $this->gitAssertFilesCommitted($this->dst, ['.gitignore', 'f2', 'ic', 'd/cc', 'uc'], 'testbranch');
-    $this->gitAssertFilesNotCommitted($this->dst, ['f1', 'ii', 'd/ci', 'ui'], 'testbranch');
-    $this->assertFilesExist($this->dst, ['f2', 'ic', 'd/cc', 'uc']);
-    $this->assertFilesNotExist($this->dst, ['f1', 'ii', 'd/ci', 'ui']);
+    $this->gitAssertFilesCommitted($this->dst, ['.gitignore', 'f2', 'ic', 'd_cc/cc', 'uc'], 'testbranch');
+    $this->gitAssertFilesNotCommitted($this->dst, ['f1', 'ii', 'd_cc/ci', 'ui'], 'testbranch');
+    $this->assertFilesExist($this->dst, ['f2', 'ic', 'd_cc/cc', 'uc']);
+    $this->assertFilesNotExist($this->dst, ['f1', 'ii', 'd_cc/ci', 'ui']);
   }
 
   public function testGitignoreCustomAllowlisting(): void {
