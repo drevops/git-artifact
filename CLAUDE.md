@@ -86,11 +86,11 @@ Integration tests that verify end-to-end functionality:
 
 Run specific test classes:
 ```bash
-./vendor/bin/phpunit tests/Unit/TokenTest.php
+./vendor/bin/phpunit tests/Unit/Traits/TokenTraitTest.php
 ./vendor/bin/phpunit tests/Functional/BranchModeTest.php
 ```
 
 Run specific test methods:
 ```bash
-./vendor/bin/phpunit --filter testTokenReplacement tests/Unit/TokenTest.php
+./vendor/bin/phpunit --filter testTokenReplacement tests/Unit/Traits/TokenTraitTest.php
 ```

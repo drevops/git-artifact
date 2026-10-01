@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Tests\Unit;
+namespace DrevOps\GitArtifact\Tests\Unit\Git;
 
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
+use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Filesystem\Filesystem;

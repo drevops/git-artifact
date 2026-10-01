@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Tests\Unit;
+namespace DrevOps\GitArtifact\Tests\Unit\Commands;
 
 use CzProject\GitPhp\GitException;
 use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
+use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
