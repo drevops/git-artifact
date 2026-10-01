@@ -42,7 +42,7 @@ class ArtifactCommandTest extends UnitTestCase {
 
     $this->callProtectedMethod($command, 'cleanupStaleBranches');
 
-    $this->assertStringContainsString('Failed to delete stale branch "deployment/old"', $output->fetch());
+    $this->assertStringContainsString('Failed to delete stale branch "deployment/old".', $output->fetch());
   }
 
   public function testCleanupStaleBranchesSkipsWhenDefaultBranchUnknown(): void {
@@ -56,7 +56,7 @@ class ArtifactCommandTest extends UnitTestCase {
 
     $this->callProtectedMethod($command, 'cleanupStaleBranches');
 
-    $this->assertStringContainsString('Unable to determine the remote default branch', $output->fetch());
+    $this->assertStringContainsString('Unable to determine the remote default branch; skipping stale cleanup for safety.', $output->fetch());
   }
 
   /**

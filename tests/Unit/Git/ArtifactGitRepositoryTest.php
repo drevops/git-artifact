@@ -17,7 +17,7 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
   public function testIsValidRemote(string $url, string $type, bool $expect_exception, bool $expected): void {
     if ($expect_exception) {
       $this->expectException(\InvalidArgumentException::class);
-      $this->expectExceptionMessage(sprintf('Invalid argument "%s" provided', $type));
+      $this->expectExceptionMessage(sprintf('Invalid argument "%s" provided.', $type));
     }
 
     $url = $url === '<existing>' ? (new Filesystem())->tempnam(sys_get_temp_dir(), 'test') : $url;

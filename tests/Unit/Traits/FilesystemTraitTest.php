@@ -72,7 +72,7 @@ class FilesystemTraitTest extends UnitTestCase {
     $test_class = $this->createTestClass();
 
     $this->expectException(\RuntimeException::class);
-    $this->expectExceptionMessage('One of the files or directories does not exist');
+    $this->expectExceptionMessage('One of the files or directories does not exist: "/non/existing/path".');
 
     $this->callProtectedMethod($test_class, 'fsAssertPathsExist', ['/non/existing/path', TRUE]);
   }

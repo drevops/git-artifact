@@ -86,7 +86,7 @@ class BranchModeTest extends FunctionalTestCase {
       '--branch' => '*invalid',
     ]);
 
-    $this->assertStringContainsString('Incorrect value "*invalid" specified for git remote branch', $output);
+    $this->assertStringContainsString('Incorrect value "*invalid" specified for git remote branch.', $output);
     $this->gitAssertCurrentBranch($this->src, $this->currentBranch);
   }
 

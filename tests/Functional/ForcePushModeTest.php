@@ -71,9 +71,9 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertFilesNotExist($this->src, ['r3/r31/r311/.git/index']);
 
     $output = $this->assertArtifactCommandSuccess(['-vvv' => TRUE]);
-    $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r1/.git')), $output);
-    $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r2/r21/.git')), $output);
-    $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r3/r31/r311/.git')), $output);
+    $this->assertStringContainsString(sprintf('Removing sub-repository "%s".', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r1/.git')), $output);
+    $this->assertStringContainsString(sprintf('Removing sub-repository "%s".', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r2/r21/.git')), $output);
+    $this->assertStringContainsString(sprintf('Removing sub-repository "%s".', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r3/r31/r311/.git')), $output);
     $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Commit number 3', 'Deployment commit']);
 
     $this->assertFilesExist($this->dst, ['r1/c']);
@@ -102,7 +102,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $output = $this->assertArtifactCommandFailure(['--branch' => '*invalid']);
 
-    $this->assertStringContainsString('Incorrect value "*invalid" specified for git remote branch', $output);
+    $this->assertStringContainsString('Incorrect value "*invalid" specified for git remote branch.', $output);
     $this->gitAssertCurrentBranch($this->src, $this->currentBranch);
   }
 

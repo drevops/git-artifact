@@ -222,7 +222,7 @@ class ArtifactCommand extends Command {
     try {
       $remote = $input->getArgument('remote');
       if (!is_string($remote) || empty(trim($remote))) {
-        throw new \RuntimeException('Remote argument must be a non-empty string');
+        throw new \RuntimeException('Remote argument must be a non-empty string.');
       }
 
       $this->checkRequirements();
@@ -291,7 +291,7 @@ class ArtifactCommand extends Command {
           $this->repo->push([$this->remoteName, $ref]);
         }
 
-        $this->output->writeln(sprintf('<info>Pushed branch "%s" with commit message "%s"</info>', $this->destinationBranch, $this->commitMessage));
+        $this->output->writeln(sprintf('<info>Pushed branch "%s" with commit message "%s".</info>', $this->destinationBranch, $this->commitMessage));
       }
 
       $this->cleanupStaleBranches();
@@ -300,7 +300,7 @@ class ArtifactCommand extends Command {
       $result = $exception->getRunnerResult();
       if (!$result) {
         // @codeCoverageIgnoreStart
-        throw new \RuntimeException('Unknown error occurred', $exception->getCode(), $exception);
+        throw new \RuntimeException('Unknown error occurred.', $exception->getCode(), $exception);
         // @codeCoverageIgnoreEnd
       }
 
@@ -317,7 +317,7 @@ class ArtifactCommand extends Command {
     $this->showReport($error === NULL);
 
     if ($this->needCleanup && $error === NULL) {
-      $this->logger->notice('Cleaning up');
+      $this->logger->notice('Cleaning up.');
       $this->repo->resetToPreviousCommit();
       $this->repo->restoreGitignoreToCustom();
       $this->repo->restoreLocalExclude();
@@ -332,7 +332,7 @@ class ArtifactCommand extends Command {
     }
 
     if ($error !== NULL) {
-      $error = empty($error) ? 'Unknown error occurred' : $error;
+      $error = empty($error) ? 'Unknown error occurred.' : $error;
       throw new \RuntimeException($error);
     }
   }
@@ -381,19 +381,19 @@ class ArtifactCommand extends Command {
 
     foreach ($stale as $branch) {
       if ($this->isDryRun) {
-        $this->output->writeln(sprintf('<info>Would delete stale branch "%s"</info>', $branch));
-        $this->logger->notice(sprintf('Would delete stale branch "%s"', $branch));
+        $this->output->writeln(sprintf('<info>Would delete stale branch "%s".</info>', $branch));
+        $this->logger->notice(sprintf('Would delete stale branch "%s".', $branch));
 
         continue;
       }
 
       try {
         $this->repo->removeRemoteBranch($this->remoteName, $branch);
-        $this->output->writeln(sprintf('<info>Deleted stale branch "%s"</info>', $branch));
-        $this->logger->notice(sprintf('Deleted stale branch "%s"', $branch));
+        $this->output->writeln(sprintf('<info>Deleted stale branch "%s".</info>', $branch));
+        $this->logger->notice(sprintf('Deleted stale branch "%s".', $branch));
       }
       catch (GitException $exception) {
-        $this->output->writeln(sprintf('<comment>Failed to delete stale branch "%s"</comment>', $branch));
+        $this->output->writeln(sprintf('<comment>Failed to delete stale branch "%s".</comment>', $branch));
         $this->logger->warning(sprintf('Failed to delete stale branch "%s": %s', $branch, $exception->getMessage()));
       }
     }
@@ -498,7 +498,7 @@ class ArtifactCommand extends Command {
 
     $branch = $this->tokenProcess(is_string($options['branch']) ? $options['branch'] : '');
     if (!ArtifactGitRepository::isValidBranchName($branch)) {
-      throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch', $branch));
+      throw new \RuntimeException(sprintf('Incorrect value "%s" specified for git remote branch.', $branch));
     }
     $this->destinationBranch = $branch;
 
@@ -513,7 +513,7 @@ class ArtifactCommand extends Command {
       $contents = file_get_contents($gitignore);
       if (!$contents) {
         // @codeCoverageIgnoreStart
-        throw new \RuntimeException('Unable to load contents of ' . $gitignore);
+        throw new \RuntimeException(sprintf('Unable to load contents of "%s".', $gitignore));
         // @codeCoverageIgnoreEnd
       }
 
@@ -602,10 +602,7 @@ class ArtifactCommand extends Command {
         break;
 
       default:
-        throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: %s', implode(', ', [
-          self::MODE_FORCE_PUSH,
-          self::MODE_BRANCH,
-        ])));
+        throw new \RuntimeException(sprintf('Invalid mode provided. Allowed modes are: "%s", "%s".', self::MODE_FORCE_PUSH, self::MODE_BRANCH));
     }
 
     $this->mode = $mode;
@@ -615,15 +612,15 @@ class ArtifactCommand extends Command {
    * Check that all requirements are met to run this command.
    */
   protected function checkRequirements(): void {
-    $this->logger->notice('Checking requirements');
+    $this->logger->notice('Checking requirements.');
 
     if (!$this->fsIsCommandAvailable('git')) {
       // @codeCoverageIgnoreStart
-      throw new \RuntimeException('Git command is not available');
+      throw new \RuntimeException('Git command is not available.');
       // @codeCoverageIgnoreEnd
     }
 
-    $this->logger->notice('All requirements were met');
+    $this->logger->notice('All requirements were met.');
   }
 
   /**
@@ -653,7 +650,7 @@ class ArtifactCommand extends Command {
 
     if (empty($replacement)) {
       // @codeCoverageIgnoreStart
-      throw new \RuntimeException('Safe branch name is empty');
+      throw new \RuntimeException('Safe branch name is empty.');
       // @codeCoverageIgnoreEnd
     }
 
