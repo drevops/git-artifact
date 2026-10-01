@@ -289,7 +289,7 @@ trait GitTrait {
     $this->assertEquals($expected_commits, $commits, 'All fixture commits are present');
 
     if ($should_assert_files) {
-      $this->assertFilesExist($this->dst, $expected_files);
+      $this->assertFilesExist($path, $expected_files);
     }
   }
 
