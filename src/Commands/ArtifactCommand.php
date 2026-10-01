@@ -91,7 +91,7 @@ class ArtifactCommand extends Command {
   /**
    * Flag to specify if using dry run.
    */
-  protected bool $isDryRun = FALSE;
+  protected bool $dryRun = FALSE;
 
   /**
    * Flag to specify if cleanup is required to run after packaging.
@@ -285,7 +285,7 @@ class ArtifactCommand extends Command {
         $this->logger->notice(sprintf('Added changes: %s', implode("\n", $changes)));
       }
 
-      if ($this->isDryRun) {
+      if ($this->dryRun) {
         $this->output->writeln('<info>Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.</info>');
       }
       else {
@@ -389,7 +389,7 @@ class ArtifactCommand extends Command {
     }
 
     foreach ($stale as $branch) {
-      if ($this->isDryRun) {
+      if ($this->dryRun) {
         $this->output->writeln(sprintf('<info>Would delete stale branch "%s"</info>', $branch));
         $this->logger->notice(sprintf('Would delete stale branch "%s"', $branch));
 
@@ -426,7 +426,7 @@ class ArtifactCommand extends Command {
     $this->remoteName = sprintf('%s-%s-%s', self::GIT_REMOTE_NAME, $this->now, rand(1000, 9999));
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
-    $this->isDryRun = !empty($options['dry-run']);
+    $this->dryRun = !empty($options['dry-run']);
     $this->failOnMissingBranch = !empty($options['fail-on-missing-branch']);
     $this->logFile = empty($options['log']) || !is_string($options['log']) ? '' : $this->fsGetAbsolutePath($options['log']);
 
@@ -552,7 +552,7 @@ class ArtifactCommand extends Command {
     $lines[] = (' Remote repository:     ' . $this->remoteUrl);
     $lines[] = (' Remote branch:         ' . $this->destinationBranch);
     $lines[] = (' Gitignore file:        ' . ($this->gitignoreCustom ?: 'No'));
-    $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
+    $lines[] = (' Will push:             ' . ($this->dryRun ? 'No' : 'Yes'));
     if ($this->cleanupStale) {
       $label = count($this->cleanupPatterns) === 1 ? 'pattern' : 'patterns';
       $list = implode(', ', array_map(static fn(string $pattern): string => sprintf('"%s"', $pattern), $this->cleanupPatterns));
