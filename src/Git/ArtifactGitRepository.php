@@ -100,7 +100,7 @@ class ArtifactGitRepository extends GitRepository {
    * {@inheritdoc}
    */
   public function removeRemote($name): static {
-    if (in_array($name, $this->listRemotes())) {
+    if (in_array($name, $this->getRemotes())) {
       $this->run('remote', 'remove', $name);
     }
 
@@ -213,7 +213,7 @@ class ArtifactGitRepository extends GitRepository {
    * @return array<string>
    *   Remotes.
    */
-  protected function listRemotes(): array {
+  protected function getRemotes(): array {
     return $this->extractFromCommand(['remote']) ?: [];
   }
 
@@ -306,7 +306,7 @@ class ArtifactGitRepository extends GitRepository {
    * @throws \Exception
    *   If no tags found in the latest commit.
    */
-  public function listTagsPointingToHead(): array {
+  public function getTagsPointingToHead(): array {
     $tags = $this->extractFromCommand(['tag', ['--points-at', 'HEAD']]);
 
     if (empty($tags)) {

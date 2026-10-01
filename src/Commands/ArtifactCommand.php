@@ -684,7 +684,7 @@ class ArtifactCommand extends Command {
   protected function getTokenTags(?string $delimiter): string {
     $delimiter = $delimiter ?? '-';
 
-    return implode($delimiter, $this->repo->listTagsPointingToHead());
+    return implode($delimiter, $this->repo->getTagsPointingToHead());
   }
 
   /**
