@@ -26,7 +26,7 @@ trait FixtureTrait {
    * @param string|null $root
    *   Optional root directory.
    */
-  protected function fixtureInit(?string $name, ?string $root = NULL): void {
+  protected function fixtureInit(?string $name = NULL, ?string $root = NULL): void {
     $name = $name ?? get_class($this);
     $root = $root ?? sys_get_temp_dir();
     $this->fixtureDir = $root . DIRECTORY_SEPARATOR . $name . '-' . date('U') . '-' . getmypid();
