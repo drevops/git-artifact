@@ -169,7 +169,7 @@ class ArtifactCommand extends Command {
     ?Filesystem $fs = NULL,
   ) {
     parent::__construct($name);
-    $this->fs = is_null($fs) ? new Filesystem() : $fs;
+    $this->fs = $fs ?? new Filesystem();
   }
 
   /**
@@ -321,9 +321,9 @@ class ArtifactCommand extends Command {
       $error = $exception->getMessage();
     }
 
-    $this->showReport(is_null($error));
+    $this->showReport($error === NULL);
 
-    if ($this->needCleanup && is_null($error)) {
+    if ($this->needCleanup && $error === NULL) {
       $this->logger->notice('Cleaning up');
       $this->repo->resetToPreviousCommit();
       $this->repo->restoreGitignoreToCustom();
@@ -339,7 +339,7 @@ class ArtifactCommand extends Command {
       $this->loggerDump($this->logFile);
     }
 
-    if (!is_null($error)) {
+    if ($error !== NULL) {
       $error = empty($error) ? 'Unknown error occurred' : $error;
       throw new \RuntimeException($error);
     }

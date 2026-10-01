@@ -157,7 +157,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
    *   Output string.
    */
   protected function runArtifactCommand(?array $args = [], bool $expect_fail = FALSE): string {
-    if (is_null($args)) {
+    if ($args === NULL) {
       $input = [];
     }
     else {
