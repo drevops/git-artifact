@@ -1,13 +1,12 @@
-version: 2
+version: 2.1
 aliases:
   - &deploy_ssh_fingerprint "e8:d7:da:b8:6a:fb:75:50:8d:5f:48:61:3c:46:49:50"
 
   - &container_config
-    working_directory: /workspace/code
+    working_directory: ~/workspace/code
     docker:
-      - image: drevops/ci-runner:26.8.0@sha256:80be478cfff66d81fa804ccc707dbeae478655d8b850f1ae06824c194bd6528e
+      - image: cimg/php:8.4@sha256:30e53de9b14d10ee3480ff6db62074524229f4888207effe0a964e3e4799438a
         environment:
-          COMPOSER_ALLOW_SUPERUSER: 1
           DEPLOY_SSH_FINGERPRINT: *deploy_ssh_fingerprint
 
   - &step_setup_git
@@ -31,7 +30,7 @@ jobs:
     <<: *container_config
     steps:
       - attach_workspace:
-          at: /workspace
+          at: ~/workspace
 
       - checkout
 
@@ -58,7 +57,7 @@ jobs:
           command: composer test
 
       - persist_to_workspace:
-          root: /workspace
+          root: ~/workspace
           paths:
             - code
 
@@ -67,7 +66,7 @@ jobs:
     <<: *container_config
     steps:
       - attach_workspace:
-          at: /workspace
+          at: ~/workspace
 
       - add_ssh_keys:
           fingerprints:
@@ -136,7 +135,7 @@ jobs:
     <<: *container_config
     steps:
       - attach_workspace:
-          at: /workspace
+          at: ~/workspace
 
       - add_ssh_keys:
           fingerprints:
