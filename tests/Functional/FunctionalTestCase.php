@@ -67,7 +67,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
     $this->fixtureInit('git_artifact');
     $this->fixtureDir = $this->fsGetAbsolutePath($this->fixtureDir);
 
-    $this->src = $this->fsGetAbsolutePath($this->fixtureDir . DIRECTORY_SEPARATOR . 'src');
+    $this->src = $this->fixtureDir . DIRECTORY_SEPARATOR . 'src';
     $this->gitInitRepo($this->src);
 
     $this->dst = $this->fixtureDir . DIRECTORY_SEPARATOR . 'dst';
