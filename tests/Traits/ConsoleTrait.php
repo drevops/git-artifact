@@ -79,6 +79,9 @@ trait ConsoleTrait {
         throw new AssertionFailedError(sprintf("Application exited successfully but should not.\nThe output was:\n%s\nThe error output was:\n%s", $this->appTester->getDisplay(), $this->appTester->getErrorOutput()));
       }
     }
+    catch (AssertionFailedError $exception) {
+      throw $exception;
+    }
     catch (\RuntimeException $exception) {
       if (!$expect_fail) {
         throw new AssertionFailedError('Application exited with an error:' . PHP_EOL . $exception->getMessage(), $exception->getCode(), $exception);
