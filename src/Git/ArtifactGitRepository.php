@@ -361,16 +361,16 @@ class ArtifactGitRepository extends GitRepository {
       try {
         $this->execute(['show-ref', '--verify', 'refs/heads/' . $branch]);
       }
-      catch (GitException $e1) {
+      catch (GitException $exception) {
         try {
           $this->execute(['show-ref', '--verify', 'refs/tags/' . $branch]);
         }
-        catch (GitException $e2) {
+        catch (GitException) {
           // Not a branch or tag - just a commit hash.
           // Get current commit hash.
           $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
-          throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $e1);
+          throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $exception);
         }
       }
     }
