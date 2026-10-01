@@ -25,7 +25,7 @@ trait ReflectionTrait {
    * @return mixed
    *   Method result.
    */
-  protected static function callProtectedMethod(object|string $object, string $name, array $args = []): mixed {
+  protected function callProtectedMethod(object|string $object, string $name, array $args = []): mixed {
     $object_or_class = is_object($object) ? $object::class : $object;
 
     if (!class_exists($object_or_class)) {
@@ -72,7 +72,7 @@ trait ReflectionTrait {
    * @param mixed $value
    *   Value to set to the property.
    */
-  protected static function setProtectedValue(object $object, string $property, mixed $value): void {
+  protected function setProtectedValue(object $object, string $property, mixed $value): void {
     $class = new \ReflectionClass($object::class);
     $property = $class->getProperty($property);
     $property->setAccessible(TRUE);
@@ -91,7 +91,7 @@ trait ReflectionTrait {
    * @return mixed
    *   Protected property value.
    */
-  protected static function getProtectedValue(object $object, string $property): mixed {
+  protected function getProtectedValue(object $object, string $property): mixed {
     $class = new \ReflectionClass($object::class);
     $property = $class->getProperty($property);
     $property->setAccessible(TRUE);
