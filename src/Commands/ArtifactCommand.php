@@ -397,7 +397,7 @@ class ArtifactCommand extends Command {
       }
 
       try {
-        $this->repo->deleteRemoteBranch($this->remoteName, $branch);
+        $this->repo->removeRemoteBranch($this->remoteName, $branch);
         $this->output->writeln(sprintf('<info>Deleted stale branch "%s"</info>', $branch));
         $this->logger->notice(sprintf('Deleted stale branch "%s"', $branch));
       }

@@ -33,7 +33,7 @@ class ArtifactCommandTest extends UnitTestCase {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
       'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
       'getRemoteDefaultBranch' => fn(): string => 'main',
-      'deleteRemoteBranch' => fn(): never => throw new GitException('boom'),
+      'removeRemoteBranch' => fn(): never => throw new GitException('boom'),
     ], FALSE);
 
     $output = new BufferedOutput();

@@ -291,7 +291,7 @@ class ArtifactGitRepository extends GitRepository {
    * @return static
    *   The git repository.
    */
-  public function deleteRemoteBranch(string $remote, string $branch): static {
+  public function removeRemoteBranch(string $remote, string $branch): static {
     $this->run('push', $remote, '--delete', $branch);
 
     return $this;
