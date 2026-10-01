@@ -81,7 +81,7 @@ class ArtifactCommand extends Command {
    *
    * If not set, the current `.gitignore` will be used, if any.
    */
-  protected ?string $gitignoreFile = NULL;
+  protected ?string $gitignoreCustom = NULL;
 
   /**
    * Commit message with optional tokens.
@@ -534,8 +534,8 @@ class ArtifactCommand extends Command {
       $this->logger->debug($contents);
       $this->logger->debug('-----.gitignore---------');
 
-      $this->gitignoreFile = $gitignore;
-      $this->repo->setGitignoreCustom($this->gitignoreFile);
+      $this->gitignoreCustom = $gitignore;
+      $this->repo->setGitignoreCustom($this->gitignoreCustom);
     }
   }
 
@@ -551,7 +551,7 @@ class ArtifactCommand extends Command {
     $lines[] = (' Source repository:     ' . $this->sourceDir);
     $lines[] = (' Remote repository:     ' . $this->remoteUrl);
     $lines[] = (' Remote branch:         ' . $this->destinationBranch);
-    $lines[] = (' Gitignore file:        ' . ($this->gitignoreFile ?: 'No'));
+    $lines[] = (' Gitignore file:        ' . ($this->gitignoreCustom ?: 'No'));
     $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
     if ($this->cleanupStale) {
       $label = count($this->cleanupPatterns) === 1 ? 'pattern' : 'patterns';
@@ -579,7 +579,7 @@ class ArtifactCommand extends Command {
     $lines[] = ' Source repository: ' . $this->sourceDir;
     $lines[] = ' Remote repository: ' . $this->remoteUrl;
     $lines[] = ' Remote branch:     ' . $this->destinationBranch;
-    $lines[] = ' Gitignore file:    ' . ($this->gitignoreFile ?: 'No');
+    $lines[] = ' Gitignore file:    ' . ($this->gitignoreCustom ?: 'No');
     $lines[] = ' Commit message:    ' . $this->commitMessage;
     $lines[] = ' Push result:       ' . ($result ? 'Success' : 'Failure');
     $lines[] = '----------------------------------------------------------------------';
