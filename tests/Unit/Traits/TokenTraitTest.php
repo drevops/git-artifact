@@ -83,7 +83,6 @@ class TokenTraitTest extends UnitTestCase {
     };
 
     $actual = $this->callProtectedMethod($test_class, 'tokenExists', [$string]);
-    $this->assertEquals($expected, $actual);
     $this->assertSame($expected, $actual);
   }
 
