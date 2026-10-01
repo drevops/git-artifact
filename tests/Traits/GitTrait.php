@@ -224,7 +224,7 @@ trait GitTrait {
    *   Remote name to assert.
    */
   protected function gitAssertRemoteNotExists(string $path, string $remote): void {
-    $remotes = (new Git())->open($path)->run('remote')->getErrorOutputAsString() ?: '';
+    $remotes = (new Git())->open($path)->run('remote')->getOutputAsString() ?: '';
     $this->assertStringNotContainsString($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
   }
 
