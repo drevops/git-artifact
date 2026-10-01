@@ -418,7 +418,7 @@ class ArtifactCommand extends Command {
    */
   protected function resolveOptions(string $url, array $options): void {
     if (!empty($options['root']) && is_scalar($options['root'])) {
-      $this->fsSetRootDir(strval($options['root']));
+      $this->fsSetRootDir((string) $options['root']);
     }
 
     $this->remoteUrl = $url;
@@ -604,7 +604,7 @@ class ArtifactCommand extends Command {
         break;
 
       case self::MODE_BRANCH:
-        if (is_scalar($options['branch'] ?? NULL) && !self::tokenExists(strval($options['branch']))) {
+        if (is_scalar($options['branch'] ?? NULL) && !self::tokenExists((string) $options['branch'])) {
           $this->output->writeln('<comment>WARNING! Provided branch name does not have a token.
                     Pushing of the artifact into this branch will fail on second and follow-up pushes to remote.
                     Consider adding tokens with unique values to the branch name.</comment>');

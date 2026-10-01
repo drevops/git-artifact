@@ -21,7 +21,7 @@ trait TokenTrait {
    */
   protected function tokenProcess(string $string): string {
     $processed = preg_replace_callback('/(?:\[([^\]]+)\])/', function (array $match): string {
-      $replacement = strval($match[0]);
+      $replacement = (string) $match[0];
 
       if (!empty($match[1])) {
         $parts = explode(':', $match[1], 2);
