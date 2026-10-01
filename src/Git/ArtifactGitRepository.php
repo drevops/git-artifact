@@ -384,12 +384,12 @@ class ArtifactGitRepository extends GitRepository {
   public function removeIgnoredFiles(): static {
     $files = [];
 
-    if ($this->gitignore !== NULL && file_exists($this->gitignore)) {
+    if ($this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
       $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
       $files = array_merge($files, array_filter($files));
     }
 
-    if ($this->gitignore !== NULL && file_exists($this->gitignore)) {
+    if ($this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
       $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
       $files = array_merge($files, array_filter($files));
     }
@@ -680,7 +680,7 @@ class ArtifactGitRepository extends GitRepository {
    * Restore .gitignore content to custom .gitignore file if it existed.
    */
   public function restoreGitignoreToCustom(): static {
-    if ($this->gitignoreCustom !== NULL && $this->gitignore !== NULL && file_exists($this->gitignore)) {
+    if ($this->gitignoreCustom !== NULL && $this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
       $this->logger->debug(sprintf('Restoring custom .gitignore file from %s to %s', $this->gitignore, $this->gitignoreCustom));
       $this->fs->rename($this->gitignore, $this->gitignoreCustom, TRUE);
     }
