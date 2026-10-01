@@ -78,6 +78,7 @@ Integration tests that verify end-to-end functionality:
 - Uses PHPStan level 9 for static analysis  
 - Rector for automated code modernization to PHP 8.2+
 - PSR-4 autoloading: `DrevOps\GitArtifact\` namespace maps to `src/`
+- Console output, log entries and exception messages are sentences that end with a period, and every interpolated value is wrapped in double quotes, each item of a list included: `Deleted stale branch "%s".` Label-value lines such as `Commit: <hash>` and the info and report table rows are data, so they take neither.
 
 ## Key Dependencies
 
