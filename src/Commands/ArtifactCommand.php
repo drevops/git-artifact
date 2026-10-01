@@ -190,7 +190,7 @@ class ArtifactCommand extends Command {
       ->addOption('dry-run',                NULL, InputOption::VALUE_NONE,     'Run without pushing to the remote repository.')
       ->addOption('gitignore',              NULL, InputOption::VALUE_REQUIRED, 'Path to gitignore file to replace current .gitignore. Leave empty to use current .gitignore.')
       ->addOption('message',                NULL, InputOption::VALUE_REQUIRED, 'Commit message with optional tokens.', 'Deployment commit')
-      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact packaging: branch, force-push. Defaults to force-push.', static::MODE_FORCE_PUSH)
+      ->addOption('mode',                   NULL, InputOption::VALUE_REQUIRED, 'Mode of artifact packaging: branch, force-push. Defaults to force-push.', self::MODE_FORCE_PUSH)
       ->addOption('no-cleanup',             NULL, InputOption::VALUE_NONE,     'Do not cleanup after run.')
       ->addOption('now',                    NULL, InputOption::VALUE_REQUIRED, 'Internal value used to set internal time.')
       ->addOption('log',                    NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')

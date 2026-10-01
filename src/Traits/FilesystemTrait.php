@@ -99,14 +99,14 @@ trait FilesystemTrait {
    */
   protected function fsGetAbsolutePath(string $file, ?string $root = NULL): string {
     if ($this->fs->isAbsolutePath($file)) {
-      return static::fsRealpath($file);
+      return self::fsRealpath($file);
     }
 
     $root = $root ? $root : $this->fsGetRootDir();
-    $root = static::fsRealpath($root);
+    $root = self::fsRealpath($root);
     $file = $root . DIRECTORY_SEPARATOR . $file;
 
-    return static::fsRealpath($file);
+    return self::fsRealpath($file);
   }
 
   /**
