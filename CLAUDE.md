@@ -40,23 +40,27 @@ The tool supports two deployment modes:
 
 ### Token System
 Supports dynamic token replacement in branch names and commit messages:
-- `[timestamp:FORMAT]` - Current timestamp with PHP date format
+- `[timestamp:FORMAT]` - Current timestamp with PHP date format (defaults to `Y-m-d_H-i-s`)
 - `[branch]` - Current branch name
 - `[safebranch]` - Branch name with non-alphanumeric chars replaced
-- `[tags:DELIMITER]` - Tags from latest commit
+- `[tags:DELIMITER]` - Tags from latest commit (delimiter defaults to `-`)
 
 ## Testing Structure
 
 ### Functional Tests (`tests/Functional/`)
 Integration tests that verify end-to-end functionality:
 - `BranchModeTest.php` - Tests branch mode deployment
+- `CleanupStaleBranchesTest.php` - Tests stale remote branch cleanup
+- `FilePermissionsTest.php` - Tests file permission preservation
 - `ForcePushModeTest.php` - Tests force-push mode deployment  
 - `GeneralTest.php` - General functionality tests
+- `MissingBranchTest.php` - Tests packaging when the source branch cannot be determined
 - `TagTest.php` - Token replacement and tagging tests
 
 ### Unit Tests (`tests/Unit/`)
 - Component-level tests for individual classes
 - Follow PHPUnit conventions with strict typing
+- Mirror the `src/` layout: `tests/Unit/Git/ArtifactGitRepositoryTest.php` tests `src/Git/ArtifactGitRepository.php`
 
 ### Test Fixtures Naming Convention
 - `f*` - Files with counter suffix
@@ -92,5 +96,5 @@ Run specific test classes:
 
 Run specific test methods:
 ```bash
-./vendor/bin/phpunit --filter testTokenReplacement tests/Unit/Traits/TokenTraitTest.php
+./vendor/bin/phpunit --filter testTokenProcess tests/Unit/Traits/TokenTraitTest.php
 ```

@@ -278,8 +278,7 @@ Call from the CI configuration or deployment script:
 ```shell
 export DEPLOY_BRANCH=<YOUR_CI_PROVIDER_BRANCH_VARIABLE>
 ./git-artifact git@github.com:yourorg/your-repo-destination.git \
-  --branch="${DEPLOY_BRANCH}" \
-  --push
+  --branch="${DEPLOY_BRANCH}"
 ```
 
 CI providers may report branches differently when packaging is triggered by tags.
@@ -338,11 +337,11 @@ Both `--branch` and `--message` option values support token replacement.
 
 Available tokens:
 
-- `[timestamp:FORMAT]` - current time with a PHP [`date()`](https://www.php.net/manual/en/function.date.php)-compatible `FORMAT`.
+- `[timestamp:FORMAT]` - current time with a PHP [`date()`](https://www.php.net/manual/en/function.date.php)-compatible `FORMAT`. `FORMAT` defaults to `Y-m-d_H-i-s`.
 - `[branch]` - current branch in the source repository.
 - `[safebranch]` - current branch in the source repository with with all non-alphanumeric characters replaced with `-` and lowercased.
 - `[tags:DELIMITER]` - tags from the latest commit in the source repository
-  separated by a `DELIMITER`.
+  separated by a `DELIMITER`. `DELIMITER` defaults to `-`.
 
 ## Maintenance
 
