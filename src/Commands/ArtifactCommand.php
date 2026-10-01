@@ -122,11 +122,6 @@ class ArtifactCommand extends Command {
   protected bool $packagingSkipped = FALSE;
 
   /**
-   * Flag to specify if push was successful.
-   */
-  protected bool $pushSuccessful = FALSE;
-
-  /**
    * Flag to enable deletion of stale branches in the remote repository.
    */
   protected bool $cleanupStale = FALSE;

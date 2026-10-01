@@ -117,35 +117,6 @@ trait GitTrait {
   }
 
   /**
-   * Get a range of commits.
-   *
-   * @param array<int> $range
-   *   Array of commit indexes, stating from 1.
-   * @param string $path
-   *   Path to the repository directory.
-   *
-   * @return array<string>
-   *   Array of commit hashes, ordered by keys in the $range.
-   *
-   * @throws \Exception
-   */
-  protected function gitGetCommitsRange(array $range, string $path): array {
-    $ret = [];
-
-    $commits = $this->gitGetAllCommits($path);
-
-    array_walk($range, static function (int &$v): void {
-      --$v;
-    });
-
-    foreach ($range as $key) {
-      $ret[] = $commits[$key];
-    }
-
-    return $ret;
-  }
-
-  /**
    * Create fixture tag with specified name and optional annotation.
    *
    * Annotated tags and lightweight tags have a different object

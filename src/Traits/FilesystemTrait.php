@@ -23,17 +23,6 @@ trait FilesystemTrait {
   protected Filesystem $fs;
 
   /**
-   * Stack of original current working directories.
-   *
-   * This is used throughout commands to track working directories.
-   * Usually, each command would call setCwd() in the beginning and
-   * restoreCwd() at the end of the run.
-   *
-   * @var array<string>
-   */
-  protected array $fsOriginalCwdStack = [];
-
-  /**
    * Set root directory path.
    *
    * @param string|null $path
