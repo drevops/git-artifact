@@ -124,7 +124,7 @@ trait FilesystemTrait {
    * @throws \Exception
    *   If at least one file does not exist.
    */
-  protected function fsAssertPathsExist($paths, bool $strict = TRUE): bool {
+  protected function fsAssertPathsExist(string|array $paths, bool $strict = TRUE): bool {
     $paths = is_array($paths) ? $paths : [$paths];
 
     if (!$this->fs->exists($paths)) {
