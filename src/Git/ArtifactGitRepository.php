@@ -386,7 +386,6 @@ class ArtifactGitRepository extends GitRepository {
 
     if ($this->gitignore !== NULL && $this->fs->exists($this->gitignore)) {
       $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
-      $files = array_merge($files, array_filter($files));
     }
 
     // Symlinks are not returned by the command above. We need to find them
