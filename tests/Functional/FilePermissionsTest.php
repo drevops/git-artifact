@@ -38,7 +38,7 @@ class FilePermissionsTest extends FunctionalTestCase {
 
     $this->gitCommitAll($this->src, 'Added files with various permissions');
 
-    $this->assertArtifactCommandSuccess(['--branch' => 'testbranch']);
+    $this->assertArtifactCommandSuccess();
 
     $this->gitCheckout($this->dst, 'testbranch');
 
