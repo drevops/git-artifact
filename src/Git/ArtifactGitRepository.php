@@ -629,7 +629,7 @@ class ArtifactGitRepository extends GitRepository {
    */
   protected static function matchesPattern(string $pattern, string $subject): bool {
     if (self::isRegexPattern($pattern)) {
-      return preg_match($pattern, $subject) === 1;
+      return (bool) preg_match($pattern, $subject);
     }
 
     return self::matchesGlob($pattern, $subject);
