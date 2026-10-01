@@ -14,7 +14,7 @@ class TokenTest extends UnitTestCase {
 
   #[DataProvider('dataProviderTokenProcess')]
   public function testTokenProcess(string $string, string $expected): void {
-    $class = new class() {
+    $test_class = new class() {
 
       use TokenTrait;
 
@@ -24,7 +24,7 @@ class TokenTest extends UnitTestCase {
 
     };
 
-    $actual = $this->callProtectedMethod($class, 'tokenProcess', [$string]);
+    $actual = $this->callProtectedMethod($test_class, 'tokenProcess', [$string]);
     $this->assertEquals($expected, $actual);
   }
 
@@ -77,12 +77,12 @@ class TokenTest extends UnitTestCase {
 
   #[DataProvider('dataProviderTokenExists')]
   public function testTokenExists(string $string, bool $expected): void {
-    $class = new class() {
+    $test_class = new class() {
 
       use TokenTrait;
     };
 
-    $actual = $this->callProtectedMethod($class, 'tokenExists', [$string]);
+    $actual = $this->callProtectedMethod($test_class, 'tokenExists', [$string]);
     $this->assertEquals($expected, $actual);
     $this->assertSame($expected, $actual);
   }
