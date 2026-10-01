@@ -104,7 +104,7 @@ class MissingBranchTest extends FunctionalTestCase {
    *
    * Verifies that normal operation still works when branch is available.
    */
-  public function testNormalDeploymentWithBranch(): void {
+  public function testPackageWithBranch(): void {
     $this->gitCreateFixtureCommits(1);
 
     // Normal artifact packaging with existing branch should work.
@@ -124,7 +124,7 @@ class MissingBranchTest extends FunctionalTestCase {
    * When checked out at a tag, getOriginalBranch() should validate that
    * the tag exists and allow artifact packaging to proceed.
    */
-  public function testDeploymentWithTagDetachedHead(): void {
+  public function testPackageWithTagDetachedHead(): void {
     $this->gitCreateFixtureCommits(1);
 
     $repo = (new Git())->open($this->src);
