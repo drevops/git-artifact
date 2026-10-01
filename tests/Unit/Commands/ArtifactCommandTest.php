@@ -84,7 +84,7 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->setProtectedValue($command, 'now', 100000000);
     $this->setProtectedValue($command, 'remoteName', 'dst');
     $this->setProtectedValue($command, 'destinationBranch', 'main');
-    $this->setProtectedValue($command, 'dryRun', FALSE);
+    $this->setProtectedValue($command, 'isDryRun', FALSE);
     $this->setProtectedValue($command, 'output', $output);
     $this->setProtectedValue($command, 'logger', new NullLogger());
 
