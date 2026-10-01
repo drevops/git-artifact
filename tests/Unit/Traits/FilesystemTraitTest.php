@@ -136,9 +136,20 @@ class FilesystemTraitTest extends UnitTestCase {
       throw new \RuntimeException('Failed to determine current working directory.');
     }
 
-    do {
-      $tmp_dir = sprintf('%s%s%s%s', sys_get_temp_dir(), DIRECTORY_SEPARATOR, 'unit', rand(100000, getrandmax()));
-    } while (!mkdir($tmp_dir, 0755, TRUE));
+    $tmp_dir = NULL;
+
+    for ($attempt = 0; $attempt < 10; $attempt++) {
+      $candidate = sprintf('%s%s%s%s', sys_get_temp_dir(), DIRECTORY_SEPARATOR, 'unit', rand(100000, getrandmax()));
+
+      if (mkdir($candidate, 0755, TRUE)) {
+        $tmp_dir = $candidate;
+        break;
+      }
+    }
+
+    if ($tmp_dir === NULL) {
+      throw new \RuntimeException('Failed to create a temporary directory.');
+    }
 
     $tmp_realpath = realpath($tmp_dir) ?: $tmp_dir;
 
