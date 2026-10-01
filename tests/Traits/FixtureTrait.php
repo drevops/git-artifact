@@ -27,7 +27,7 @@ trait FixtureTrait {
    *   Optional root directory.
    */
   protected function fixtureInit(?string $name = NULL, ?string $root = NULL): void {
-    $name = $name ?? get_class($this);
+    $name = $name ?? $this::class;
     $root = $root ?? sys_get_temp_dir();
     $this->fixtureDir = $root . DIRECTORY_SEPARATOR . $name . '-' . date('U') . '-' . getmypid();
   }
