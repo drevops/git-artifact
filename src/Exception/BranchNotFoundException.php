@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrevOps\GitArtifact\Exceptions;
+namespace DrevOps\GitArtifact\Exception;
 
 /**
  * Exception when branch cannot be determined.

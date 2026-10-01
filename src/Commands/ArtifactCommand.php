@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Commands;
 
 use CzProject\GitPhp\GitException;
-use DrevOps\GitArtifact\Exceptions\BranchNotFoundException;
+use DrevOps\GitArtifact\Exception\BranchNotFoundException;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
 use DrevOps\GitArtifact\Traits\LoggerTrait;
