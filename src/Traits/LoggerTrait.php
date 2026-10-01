@@ -38,11 +38,12 @@ trait LoggerTrait {
    *   Output interface.
    */
   protected function loggerInit(string $name, InputInterface $input, OutputInterface $output): void {
+    $this->loggerDumpFile = '';
+
     if ($input->getOption('log')) {
       $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+      $this->loggerDumpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-' . getmypid() . '-artifact-log.log';
     }
-
-    $this->loggerDumpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . time() . '-artifact-log.log';
 
     $this->logger = new Logger($name);
 
