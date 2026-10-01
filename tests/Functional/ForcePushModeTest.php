@@ -184,9 +184,15 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitAssertFilesCommitted($this->src, ['.gitignore', 'f1', 'f2', 'd_cc/cc', 'd_cc/ci']);
     $this->gitAssertFilesNotCommitted($this->src, ['ii', 'ic', 'ui', 'uc']);
 
-    $this->fixtureCreateFile($this->src, 'mygitignore', ['f1', 'ii', 'ci', 'ui']);
+    $gitignore_custom = $this->fixtureCreateFile($this->src, 'mygitignore', ['f1', 'ii', 'ci', 'ui']);
+    $gitignore = $this->src . DIRECTORY_SEPARATOR . '.gitignore';
 
-    $this->assertArtifactCommandSuccess(['--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore']);
+    $output = $this->assertArtifactCommandSuccess(['--gitignore' => $gitignore_custom, '-vvv' => TRUE]);
+
+    $this->assertStringContainsString(sprintf('Copying custom .gitignore file from "%s" to "%s".', $gitignore_custom, $gitignore), $output);
+    $this->assertStringContainsString(sprintf('Removing ignored file "%s".', $this->src . DIRECTORY_SEPARATOR . 'f1'), $output);
+    $this->assertStringContainsString(sprintf('Removing ignored file "%s".', $this->src . DIRECTORY_SEPARATOR . 'd_cc/ci'), $output);
+    $this->assertStringContainsString(sprintf('Restoring custom .gitignore file from "%s" to "%s".', $gitignore, $gitignore_custom), $output);
 
     $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
     $this->gitAssertFilesCommitted($this->dst, ['.gitignore', 'f2', 'ic', 'd_cc/cc', 'uc'], 'testbranch');

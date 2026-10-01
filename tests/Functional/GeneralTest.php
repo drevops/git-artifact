@@ -116,6 +116,8 @@ class GeneralTest extends FunctionalTestCase {
     ]);
 
     $this->assertStringContainsString('Debug messages enabled.', $output);
+    $this->assertStringContainsString('Checking requirements.', $output);
+    $this->assertStringContainsString('All requirements were met.', $output);
     $this->assertStringContainsString('Artifact information', $output);
     $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, $output);
     $this->assertStringContainsString('Source repository:     ' . $this->src, $output);
@@ -130,6 +132,7 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $output);
     $this->assertStringContainsString('Gitignore file:    No', $output);
     $this->assertStringContainsString('Push result:       Success', $output);
+    $this->assertStringContainsString('Cleaning up.', $output);
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
     $this->gitCheckout($this->dst, $this->currentBranch);
