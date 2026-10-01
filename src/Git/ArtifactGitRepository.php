@@ -486,7 +486,7 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Check if provided remote url is local path or remote URI.
    *
-   * @param string $uri
+   * @param string $url
    *   Local path or remote URL.
    * @param string $type
    *   One of the predefined types:
@@ -499,11 +499,11 @@ class ArtifactGitRepository extends GitRepository {
    *
    * @throws \Exception
    */
-  public static function isValidRemote(string $uri, string $type = 'any'): bool {
+  public static function isValidRemote(string $url, string $type = 'any'): bool {
     $filesystem = new Filesystem();
 
-    $is_local = $filesystem->exists($uri);
-    $is_external = (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $uri);
+    $is_local = $filesystem->exists($url);
+    $is_external = (bool) preg_match('/^(?:git|ssh|https?|[\d\w\.\-_]+@[\w\.\-]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-_]+?)$/', $url);
 
     return match ($type) {
       'any' => $is_local || $is_external,
