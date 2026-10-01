@@ -79,13 +79,13 @@ class FilesystemTraitTest extends TestCase {
     $test_class = new FilesystemTraitTestClass();
 
     // Test with existing file.
-    $temp_file = tempnam(sys_get_temp_dir(), 'test');
-    $result = $test_class->callFsAssertPathsExist($temp_file, TRUE);
+    $tmp_file = tempnam(sys_get_temp_dir(), 'test');
+    $result = $test_class->callFsAssertPathsExist($tmp_file, TRUE);
 
     $this->assertTrue($result);
 
     // Clean up.
-    unlink($temp_file);
+    unlink($tmp_file);
   }
 
   /**
@@ -118,16 +118,16 @@ class FilesystemTraitTest extends TestCase {
     $test_class = new FilesystemTraitTestClass();
 
     // Create temporary files.
-    $temp_file1 = tempnam(sys_get_temp_dir(), 'test1');
-    $temp_file2 = tempnam(sys_get_temp_dir(), 'test2');
+    $tmp_file1 = tempnam(sys_get_temp_dir(), 'test1');
+    $tmp_file2 = tempnam(sys_get_temp_dir(), 'test2');
 
-    $result = $test_class->callFsAssertPathsExist([$temp_file1, $temp_file2], TRUE);
+    $result = $test_class->callFsAssertPathsExist([$tmp_file1, $tmp_file2], TRUE);
 
     $this->assertTrue($result);
 
     // Clean up.
-    unlink($temp_file1);
-    unlink($temp_file2);
+    unlink($tmp_file1);
+    unlink($tmp_file2);
   }
 
   /**
