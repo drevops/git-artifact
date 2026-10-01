@@ -24,15 +24,15 @@ trait ConsoleTrait {
   /**
    * Initialize application tester.
    *
-   * @param string|object $object_or_class
+   * @param object|string $object
    *   Command class or object.
    * @param bool $is_single_command
    *   Is single command. Defaults to TRUE.
    */
-  protected function consoleInitApplicationTester(string|object $object_or_class, bool $is_single_command = TRUE): void {
+  protected function consoleInitApplicationTester(object|string $object, bool $is_single_command = TRUE): void {
     $application = new Application();
 
-    $instance = is_object($object_or_class) ? $object_or_class : new $object_or_class();
+    $instance = is_object($object) ? $object : new $object();
     if (!$instance instanceof Command) {
       throw new \InvalidArgumentException('The provided object is not an instance of Command');
     }
