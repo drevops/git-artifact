@@ -41,11 +41,7 @@ trait ConsoleTrait {
 
     $name = $instance->getName();
     if (empty($name)) {
-      $ret = $this->getProtectedValue($instance, 'defaultName');
-      if (!empty($ret) || !is_string($ret)) {
-        throw new \InvalidArgumentException('The provided object does not have a valid name');
-      }
-      $name = $ret;
+      throw new \InvalidArgumentException('The provided object does not have a valid name');
     }
 
     $application->setDefaultCommand($name, $is_single_command);
