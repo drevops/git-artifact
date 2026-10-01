@@ -21,6 +21,9 @@ trait GitTrait {
    *
    * @param string $path
    *   Path to the repository directory.
+   *
+   * @return \CzProject\GitPhp\GitRepository
+   *   The initialized repository.
    */
   protected function gitInitRepo(string $path): GitRepository {
     (new Filesystem())->mkdir($path);
@@ -80,15 +83,15 @@ trait GitTrait {
   }
 
   /**
-   * Get all commit hashes in the repository.
+   * Get all commits in the repository.
    *
    * @param string $path
    *   Path to the repository directory.
    * @param string $format
-   *   Format of commits.
+   *   Format of commits. Defaults to the commit subject.
    *
    * @return array<string>
-   *   Array of commit hashes, sorted from the earliest to the latest commit.
+   *   Commits in $format, sorted from the earliest to the latest commit.
    *
    * @throws \Exception
    */
@@ -121,11 +124,11 @@ trait GitTrait {
    * some tests.
    *
    * @param string $path
-   *   Optional path to the repository directory.
+   *   Path to the repository directory.
    * @param string $name
    *   Tag name.
    * @param bool $annotate
-   *   Optional flag to add random annotation to the tag. Defaults to FALSE.
+   *   Whether to create an annotated tag. Defaults to FALSE.
    */
   protected function gitAddTag(string $path, string $name, bool $annotate = FALSE): void {
     $repo = (new Git())->open($path);

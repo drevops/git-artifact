@@ -8,9 +8,6 @@ use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * Class ForcePushTest.
- */
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
 class ForcePushModeTest extends FunctionalTestCase {
@@ -160,11 +157,8 @@ class ForcePushModeTest extends FunctionalTestCase {
     // cleanup of the previous run.
     $this->gitReset($this->src);
 
-    // Now, remove the .gitignore and push again.
-    // We have to create 'uic' file since it was rightfully
-    // removed during previous packaging run and the source repo branch was not
-    // reset (uncommitted files would be removed, unless they are excluded
-    // in .gitignore).
+    // Recreate 'uic', which the previous run removed as an ignored file, and
+    // package again without the custom .gitignore.
     $this->fixtureCreateFile($this->src, 'uic');
     $this->fixtureRemoveFile($this->src, 'mygitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');

@@ -34,7 +34,6 @@ class MissingBranchTest extends FunctionalTestCase {
     // The orphan branch is deleted, so the checked-out commit is on no branch.
     $repo->checkout($commit_hash);
 
-    // Use explicit branch name (no tokens) to avoid token processing issues.
     $output = $this->runArtifactCommand([
       '--branch' => 'testbranch',
       '--dry-run' => TRUE,
@@ -67,7 +66,6 @@ class MissingBranchTest extends FunctionalTestCase {
     // The orphan branch is deleted, so the checked-out commit is on no branch.
     $repo->checkout($commit_hash);
 
-    // Use explicit branch name (no tokens) to avoid token processing issues.
     $output = $this->runArtifactCommand([
       '--branch' => 'testbranch',
       '--fail-on-missing-branch' => TRUE,

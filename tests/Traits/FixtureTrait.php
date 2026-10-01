@@ -34,14 +34,14 @@ trait FixtureTrait {
    * Create fixture file at provided path.
    *
    * @param string $path
-   *   File path.
+   *   Directory to create the file in.
    * @param string $name
    *   Optional file name.
    * @param string|array<string> $content
    *   Optional file content.
    *
    * @return string
-   *   Created file name.
+   *   Path to the created file.
    */
   protected function fixtureCreateFile(string $path, string $name = '', string|array $content = ''): string {
     $fs = new Filesystem();
@@ -67,7 +67,7 @@ trait FixtureTrait {
    * Remove fixture file at provided path.
    *
    * @param string $path
-   *   File path.
+   *   Directory that contains the file.
    * @param string $name
    *   File name.
    */

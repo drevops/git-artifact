@@ -155,7 +155,6 @@ class FilesystemTraitTest extends UnitTestCase {
 
       ['file.txt', $cwd . DIRECTORY_SEPARATOR . 'file.txt'],
 
-      // Parent directory resolution.
       ['../file.txt', dirname($cwd) . DIRECTORY_SEPARATOR . 'file.txt'],
       ['./file.txt', $cwd . DIRECTORY_SEPARATOR . 'file.txt'],
 

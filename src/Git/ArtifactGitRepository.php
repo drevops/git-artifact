@@ -77,7 +77,7 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Set gitignore file.
+   * Set the custom gitignore file path.
    */
   public function setGitignoreCustom(string $filename): static {
     $this->gitignoreCustom = $filename;
@@ -108,7 +108,7 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Switch to new branch.
+   * Switch to a branch, optionally creating it first.
    *
    * @param string $branch
    *   Branch name.
@@ -298,7 +298,7 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Get tag pointing to HEAD.
+   * Get tags pointing to HEAD.
    *
    * @return string[]
    *   Array of tags from the latest commit.

@@ -79,7 +79,7 @@ trait FilesystemTrait {
    * Get absolute path for provided file.
    *
    * @param string $file
-   *   File to resolve. If absolute, no resolution will be performed.
+   *   File to resolve. An absolute path is not prefixed with the root dir.
    * @param string|null $root
    *   Optional path to root dir. If not provided, internal root path is used.
    *

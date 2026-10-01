@@ -155,9 +155,9 @@ class ArtifactCommand extends Command {
    * Artifact constructor.
    *
    * @param string|null $name
-   *   File system.
-   * @param \Symfony\Component\Filesystem\Filesystem $fs
    *   Command name.
+   * @param \Symfony\Component\Filesystem\Filesystem|null $fs
+   *   File system.
    */
   public function __construct(
     ?string $name = NULL,
@@ -555,7 +555,10 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Dump artifact report to a file.
+   * Log the artifact report.
+   *
+   * @param bool $result
+   *   Whether the packaging run finished without an error.
    */
   protected function showReport(bool $result): void {
     $lines[] = '----------------------------------------------------------------------';

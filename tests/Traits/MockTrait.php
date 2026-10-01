@@ -14,14 +14,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 trait MockTrait {
 
   /**
-   * Helper to prepare class or trait mock.
+   * Prepare a class mock.
    *
    * @param class-string $class
-   *   Class or trait name to generate the mock.
+   *   Class name to generate the mock for.
    * @param array<string, scalar|\Closure> $methods
-   *   Optional array of methods and values, keyed by method name. Array
-   *   elements can be return values, callbacks created with
-   *   $this->willReturnCallback(), or closures.
+   *   Optional array of return values or closures, keyed by method name. A
+   *   closure is called to produce the return value.
    * @param bool|array<mixed> $args
    *   Optional array of constructor arguments or FALSE to disable the original
    *   constructor. If omitted, an original constructor will be called.

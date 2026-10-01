@@ -10,15 +10,14 @@ namespace DrevOps\GitArtifact\Tests\Traits;
 trait ArrayTrait {
 
   /**
-   * Asserts that two associative arrays are similar.
+   * Asserts that 2 arrays hold the same values, ignoring order.
    *
-   * Both arrays must have the same indexes with identical values
-   * without respect to key ordering.
+   * Nested arrays are compared recursively under the same key.
    *
    * @param array $expected
-   *   Expected assert.
+   *   Expected array.
    * @param array $array
-   *   The array want to assert.
+   *   Array to assert.
    */
   protected function assertArraySimilar(array $expected, array $array): void {
     $this->assertEquals([], array_diff($array, $expected));
