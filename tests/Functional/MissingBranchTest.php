@@ -127,13 +127,11 @@ class MissingBranchTest extends FunctionalTestCase {
   public function testPackageWithTagDetachedHead(): void {
     $this->gitCreateFixtureCommits(1);
 
-    $repo = (new Git())->open($this->src);
-
     // Create a tag at the current commit.
-    $repo->run('tag', 'v1.0.0');
+    $this->gitAddTag($this->src, 'v1.0.0');
 
     // Checkout the tag to enter detached HEAD state.
-    $repo->checkout('v1.0.0');
+    $this->gitCheckout($this->src, 'v1.0.0');
 
     // Artifact packaging should work because tag is a valid detachment source.
     $output = $this->assertArtifactCommandSuccess();
