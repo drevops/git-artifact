@@ -59,7 +59,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->fixtureCreateFile($this->src, 'c');
     $this->gitCommitAll($this->src, 'Commit number 3');
 
-    $this->gitInitRepo($this->src . DIRECTORY_SEPARATOR . 'r1/');
+    $this->gitInitRepo($this->src . DIRECTORY_SEPARATOR . 'r1');
     $this->fixtureCreateFile($this->src, 'r1/c');
 
     $this->gitInitRepo($this->src . DIRECTORY_SEPARATOR . 'r2/r21');
@@ -70,7 +70,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->assertFilesExist($this->src, ['r1/c']);
     $this->assertFilesNotExist($this->src, ['r1/.git/index']);
-    $this->assertFilesNotExist($this->src, ['r2/r21.git/index']);
+    $this->assertFilesNotExist($this->src, ['r2/r21/.git/index']);
     $this->assertFilesNotExist($this->src, ['r3/r31/r311/.git/index']);
 
     $output = $this->assertArtifactCommandSuccess(['-vvv' => TRUE]);
@@ -86,8 +86,8 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertFilesNotExist($this->dst, ['r1/.git']);
     $this->assertFilesNotExist($this->dst, ['r2/r21/.git/index']);
     $this->assertFilesNotExist($this->dst, ['r2/r21/.git']);
-    $this->assertFilesNotExist($this->dst, ['r3/r31/311/.git/index']);
-    $this->assertFilesNotExist($this->dst, ['r3/r31/311/.git']);
+    $this->assertFilesNotExist($this->dst, ['r3/r31/r311/.git/index']);
+    $this->assertFilesNotExist($this->dst, ['r3/r31/r311/.git']);
   }
 
   public function testCleanupAfterSuccess(): void {
