@@ -272,7 +272,7 @@ class ArtifactGitRepository extends GitRepository {
     }
 
     foreach ($lines as $line) {
-      if (preg_match('#^ref:\s+refs/heads/(\S+)\s+HEAD#', $line, $matches)) {
+      if (preg_match('/^ref:\s+refs\/heads\/(\S+)\s+HEAD/', $line, $matches)) {
         return $matches[1];
       }
     }
