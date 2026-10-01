@@ -314,6 +314,15 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertArtifactCommandSuccess(['--branch' => '[safebranch]'], 'feature-so1me-f3ature');
   }
 
+  public function testPackageTimestamp(): void {
+    $this->gitCreateFixtureCommits(2);
+
+    $branch = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
+    $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp]'], $branch);
+
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch, ['Deployment commit']);
+  }
+
   public function testPackageTag(): void {
     $this->gitCreateFixtureCommits(2);
     $this->gitAddTag($this->src, 'tag1');

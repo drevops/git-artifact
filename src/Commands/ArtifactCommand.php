@@ -685,13 +685,15 @@ class ArtifactCommand extends Command {
   /**
    * Token callback to get current timestamp.
    *
-   * @param string $format
-   *   Date format suitable for date() function.
+   * @param string|null $format
+   *   Date format suitable for date() function. Defaults to 'Y-m-d_H-i-s'.
    *
    * @return string
    *   Date string.
    */
-  protected function getTokenTimestamp(string $format = 'Y-m-d_H-i-s'): string {
+  protected function getTokenTimestamp(?string $format = NULL): string {
+    $format = $format ?? 'Y-m-d_H-i-s';
+
     return date($format, $this->now);
   }
 
