@@ -219,12 +219,12 @@ class ArtifactCommand extends Command {
 
     $this->loggerInit((string) $this->getName(), $input, $output);
 
-    $remote = $input->getArgument('remote');
-    if (!is_string($remote) || empty(trim($remote))) {
-      throw new \RuntimeException('Remote argument must be a non-empty string');
-    }
-
     try {
+      $remote = $input->getArgument('remote');
+      if (!is_string($remote) || empty(trim($remote))) {
+        throw new \RuntimeException('Remote argument must be a non-empty string');
+      }
+
       $this->checkRequirements();
 
       $this->resolveOptions($remote, $input->getOptions());
