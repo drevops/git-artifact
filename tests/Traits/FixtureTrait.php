@@ -7,8 +7,6 @@ namespace DrevOps\GitArtifact\Tests\Traits;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Trait FixtureTrait.
- *
  * Helpers to work with fixture files.
  */
 trait FixtureTrait {

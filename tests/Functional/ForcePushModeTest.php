@@ -110,7 +110,6 @@ class ForcePushModeTest extends FunctionalTestCase {
   }
 
   public function testGitignore(): void {
-    // This .gitignore is a part of the initial fixture.
     $this->fixtureCreateFile($this->src, '.gitignore', [
       'f3_i',
       '.f3_i',
@@ -130,7 +129,6 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertFilesNotExist($this->dst, ['f3_i', '.f3_i'], 'Ignored files do not exist at DST');
     $this->assertFilesExist($this->dst, ['f3', '.f3'], 'Non-ignored files exist at DST');
 
-    // Now, remove the .gitignore and push again.
     $this->fixtureRemoveFile($this->src, '.gitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
     $this->assertArtifactCommandSuccess();
@@ -150,7 +148,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->assertArtifactCommandSuccess(['--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore']);
     $this->assertFilesExist($this->src, ['mygitignore', 'uc']);
-    // Not possible to restore the file that was previuosly ignored and removed.
+    // A previously ignored and removed file cannot be restored.
     // @todo Fix this by copying the original SRC to a temporary location.
     $this->assertFilesNotExist($this->src, ['uic']);
 
@@ -158,9 +156,8 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertFilesNotExist($this->dst, 'uic');
     $this->assertFilesExist($this->dst, 'uc');
 
-    // Reset the source repository to make sure that there are no uncommitted
-    // files that could have left after the cleanup operation within previous
-    // run.
+    // Reset the source repository, so no uncommitted files remain from the
+    // cleanup of the previous run.
     $this->gitReset($this->src);
 
     // Now, remove the .gitignore and push again.
@@ -256,8 +253,6 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->fixtureCreateFile($this->src, 'd_uc/sub_uc');
     $this->fixtureCreateFile($this->src, 'd_ud/sub_ud');
 
-    // Now, create a custom .gitignore and add non-ignored files
-    // (allowlisting).
     $this->fixtureCreateFile($this->src, 'mygitignore', [
       '/*',
       '!f2', '!ic', '!cc', '!uc',
@@ -266,7 +261,6 @@ class ForcePushModeTest extends FunctionalTestCase {
       'dir_other/node_modules',
     ]);
 
-    // Run the packaging.
     $this->assertArtifactCommandSuccess([
       '-vvv' => TRUE,
       '--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore',

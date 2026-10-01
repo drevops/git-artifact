@@ -41,7 +41,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitCreateFixtureCommits(3, 2);
     $this->assertArtifactCommandFailure();
 
-    // Make sure that broken artifact was not pushed.
+    // The failed run does not push the broken artifact.
     $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
   }
 
@@ -64,7 +64,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->assertStringContainsString('Remote branch:         ' . $branch2, $output);
     $this->gitAssertFixtureCommits($this->dst, 5, $branch2, ['Deployment commit']);
 
-    // Also, check that no changes were done to branch1.
+    // The second push leaves $branch1 unchanged.
     $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
   }
 
@@ -102,7 +102,6 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
 
-    // Now, remove the .gitignore and push again.
     $this->fixtureRemoveFile($this->src, '.gitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
     $this->now -= rand(1, 10 * 60);
@@ -111,7 +110,7 @@ class BranchModeTest extends FunctionalTestCase {
 
     $this->gitAssertFixtureCommits($this->dst, 3, $branch2, ['Deployment commit']);
 
-    // Assert that branch from previous deployment was not affected.
+    // The second push leaves $branch1 unchanged.
     $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
   }
@@ -131,7 +130,6 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
 
-    // Now, remove the .gitignore and push again.
     $this->fixtureCreateFile($this->src, 'f3');
     $this->fixtureRemoveFile($this->src, 'mygitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
@@ -141,7 +139,7 @@ class BranchModeTest extends FunctionalTestCase {
 
     $this->gitAssertFixtureCommits($this->dst, 3, $branch2, ['Deployment commit']);
 
-    // Assert that branch from previous deployment was not affected.
+    // The second push leaves $branch1 unchanged.
     $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
   }

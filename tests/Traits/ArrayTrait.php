@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Tests\Traits;
 
 /**
- * Trait ArrayTrait.
- *
  * Helpers to work with arrays.
  */
 trait ArrayTrait {

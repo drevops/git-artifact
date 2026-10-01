@@ -135,7 +135,7 @@ class ArtifactGitRepository extends GitRepository {
    *   Force remove or not.
    *
    * @return static
-   *   Git repository
+   *   Git repository.
    */
   public function removeBranch($name, bool $force = FALSE): static {
     if (empty($name)) {
@@ -173,7 +173,7 @@ class ArtifactGitRepository extends GitRepository {
   public function commitAllChanges(string $message): array {
     $this->addAllChanges();
 
-    // We do not use the commit method because we need return the output.
+    // Use execute() instead of commit() to return the command output.
     return $this->execute('commit', '--allow-empty', [
       '-m' => $message,
     ]);
@@ -220,9 +220,9 @@ class ArtifactGitRepository extends GitRepository {
   /**
    * Get remote branches with their tip commit timestamps.
    *
-   * A shallow fetch populates the remote-tracking refs; only the tip commit
+   * A shallow fetch populates the remote-tracking refs. Only the tip commit
    * metadata is required to determine branch age, so the fetch is limited to a
-   * depth of one.
+   * depth of 1.
    *
    * @param string $remote
    *   Remote name.
@@ -317,21 +317,19 @@ class ArtifactGitRepository extends GitRepository {
   }
 
   /**
-   * Ger original branch, accounting for detached repository state.
+   * Get original branch, accounting for detached repository state.
    *
-   * Usually, repository become detached when a tag is checked out.
+   * A repository usually becomes detached when a tag is checked out.
    *
    * @return string
    *   Branch or detachment source.
    *
    * @throws \Exception
-   *   If neither branch nor detachment source is not found.
+   *   If neither a branch nor a detachment source is found.
    */
   public function getOriginalBranch(): string {
     $branch = $this->getCurrentBranchName();
 
-    // Repository could be in detached state. If this the case - we need to
-    // capture the source of detachment, if it exists.
     if (str_contains($branch, 'HEAD detached')) {
       $branch = NULL;
       $branches = $this->getBranches();
@@ -346,7 +344,6 @@ class ArtifactGitRepository extends GitRepository {
       }
 
       if (empty($branch)) {
-        // Get current commit hash.
         $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
         throw new BranchNotFoundException(
@@ -355,9 +352,8 @@ class ArtifactGitRepository extends GitRepository {
         );
       }
 
-      // Validate that the extracted value is actually a branch or tag, not just
-      // a commit hash. If it's only a commit hash, we cannot determine the
-      // original branch.
+      // The extracted value may be a commit hash rather than a branch or tag.
+      // A commit hash alone cannot identify the original branch.
       try {
         $this->execute(['show-ref', '--verify', 'refs/heads/' . $branch]);
       }
@@ -366,8 +362,6 @@ class ArtifactGitRepository extends GitRepository {
           $this->execute(['show-ref', '--verify', 'refs/tags/' . $branch]);
         }
         catch (GitException) {
-          // Not a branch or tag - just a commit hash.
-          // Get current commit hash.
           $commit_hash = $this->execute(['rev-parse', 'HEAD'])[0] ?? '';
 
           throw new BranchNotFoundException('Unable to determine a detachment source', $commit_hash, $exception);
@@ -388,8 +382,8 @@ class ArtifactGitRepository extends GitRepository {
       $files = $this->extractFromCommand(['ls-files', '-i', '-c', '--exclude-from=' . $this->gitignore]) ?: [];
     }
 
-    // Symlinks are not returned by the command above. We need to find them
-    // manually and check if they are ignored.
+    // The ls-files call above does not return symlinks, so find them
+    // separately and check whether each one is ignored.
     $symlinks_iterator = (new Finder())
       ->ignoreDotFiles(FALSE)
       ->ignoreVCS(TRUE)
@@ -456,9 +450,8 @@ class ArtifactGitRepository extends GitRepository {
       $this->logger->debug(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath((string) $dir)));
     }
 
-    // After removing sub-repositories, the files that were previously tracked
-    // in those repositories are now become a part of the current repository.
-    // We need to add them as changes.
+    // Files tracked by the removed sub-repositories now belong to the current
+    // repository, so add them as changes.
     $this->addAllChanges();
 
     return $this;

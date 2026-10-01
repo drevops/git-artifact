@@ -10,8 +10,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\ApplicationTester;
 
 /**
- * Trait ConsoleTrait.
- *
  * Helpers to work with Console.
  */
 trait ConsoleTrait {
@@ -27,7 +25,7 @@ trait ConsoleTrait {
    * @param object|string $object
    *   Command class or object.
    * @param bool $is_single_command
-   *   Is single command. Defaults to TRUE.
+   *   Whether to run the application as a single command. Defaults to TRUE.
    */
   protected function consoleInitApplicationTester(object|string $object, bool $is_single_command = TRUE): void {
     $application = new Application();

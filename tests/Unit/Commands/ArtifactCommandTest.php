@@ -62,9 +62,9 @@ class ArtifactCommandTest extends UnitTestCase {
   /**
    * Build a command instance wired for cleanupStaleBranches() in isolation.
    *
-   * The command's collaborators are normally populated by execute(); here they
-   * are injected directly via reflection so cleanupStaleBranches() can be
-   * exercised on its own, without bootstrapping the full command run.
+   * The command's collaborators are normally populated by execute(). This
+   * helper injects them via reflection, so cleanupStaleBranches() can be
+   * called without running the whole command.
    *
    * @param \PHPUnit\Framework\MockObject\MockObject $repo
    *   Repository mock to operate on.

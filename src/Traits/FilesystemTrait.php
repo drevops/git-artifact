@@ -43,8 +43,8 @@ trait FilesystemTrait {
    * Get root directory.
    *
    * @return string
-   *   Get value of the root directory, the directory where the
-   *   script was started from or current working directory.
+   *   The root directory: the directory the script was started from, or the
+   *   current working directory.
    */
   protected function fsGetRootDir(): string {
     if (!isset($this->fsRootDir)) {
@@ -128,9 +128,9 @@ trait FilesystemTrait {
   }
 
   /**
-   * Replacement for PHP's `realpath` resolves non-existing paths.
+   * Replacement for PHP's `realpath()` that resolves non-existing paths.
    *
-   * The main deference is that it does not return FALSE on non-existing
+   * The main difference is that it does not return FALSE on non-existing
    * paths.
    *
    * @param string $path
@@ -142,11 +142,10 @@ trait FilesystemTrait {
    * @see https://stackoverflow.com/a/29372360/712666
    */
   protected static function fsRealpath(string $path): string {
-    // Whether $path is unix or not.
     $is_unix_path = $path === '' || $path[0] !== '/';
     $unc = str_starts_with($path, '\\\\');
 
-    // Attempt to detect if path is relative in which case, add cwd.
+    // Detect a relative path and prefix it with the cwd.
     if (!str_contains($path, ':') && $is_unix_path && !$unc) {
       $path = getcwd() . DIRECTORY_SEPARATOR . $path;
       if ($path[0] === '/') {
@@ -154,7 +153,6 @@ trait FilesystemTrait {
       }
     }
 
-    // Resolve path parts (single dot, double dot and double delimiters).
     $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
     $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function (string $part): bool {
       return $part !== '';
@@ -178,7 +176,6 @@ trait FilesystemTrait {
     $path = $is_unix_path ? $path : '/' . $path;
     $path = $unc ? '\\\\' . $path : $path;
 
-    // Resolve any symlinks.
     if (function_exists('readlink') && file_exists($path) && is_link($path) > 0) {
       $path = readlink($path);
 

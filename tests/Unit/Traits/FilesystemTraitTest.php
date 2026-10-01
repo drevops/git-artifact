@@ -13,30 +13,21 @@ use Symfony\Component\Filesystem\Filesystem;
 #[CoversClass(FilesystemTrait::class)]
 class FilesystemTraitTest extends UnitTestCase {
 
-  /**
-   * Test fsGetRootDir() returns PWD when set.
-   */
   public function testFsGetRootDirWithPwd(): void {
     $test_class = $this->createTestClass();
 
-    // Set PWD environment variable.
     $_SERVER['PWD'] = '/test/path';
 
     $result = $this->callProtectedMethod($test_class, 'fsGetRootDir');
 
     $this->assertEquals('/test/path', $result);
 
-    // Clean up.
     unset($_SERVER['PWD']);
   }
 
-  /**
-   * Test fsGetRootDir() returns getcwd() when PWD not set.
-   */
   public function testFsGetRootDirWithoutPwd(): void {
     $test_class = $this->createTestClass();
 
-    // Unset PWD to force getcwd() usage.
     $original_pwd = $_SERVER['PWD'] ?? NULL;
     unset($_SERVER['PWD']);
 
@@ -44,55 +35,39 @@ class FilesystemTraitTest extends UnitTestCase {
 
     $this->assertEquals(getcwd(), $result);
 
-    // Restore original PWD.
     if ($original_pwd !== NULL) {
       $_SERVER['PWD'] = $original_pwd;
     }
   }
 
-  /**
-   * Test fsGetRootDir() caches the result.
-   */
   public function testFsGetRootDirCaching(): void {
     $test_class = $this->createTestClass();
 
-    // Set PWD.
     $_SERVER['PWD'] = '/test/path1';
 
     $result1 = $this->callProtectedMethod($test_class, 'fsGetRootDir');
 
-    // Change PWD.
     $_SERVER['PWD'] = '/test/path2';
 
-    // Should still return cached value.
     $result2 = $this->callProtectedMethod($test_class, 'fsGetRootDir');
 
     $this->assertEquals('/test/path1', $result1);
     $this->assertEquals('/test/path1', $result2);
 
-    // Clean up.
     unset($_SERVER['PWD']);
   }
 
-  /**
-   * Test fsAssertPathsExist() with existing path.
-   */
   public function testFsAssertPathsExistWithExistingPath(): void {
     $test_class = $this->createTestClass();
 
-    // Test with existing file.
     $tmp_file = tempnam(sys_get_temp_dir(), 'test');
     $result = $this->callProtectedMethod($test_class, 'fsAssertPathsExist', [$tmp_file, TRUE]);
 
     $this->assertTrue($result);
 
-    // Clean up.
     unlink($tmp_file);
   }
 
-  /**
-   * Test fsAssertPathsExist() with non-existing path in strict mode.
-   */
   public function testFsAssertPathsExistWithNonExistingPathStrict(): void {
     $test_class = $this->createTestClass();
 
@@ -102,9 +77,6 @@ class FilesystemTraitTest extends UnitTestCase {
     $this->callProtectedMethod($test_class, 'fsAssertPathsExist', ['/non/existing/path', TRUE]);
   }
 
-  /**
-   * Test fsAssertPathsExist() with non-existing path in non-strict mode.
-   */
   public function testFsAssertPathsExistWithNonExistingPathNonStrict(): void {
     $test_class = $this->createTestClass();
 
@@ -113,13 +85,9 @@ class FilesystemTraitTest extends UnitTestCase {
     $this->assertFalse($result);
   }
 
-  /**
-   * Test fsAssertPathsExist() with array of paths.
-   */
   public function testFsAssertPathsExistWithArrayOfPaths(): void {
     $test_class = $this->createTestClass();
 
-    // Create temporary files.
     $tmp_file1 = tempnam(sys_get_temp_dir(), 'test1');
     $tmp_file2 = tempnam(sys_get_temp_dir(), 'test2');
 
@@ -127,14 +95,10 @@ class FilesystemTraitTest extends UnitTestCase {
 
     $this->assertTrue($result);
 
-    // Clean up.
     unlink($tmp_file1);
     unlink($tmp_file2);
   }
 
-  /**
-   * Test fsGetAbsolutePath() with absolute path.
-   */
   public function testFsGetAbsolutePathWithAbsolutePath(): void {
     $test_class = $this->createTestClass();
 
@@ -143,9 +107,6 @@ class FilesystemTraitTest extends UnitTestCase {
     $this->assertEquals('/absolute/path', $result);
   }
 
-  /**
-   * Test fsGetAbsolutePath() with relative path.
-   */
   public function testFsGetAbsolutePathWithRelativePath(): void {
     $test_class = $this->createTestClass();
     $this->setProtectedValue($test_class, 'fsRootDir', '/root/dir');
@@ -155,9 +116,6 @@ class FilesystemTraitTest extends UnitTestCase {
     $this->assertEquals('/root/dir/relative/path', $result);
   }
 
-  /**
-   * Test fsGetAbsolutePath() with custom root.
-   */
   public function testFsGetAbsolutePathWithCustomRoot(): void {
     $test_class = $this->createTestClass();
 
@@ -187,27 +145,22 @@ class FilesystemTraitTest extends UnitTestCase {
     $symlink_target = $tmp_realpath . DIRECTORY_SEPARATOR . 'real_file.txt';
     $symlink_path = $tmp_realpath . DIRECTORY_SEPARATOR . 'symlink.txt';
 
-    // Create a real file and a symlink for testing.
     file_put_contents($symlink_target, 'test');
     if (!file_exists($symlink_path)) {
       symlink($symlink_target, $symlink_path);
     }
 
     return [
-      // Absolute paths remain unchanged.
       ['/var/www/file.txt', '/var/www/file.txt'],
 
-      // Relative path resolved from current working directory.
       ['file.txt', $cwd . DIRECTORY_SEPARATOR . 'file.txt'],
 
       // Parent directory resolution.
       ['../file.txt', dirname($cwd) . DIRECTORY_SEPARATOR . 'file.txt'],
       ['./file.txt', $cwd . DIRECTORY_SEPARATOR . 'file.txt'],
 
-      // Temporary directory resolution.
       [$tmp_dir . DIRECTORY_SEPARATOR . 'file.txt', $tmp_realpath . DIRECTORY_SEPARATOR . 'file.txt'],
 
-      // Symlink resolution.
       [$symlink_path, $symlink_target],
     ];
   }

@@ -10,8 +10,6 @@ use CzProject\GitPhp\GitRepository;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Trait GitTrait.
- *
  * Helpers to work with Git repositories.
  */
 trait GitTrait {
@@ -51,7 +49,6 @@ trait GitTrait {
         $output = $exception->getRunnerResult()->getErrorOutput();
       }
 
-      // Re-throw exception if it is not one of the allowed ones.
       if (!isset($output) || empty(array_intersect($output, $allowed_fails))) {
         throw $exception;
       }
@@ -240,7 +237,7 @@ trait GitTrait {
    * @param array<string> $additional_commits
    *   Array of additional commits.
    * @param bool $should_assert_files
-   *   Should assert if files are present.
+   *   Whether to assert that the files are present.
    *
    * @throws \Exception
    */

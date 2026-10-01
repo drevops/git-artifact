@@ -45,7 +45,7 @@ class ArtifactCommand extends Command {
   protected string $sourceDir = '';
 
   /**
-   * Mode in which artifact packaging is going to run.
+   * Mode in which artifact packaging runs.
    *
    * Available modes: branch, force-push.
    */
@@ -72,7 +72,7 @@ class ArtifactCommand extends Command {
   protected string $remoteName = '';
 
   /**
-   * Remote URL includes URI or local path.
+   * Remote URL, either a URI or a local path.
    */
   protected string $remoteUrl = '';
 
@@ -229,7 +229,6 @@ class ArtifactCommand extends Command {
 
       $this->resolveOptions($remote, $input->getOptions());
 
-      // Check if artifact packaging was skipped due to missing branch.
       if ($this->packagingSkipped) {
         return Command::SUCCESS;
       }
@@ -251,7 +250,7 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Assemble a code artifact from your codebase.
+   * Assemble a code artifact from the codebase.
    */
   protected function doExecute(): void {
     $error = NULL;
@@ -261,15 +260,14 @@ class ArtifactCommand extends Command {
 
       $this->showInfo();
 
-      // Do not optimize this into a chained call to make it easier to debug.
+      // Keep these as separate calls; a chained call is harder to debug.
       $repo = $this->repo;
       $repo->switchToBranch($this->artifactBranch, TRUE);
       $repo->removeSubRepositories();
       $repo->disableLocalExclude();
       $repo->replaceGitignoreFromCustom();
-      // Custom .gitignore may contain rules that will change the list of
-      // ignored files. We need to add these files as changes so that they
-      // could be reported as excluded by the command below.
+      // A custom .gitignore can change the set of ignored files. Add them as
+      // changes first so that removeIgnoredFiles() reports them as excluded.
       $repo->addAllChanges();
       $repo->removeIgnoredFiles();
       $repo->removeOtherFiles();
@@ -329,7 +327,6 @@ class ArtifactCommand extends Command {
       $this->repo->removeRemote($this->remoteName);
     }
 
-    // Dump log to a file.
     if (!empty($this->logFile)) {
       $this->loggerDump($this->logFile);
     }
@@ -343,11 +340,10 @@ class ArtifactCommand extends Command {
   /**
    * Delete stale branches in the remote repository.
    *
-   * Eligible branches are those matching the configured pattern whose tip
-   * commit is older than the configured age. The branch that was just pushed
-   * and the remote's default branch are always preserved. Cleanup is
-   * best-effort: any failure is logged and never fails the deployment, which
-   * has already succeeded by this point.
+   * Eligible branches match the configured patterns and have a tip commit
+   * older than the configured age. The destination branch and the remote's
+   * default branch are always preserved. Cleanup is best-effort: the push has
+   * already succeeded, so a failure is logged and never fails the deployment.
    */
   protected function cleanupStaleBranches(): void {
     if (!$this->cleanupStale) {
@@ -477,16 +473,13 @@ class ArtifactCommand extends Command {
 
     $this->sourceDir = empty($options['src']) || !is_string($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
 
-    // Setup Git repository from source path.
     $this->repo = new ArtifactGitRepository($this->sourceDir, NULL, $this->logger);
 
-    // Set original, destination, artifact branch names.
     try {
       $this->originalBranch = $this->repo->getOriginalBranch();
     }
     catch (BranchNotFoundException $exception) {
       if ($this->failOnMissingBranch) {
-        // Strict mode: fail artifact packaging.
         throw new \RuntimeException('Unable to determine source branch. Artifact packaging failed. ' . $exception->getMessage(), $exception->getCode(), $exception);
       }
 
@@ -498,7 +491,6 @@ class ArtifactCommand extends Command {
       $this->output->writeln('<comment>Commit: ' . $commit_hash . '</comment>');
       $this->output->writeln('<info>Use --fail-on-missing-branch to fail artifact packaging instead.</info>');
 
-      // Set flag to skip artifact packaging and return early from execute().
       $this->packagingSkipped = TRUE;
 
       return;
@@ -617,7 +609,7 @@ class ArtifactCommand extends Command {
   }
 
   /**
-   * Check that there all requirements are met in order to to run this command.
+   * Check that all requirements are met to run this command.
    */
   protected function checkRequirements(): void {
     $this->logger->notice('Checking requirements');

@@ -54,7 +54,6 @@ class TokenTraitTest extends UnitTestCase {
         'string with sometoken] broken delimiters',
         'string with sometoken] broken delimiters',
       ],
-      // Proper token.
       [
         '[sometoken]',
         'somevalue',
@@ -63,7 +62,6 @@ class TokenTraitTest extends UnitTestCase {
         'string with [sometoken] present',
         'string with somevalue present',
       ],
-      // Token with properties.
       [
         'string with [sometoken:prop] present',
         'string with somevalue with property prop present',

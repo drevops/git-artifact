@@ -116,7 +116,6 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
       ['branch//', FALSE],
       ['/branch', FALSE],
       ['//branch', FALSE],
-      // Long branch names.
       [str_repeat('a', 254), TRUE],
       [str_repeat('a', 255), FALSE],
       ['branch' . str_repeat('/sub', 255), FALSE],

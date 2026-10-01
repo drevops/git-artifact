@@ -72,8 +72,8 @@ abstract class FunctionalTestCase extends UnitTestCase {
 
     $this->dst = $this->fixtureDir . DIRECTORY_SEPARATOR . 'dst';
     $this->gitInitRepo($this->dst)
-      // Allow pushing into already checked out branch. We need this to
-      // avoid additional management of fixture repository.
+      // Allow pushing into the checked-out branch, so the fixture repository
+      // requires no extra management.
       ->run('config', ['receive.denyCurrentBranch', 'ignore']);
 
     $this->now = time();
@@ -151,7 +151,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
    *   Additional arguments or options as an associative array. If NULL, no
    *   additional arguments are passed.
    * @param bool $expect_fail
-   *   Expect on fail.
+   *   Whether the command is expected to fail.
    *
    * @return string
    *   Output string.

@@ -7,9 +7,7 @@ namespace DrevOps\GitArtifact\Tests\Traits;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
- * Trait MockTrait.
- *
- * This trait provides a method to prepare class mock.
+ * Provides a method to prepare a class mock.
  *
  * @phpstan-ignore trait.unused
  */
@@ -54,7 +52,6 @@ trait MockTrait {
     $mock = $builder->getMock();
 
     foreach ($methods as $method => $value) {
-      // Handle callback value differently based on its type.
       if (is_object($value) && str_contains($value::class, 'Callback')) {
         $mock->expects($this->any())->method($method)->willReturnCallback($value);
       }

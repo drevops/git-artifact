@@ -8,9 +8,6 @@ use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * Tests for file permissions preservation in artifacts.
- */
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
 class FilePermissionsTest extends FunctionalTestCase {

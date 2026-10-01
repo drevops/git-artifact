@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace DrevOps\GitArtifact\Tests\Traits;
 
 /**
- * Trait ReflectionTrait.
- *
  * Provides methods to work with class reflection.
  */
 trait ReflectionTrait {
@@ -42,21 +40,16 @@ trait ReflectionTrait {
 
     $original_accessibility = $method->isPublic();
 
-    // Set method accessibility to true, so it can be invoked.
     $method->setAccessible(TRUE);
 
-    // If the method is static, we won't pass an object instance to invokeArgs()
-    // Otherwise, we ensure to pass the object instance.
     $invoke_object = $method->isStatic() ? NULL : (is_object($object) ? $object : NULL);
 
-    // Ensure we have an object for non-static methods.
     if (!$method->isStatic() && $invoke_object === NULL) {
       throw new \InvalidArgumentException("An object instance is required for non-static methods");
     }
 
     $result = $method->invokeArgs($invoke_object, $args);
 
-    // Reset the method's accessibility to its original state.
     $method->setAccessible($original_accessibility);
 
     return $result;
@@ -68,7 +61,7 @@ trait ReflectionTrait {
    * @param object $object
    *   Object to set the value on.
    * @param string $property
-   *   Property name to set the value. Property should exists in the object.
+   *   Name of the property to set. The property should exist on the object.
    * @param mixed $value
    *   Value to set to the property.
    */

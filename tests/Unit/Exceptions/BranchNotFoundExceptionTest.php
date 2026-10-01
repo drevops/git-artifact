@@ -15,9 +15,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(GitArtifactException::class)]
 class BranchNotFoundExceptionTest extends UnitTestCase {
 
-  /**
-   * Test exception stores and returns commit hash.
-   */
   public function testCommitHashStorage(): void {
     $message = 'Test message';
     $commit_hash = 'abc123def456';
@@ -29,9 +26,6 @@ class BranchNotFoundExceptionTest extends UnitTestCase {
     $this->assertEquals(0, $exception->getCode());
   }
 
-  /**
-   * Test exception with default values.
-   */
   public function testDefaultValues(): void {
     $exception = new BranchNotFoundException();
 
@@ -40,9 +34,6 @@ class BranchNotFoundExceptionTest extends UnitTestCase {
     $this->assertEquals(0, $exception->getCode());
   }
 
-  /**
-   * Test exception inheritance.
-   */
   public function testInheritance(): void {
     $exception = new BranchNotFoundException();
 
@@ -51,9 +42,6 @@ class BranchNotFoundExceptionTest extends UnitTestCase {
     $this->assertInstanceOf(\RuntimeException::class, $exception);
   }
 
-  /**
-   * Test exception with previous exception.
-   */
   public function testWithPreviousException(): void {
     $previous = new \Exception('Previous exception');
     $exception = new BranchNotFoundException('Test message', 'abc123', $previous);
