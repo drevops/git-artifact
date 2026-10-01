@@ -19,8 +19,8 @@ class FilePermissionsTest extends FunctionalTestCase {
    * {@inheritdoc}
    */
   protected function setUp(): void {
-    parent::setUp();
     $this->mode = ArtifactCommand::MODE_FORCE_PUSH;
+    parent::setUp();
   }
 
   public function testFilePermissions(): void {
