@@ -260,10 +260,10 @@ trait GitTrait {
   /**
    * Assert which git commits are present.
    *
-   * @param int $count
-   *   Number of commits.
    * @param string $path
    *   Path to the repo.
+   * @param int $count
+   *   Number of commits.
    * @param string $branch
    *   Branch name.
    * @param array<string> $additional_commits
@@ -273,7 +273,7 @@ trait GitTrait {
    *
    * @throws \Exception
    */
-  protected function gitAssertFixtureCommits(int $count, string $path, string $branch, array $additional_commits = [], bool $should_assert_files = TRUE): void {
+  protected function gitAssertFixtureCommits(string $path, int $count, string $branch, array $additional_commits = [], bool $should_assert_files = TRUE): void {
     $this->gitCheckout($path, $branch);
     $this->gitReset($path);
 

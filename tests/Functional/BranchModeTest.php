@@ -28,7 +28,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_BRANCH, $output);
     $this->assertStringContainsString('Will push:             Yes', $output);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
   }
 
   public function testPackageMoreCommitsSameBranch(): void {
@@ -36,13 +36,13 @@ class BranchModeTest extends FunctionalTestCase {
 
     $this->assertArtifactCommandSuccess();
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
 
     $this->gitCreateFixtureCommits(3, 2);
     $this->assertArtifactCommandFailure();
 
     // Make sure that broken artifact was not pushed.
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
   }
 
   public function testPackageMoreCommits(): void {
@@ -54,7 +54,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->assertStringContainsString('Remote branch:         ' . $branch1, $output);
     $this->assertStringNotContainsString('WARNING! Provided branch name does not have a token', $output);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
 
     $this->gitCreateFixtureCommits(3, 2);
 
@@ -62,17 +62,17 @@ class BranchModeTest extends FunctionalTestCase {
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $output = $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
     $this->assertStringContainsString('Remote branch:         ' . $branch2, $output);
-    $this->gitAssertFixtureCommits(5, $this->dst, $branch2, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 5, $branch2, ['Deployment commit']);
 
     // Also, check that no changes were done to branch1.
-    $this->gitAssertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
   }
 
   public function testCleanupAfterSuccess(): void {
     $this->gitCreateFixtureCommits(2);
 
     $this->assertArtifactCommandSuccess();
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
 
     $this->gitAssertCurrentBranch($this->src, $this->currentBranch);
     $this->gitAssertRemoteNotExists($this->src, $this->remoteName);
@@ -99,7 +99,7 @@ class BranchModeTest extends FunctionalTestCase {
     $branch1 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch1);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
 
     // Now, remove the .gitignore and push again.
@@ -109,10 +109,10 @@ class BranchModeTest extends FunctionalTestCase {
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
 
-    $this->gitAssertFixtureCommits(3, $this->dst, $branch2, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 3, $branch2, ['Deployment commit']);
 
     // Assert that branch from previous deployment was not affected.
-    $this->gitAssertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
   }
 
@@ -128,7 +128,7 @@ class BranchModeTest extends FunctionalTestCase {
       '--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore',
     ], $branch1);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
 
     // Now, remove the .gitignore and push again.
@@ -139,10 +139,10 @@ class BranchModeTest extends FunctionalTestCase {
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
 
-    $this->gitAssertFixtureCommits(3, $this->dst, $branch2, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 3, $branch2, ['Deployment commit']);
 
     // Assert that branch from previous deployment was not affected.
-    $this->gitAssertFixtureCommits(2, $this->dst, $branch1, ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, $branch1, ['Deployment commit']);
     $this->assertFileDoesNotExist($this->dst . DIRECTORY_SEPARATOR . 'f3');
   }
 

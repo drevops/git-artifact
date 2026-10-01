@@ -33,7 +33,7 @@ class TagTest extends FunctionalTestCase {
     $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, $output);
     $this->assertStringContainsString('Will push:             Yes', $output);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
     $this->assertEquals($branches, $repo->getBranches(), 'Cleanup has correctly returned to the previous branch.');
   }
 

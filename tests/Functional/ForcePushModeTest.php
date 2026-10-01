@@ -27,7 +27,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertStringContainsString('Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH, $output);
     $this->assertStringContainsString('Will push:             Yes', $output);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
   }
 
   public function testPackageMoreCommits(): void {
@@ -35,22 +35,22 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->assertArtifactCommandSuccess();
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
 
     $this->gitCreateFixtureCommits(3, 2);
     $this->assertArtifactCommandSuccess();
 
-    $this->gitAssertFixtureCommits(5, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 5, 'testbranch', ['Deployment commit']);
   }
 
   public function testIdempotence(): void {
     $this->gitCreateFixtureCommits(2);
 
     $this->assertArtifactCommandSuccess();
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
 
     $this->assertArtifactCommandSuccess();
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
   }
 
   public function testSubRepos(): void {
@@ -77,7 +77,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r1/.git')), $output);
     $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r2/r21/.git')), $output);
     $this->assertStringContainsString(sprintf('Removing sub-repository "%s"', $this->fsGetAbsolutePath($this->src . DIRECTORY_SEPARATOR . 'r3/r31/r311/.git')), $output);
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Commit number 3', 'Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Commit number 3', 'Deployment commit']);
 
     $this->assertFilesExist($this->dst, ['r1/c']);
     $this->assertFilesExist($this->dst, ['r2/r21/c']);
@@ -94,7 +94,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitCreateFixtureCommits(2);
 
     $this->assertArtifactCommandSuccess();
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
 
     $this->gitAssertCurrentBranch($this->src, $this->currentBranch);
     $this->gitAssertRemoteNotExists($this->src, $this->remoteName);
@@ -126,7 +126,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertArtifactCommandSuccess();
     $this->assertFilesExist($this->src, ['f3_i', '.f3_i', 'f3', '.f3'], 'Files exist after run');
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
     $this->assertFilesNotExist($this->dst, ['f3_i', '.f3_i'], 'Ignored files do not exist at DST');
     $this->assertFilesExist($this->dst, ['f3', '.f3'], 'Non-ignored files exist at DST');
 
@@ -136,7 +136,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->assertArtifactCommandSuccess();
     $this->assertFilesExist($this->src, ['f3_i', '.f3_i', 'f3', '.f3'], 'Files exist after run');
 
-    $this->gitAssertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit'], FALSE);
+    $this->gitAssertFixtureCommits($this->dst, 3, 'testbranch', ['Deployment commit'], FALSE);
     $this->assertFilesExist($this->dst, ['f3_i', '.f3_i'], 'Previously ignored files exist at DST');
     $this->assertFilesExist($this->dst, ['f3', '.f3'], 'Non-ignored files exist at DST');
   }
@@ -154,7 +154,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     // @todo Fix this by copying the original SRC to a temporary location.
     $this->assertFilesNotExist($this->src, ['uic']);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Deployment commit']);
     $this->assertFilesNotExist($this->dst, 'uic');
     $this->assertFilesExist($this->dst, 'uc');
 
@@ -173,7 +173,7 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitCommitAll($this->src, 'Commit number 3');
     $this->assertArtifactCommandSuccess();
 
-    $this->gitAssertFixtureCommits(3, $this->dst, 'testbranch', ['Deployment commit'], FALSE);
+    $this->gitAssertFixtureCommits($this->dst, 3, 'testbranch', ['Deployment commit'], FALSE);
     $this->gitAssertFilesCommitted($this->dst, ['f1', 'f2', 'uic'], 'testbranch');
     $this->assertFilesExist($this->dst, ['f1', 'f2', 'uic']);
     $this->gitAssertFilesNotCommitted($this->dst, ['uc'], 'testbranch');
@@ -197,7 +197,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->assertArtifactCommandSuccess(['--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore']);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
     $this->gitAssertFilesCommitted($this->dst, ['.gitignore', 'f2', 'ic', 'd_cc/cc', 'uc'], 'testbranch');
     $this->gitAssertFilesNotCommitted($this->dst, ['f1', 'ii', 'd_cc/ci', 'ui'], 'testbranch');
     $this->assertFilesExist($this->dst, ['f2', 'ic', 'd_cc/cc', 'uc']);
@@ -272,7 +272,7 @@ class ForcePushModeTest extends FunctionalTestCase {
       '--gitignore' => $this->src . DIRECTORY_SEPARATOR . 'mygitignore',
     ]);
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'testbranch', ['Custom third commit', 'Deployment commit'], FALSE);
 
     $this->gitAssertFilesCommitted($this->dst, [
       'f2', 'ic', 'cc', 'uc',
@@ -320,7 +320,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->assertArtifactCommandSuccess(['--branch' => '[tags]'], 'tag1');
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'tag1', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'tag1', ['Deployment commit']);
   }
 
   public function testPackageMultipleTags(): void {
@@ -329,12 +329,12 @@ class ForcePushModeTest extends FunctionalTestCase {
     $this->gitAddTag($this->src, 'tag2');
 
     $this->assertArtifactCommandSuccess(['--branch' => '[tags]'], 'tag1-tag2');
-    $this->gitAssertFixtureCommits(2, $this->dst, 'tag1-tag2', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'tag1-tag2', ['Deployment commit']);
 
     $this->gitCreateFixtureCommit(3);
     $this->gitAddTag($this->src, 'tag3');
     $this->assertArtifactCommandSuccess(['--branch' => '[tags]'], 'tag3');
-    $this->gitAssertFixtureCommits(3, $this->dst, 'tag3', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 3, 'tag3', ['Deployment commit']);
   }
 
   public function testPackageMultipleTagsMissingTags(): void {
@@ -352,7 +352,7 @@ class ForcePushModeTest extends FunctionalTestCase {
 
     $this->assertArtifactCommandSuccess(['--branch' => '[tags:__]'], 'tag1__tag2');
 
-    $this->gitAssertFixtureCommits(2, $this->dst, 'tag1__tag2', ['Deployment commit']);
+    $this->gitAssertFixtureCommits($this->dst, 2, 'tag1__tag2', ['Deployment commit']);
   }
 
 }
