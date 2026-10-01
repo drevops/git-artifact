@@ -99,7 +99,7 @@ trait GitTrait {
     $commits = [];
 
     try {
-      $commits = (new Git())->open($path)->run(['log', '--format=' . $format])->getOutput();
+      $commits = (new Git())->open($path)->run('log', '--format=' . $format)->getOutput();
     }
     catch (\Exception $exception) {
       // Different versions of Git may produce these expected messages.
@@ -253,7 +253,7 @@ trait GitTrait {
    *   Remote name to assert.
    */
   protected function gitAssertRemoteNotExists(string $path, string $remote): void {
-    $remotes = (new Git())->open($path)->run(['remote'])->getErrorOutputAsString() ?: '';
+    $remotes = (new Git())->open($path)->run('remote')->getErrorOutputAsString() ?: '';
     $this->assertStringNotContainsString($remote, $remotes, sprintf('Remote "%s" is not present"', $remote));
   }
 
@@ -310,7 +310,7 @@ trait GitTrait {
 
     $expected_files = is_array($expected_files) ? $expected_files : [$expected_files];
 
-    $files = (new Git())->open($path)->run(['ls-tree', '--name-only', '-r', 'HEAD'])->getOutput();
+    $files = (new Git())->open($path)->run('ls-tree', '--name-only', '-r', 'HEAD')->getOutput();
     $files = array_filter($files);
 
     $this->assertArraySimilar($expected_files, $files);
@@ -333,7 +333,7 @@ trait GitTrait {
 
     $expected_files = is_array($expected_files) ? $expected_files : [$expected_files];
 
-    $files = (new Git())->open($path)->run(['ls-tree', '--name-only', '-r', 'HEAD'])->getOutput();
+    $files = (new Git())->open($path)->run('ls-tree', '--name-only', '-r', 'HEAD')->getOutput();
     $files = array_filter($files);
 
     $intersected_files = array_intersect($files, $expected_files);
