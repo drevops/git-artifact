@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace DrevOps\GitArtifact\Tests\Unit\Traits;
 
+use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
 
 #[CoversClass(FilesystemTrait::class)]
-class FilesystemTraitTest extends TestCase {
+class FilesystemTraitTest extends UnitTestCase {
 
   /**
    * Test fsGetRootDir() returns PWD when set.

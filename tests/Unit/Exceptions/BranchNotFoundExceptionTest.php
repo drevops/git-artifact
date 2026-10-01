@@ -7,13 +7,13 @@ namespace DrevOps\GitArtifact\Tests\Unit\Exceptions;
 use DrevOps\GitArtifact\Exceptions\BranchNotFoundException;
 use DrevOps\GitArtifact\Exceptions\GitArtifactException;
 use DrevOps\GitArtifact\Exceptions\GitException;
+use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
 
 #[CoversClass(BranchNotFoundException::class)]
 #[CoversClass(GitException::class)]
 #[CoversClass(GitArtifactException::class)]
-class BranchNotFoundExceptionTest extends TestCase {
+class BranchNotFoundExceptionTest extends UnitTestCase {
 
   /**
    * Test exception stores and returns commit hash.
