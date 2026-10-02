@@ -34,6 +34,12 @@ class ArtifactCommand extends Command {
 
   const CLEANUP_STALE_AGE_DEFAULT = 7;
 
+  protected const SUMMARY_SEPARATOR = '----------------------------------------------------------------------';
+
+  protected const SUMMARY_LABEL_WIDTH = 22;
+
+  protected const SUMMARY_DATE_FORMAT = 'Y/m/d H:i:s';
+
   /**
    * Current Git repository.
    */
@@ -530,22 +536,16 @@ class ArtifactCommand extends Command {
    * Show artifact packaging information.
    */
   protected function showInfo(): void {
-    $lines[] = ('----------------------------------------------------------------------');
-    $lines[] = (' Artifact information');
-    $lines[] = ('----------------------------------------------------------------------');
-    $lines[] = (' Packaging timestamp:   ' . date('Y/m/d H:i:s', $this->now));
-    $lines[] = (' Mode:                  ' . $this->mode);
-    $lines[] = (' Source repository:     ' . $this->sourceDir);
-    $lines[] = (' Remote repository:     ' . $this->remoteUrl);
-    $lines[] = (' Remote branch:         ' . $this->destinationBranch);
-    $lines[] = (' Gitignore file:        ' . ($this->gitignoreCustom ?: 'No'));
-    $lines[] = (' Will push:             ' . ($this->isDryRun ? 'No' : 'Yes'));
+    $rows = $this->getSummaryRows();
+    $rows['Will push'] = $this->isDryRun ? 'No' : 'Yes';
+
     if ($this->cleanupStale) {
       $label = count($this->cleanupPatterns) === 1 ? 'pattern' : 'patterns';
       $list = implode(', ', array_map(static fn(string $pattern): string => sprintf('"%s"', $pattern), $this->cleanupPatterns));
-      $lines[] = (' Cleanup stale:         ' . sprintf('Yes (%s %s, older than %d days)', $label, $list, $this->cleanupAge));
+      $rows['Cleanup stale'] = sprintf('Yes (%s %s, older than %d days)', $label, $list, $this->cleanupAge);
     }
-    $lines[] = ('----------------------------------------------------------------------');
+
+    $lines = self::formatSummary('Artifact information', $rows);
 
     $this->output->writeln($lines);
 
@@ -561,22 +561,56 @@ class ArtifactCommand extends Command {
    *   Whether the packaging run finished without an error.
    */
   protected function showReport(bool $result): void {
-    $lines[] = '----------------------------------------------------------------------';
-    $lines[] = ' Artifact report';
-    $lines[] = '----------------------------------------------------------------------';
-    $lines[] = ' Packaging timestamp: ' . date('Y/m/d H:i:s', $this->now);
-    $lines[] = ' Mode:              ' . $this->mode;
-    $lines[] = ' Source repository: ' . $this->sourceDir;
-    $lines[] = ' Remote repository: ' . $this->remoteUrl;
-    $lines[] = ' Remote branch:     ' . $this->destinationBranch;
-    $lines[] = ' Gitignore file:    ' . ($this->gitignoreCustom ?: 'No');
-    $lines[] = ' Commit message:    ' . $this->commitMessage;
-    $lines[] = ' Push result:       ' . ($result ? 'Success' : 'Failure');
-    $lines[] = '----------------------------------------------------------------------';
+    $rows = $this->getSummaryRows();
+    $rows['Commit message'] = $this->commitMessage;
+    $rows['Push result'] = $result ? 'Success' : 'Failure';
 
-    foreach ($lines as $line) {
+    foreach (self::formatSummary('Artifact report', $rows) as $line) {
       $this->logger->notice($line);
     }
+  }
+
+  /**
+   * Get the summary rows describing the packaging parameters.
+   *
+   * @return array<string, string>
+   *   Row values keyed by label.
+   */
+  protected function getSummaryRows(): array {
+    return [
+      'Packaging timestamp' => date(self::SUMMARY_DATE_FORMAT, $this->now),
+      'Mode' => $this->mode,
+      'Source repository' => $this->sourceDir,
+      'Remote repository' => $this->remoteUrl,
+      'Remote branch' => $this->destinationBranch,
+      'Gitignore file' => $this->gitignoreCustom ?: 'No',
+    ];
+  }
+
+  /**
+   * Format a summary block framed by separator lines.
+   *
+   * Labels are padded to a fixed width, so values in every block start in the
+   * same column. A label wider than that width keeps 1 space before its value.
+   *
+   * @param string $title
+   *   Block title.
+   * @param array<string, string> $rows
+   *   Row values keyed by label.
+   *
+   * @return list<string>
+   *   Block lines.
+   */
+  protected static function formatSummary(string $title, array $rows): array {
+    $lines = [self::SUMMARY_SEPARATOR, ' ' . $title, self::SUMMARY_SEPARATOR];
+
+    foreach ($rows as $label => $value) {
+      $lines[] = ' ' . str_pad($label . ':', self::SUMMARY_LABEL_WIDTH) . ' ' . $value;
+    }
+
+    $lines[] = self::SUMMARY_SEPARATOR;
+
+    return $lines;
   }
 
   /**

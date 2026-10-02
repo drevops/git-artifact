@@ -39,6 +39,7 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertStringContainsString('Gitignore file:        No', $output);
     $this->assertStringContainsString('Will push:             No', $output);
     $this->assertStringNotContainsString('Added changes:', $output);
+    $this->assertStringNotContainsString('Artifact report', $output);
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
 
@@ -127,11 +128,8 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertStringContainsString('Will push:             No', $output);
 
     $this->assertStringContainsString('Artifact report', $output);
-    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), $output);
-    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), $output);
-    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $output);
-    $this->assertStringContainsString('Gitignore file:    No', $output);
-    $this->assertStringContainsString('Push result:       Success', $output);
+    $this->assertStringContainsString('Commit message:        Deployment commit', $output);
+    $this->assertStringContainsString('Push result:           Success', $output);
     $this->assertStringContainsString('Cleaning up.', $output);
 
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
@@ -158,11 +156,8 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertStringContainsString('Will push:             No', $output);
 
     $this->assertStringContainsString('Artifact report', $output);
-    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), $output);
-    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), $output);
-    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), $output);
-    $this->assertStringContainsString('Gitignore file:    No', $output);
-    $this->assertStringContainsString('Push result:       Success', $output);
+    $this->assertStringContainsString('Commit message:        Deployment commit', $output);
+    $this->assertStringContainsString('Push result:           Success', $output);
 
     $this->assertFileExists($report);
     $report_output = file_get_contents($report);
@@ -178,11 +173,21 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertStringNotContainsString('Added changes:', (string) $report_output);
 
     $this->assertStringContainsString('Artifact report', (string) $report_output);
-    $this->assertStringContainsString(sprintf('Source repository: %s', $this->src), (string) $report_output);
-    $this->assertStringContainsString(sprintf('Remote repository: %s', $this->dst), (string) $report_output);
-    $this->assertStringContainsString(sprintf('Remote branch:     %s', $this->currentBranch), (string) $report_output);
-    $this->assertStringContainsString('Gitignore file:    No', (string) $report_output);
-    $this->assertStringContainsString('Push result:       Success', (string) $report_output);
+    $this->assertStringContainsString('Commit message:        Deployment commit', (string) $report_output);
+    $this->assertStringContainsString('Push result:           Success', (string) $report_output);
+
+    $shared_rows = [
+      ' Packaging timestamp:   ' . date('Y/m/d H:i:s', $this->now),
+      ' Mode:                  ' . ArtifactCommand::MODE_FORCE_PUSH,
+      ' Source repository:     ' . $this->src,
+      ' Remote repository:     ' . $this->dst,
+      ' Remote branch:         ' . $this->currentBranch,
+      ' Gitignore file:        No',
+    ];
+
+    foreach ($shared_rows as $shared_row) {
+      $this->assertSame(2, substr_count((string) $report_output, $shared_row), sprintf('Row "%s" is logged once by each block.', $shared_row));
+    }
   }
 
   public function testDebugDisabled(): void {

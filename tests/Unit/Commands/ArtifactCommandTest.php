@@ -8,7 +8,11 @@ use CzProject\GitPhp\GitException;
 use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use DrevOps\GitArtifact\Git\ArtifactGitRepository;
 use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
+use Monolog\Handler\TestHandler;
+use Monolog\Logger;
+use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\NullLogger;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -59,6 +63,191 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertStringContainsString('Unable to determine the remote default branch; skipping stale cleanup for safety.', $output->fetch());
   }
 
+  #[DataProvider('dataProviderFormatSummary')]
+  public function testFormatSummary(array $rows, array $expected_rows): void {
+    $actual = $this->callProtectedMethod(ArtifactCommand::class, 'formatSummary', ['Title', $rows]);
+
+    $separator = str_repeat('-', 70);
+    $this->assertSame([$separator, ' Title', $separator, ...$expected_rows, $separator], $actual);
+  }
+
+  public static function dataProviderFormatSummary(): array {
+    return [
+      'no rows' => [[], []],
+      'short label' => [['Mode' => 'branch'], [' Mode:                  branch']],
+      'label at the width' => [['Twenty one characters' => 'value'], [' Twenty one characters: value']],
+      'label beyond the width' => [['Label well beyond the width' => 'value'], [' Label well beyond the width: value']],
+      'empty value' => [['Commit message' => ''], [' Commit message:        ']],
+      'rows in given order' => [['B' => '2', 'A' => '1'], [' B:                     2', ' A:                     1']],
+    ];
+  }
+
+  #[DataProvider('dataProviderShowInfo')]
+  public function testShowInfo(array $values, array $expected_rows): void {
+    $output = new BufferedOutput();
+    $handler = new TestHandler();
+    $command = $this->createSummaryCommand($output, $handler, $values);
+
+    $this->callProtectedMethod($command, 'showInfo');
+
+    $separator = str_repeat('-', 70);
+    $expected = [$separator, ' Artifact information', $separator, ...$expected_rows, $separator];
+
+    $this->assertSame(implode(PHP_EOL, $expected) . PHP_EOL, $output->fetch());
+    $this->assertSame($expected, $this->getLoggedMessages($handler));
+  }
+
+  public static function dataProviderShowInfo(): array {
+    $timestamp = ' Packaging timestamp:   ' . date('Y/m/d H:i:s', 100000000);
+
+    return [
+      'push' => [
+        [],
+        [
+          $timestamp,
+          ' Mode:                  force-push',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        No',
+          ' Will push:             Yes',
+        ],
+      ],
+      'dry run' => [
+        ['isDryRun' => TRUE],
+        [
+          $timestamp,
+          ' Mode:                  force-push',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        No',
+          ' Will push:             No',
+        ],
+      ],
+      'branch mode with custom gitignore' => [
+        ['mode' => ArtifactCommand::MODE_BRANCH, 'gitignoreCustom' => '/path/to/.gitignore.artifact'],
+        [
+          $timestamp,
+          ' Mode:                  branch',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        /path/to/.gitignore.artifact',
+          ' Will push:             Yes',
+        ],
+      ],
+      'cleanup with 1 pattern' => [
+        ['cleanupStale' => TRUE, 'cleanupPatterns' => ['deployment/*']],
+        [
+          $timestamp,
+          ' Mode:                  force-push',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        No',
+          ' Will push:             Yes',
+          ' Cleanup stale:         Yes (pattern "deployment/*", older than 3 days)',
+        ],
+      ],
+      'cleanup with patterns' => [
+        ['cleanupStale' => TRUE, 'cleanupPatterns' => ['feature/*', 'bugfix/*']],
+        [
+          $timestamp,
+          ' Mode:                  force-push',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        No',
+          ' Will push:             Yes',
+          ' Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)',
+        ],
+      ],
+    ];
+  }
+
+  #[DataProvider('dataProviderShowReport')]
+  public function testShowReport(bool $result, array $values, array $expected_rows): void {
+    $output = new BufferedOutput();
+    $handler = new TestHandler();
+    $command = $this->createSummaryCommand($output, $handler, $values);
+
+    $this->callProtectedMethod($command, 'showReport', [$result]);
+
+    $separator = str_repeat('-', 70);
+    $expected = [$separator, ' Artifact report', $separator, ...$expected_rows, $separator];
+
+    $this->assertSame('', $output->fetch());
+    $this->assertSame($expected, $this->getLoggedMessages($handler));
+  }
+
+  public static function dataProviderShowReport(): array {
+    $timestamp = ' Packaging timestamp:   ' . date('Y/m/d H:i:s', 100000000);
+
+    return [
+      'success' => [
+        TRUE,
+        [],
+        [
+          $timestamp,
+          ' Mode:                  force-push',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        No',
+          ' Commit message:        Deployment commit',
+          ' Push result:           Success',
+        ],
+      ],
+      'failure' => [
+        FALSE,
+        [],
+        [
+          $timestamp,
+          ' Mode:                  force-push',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        No',
+          ' Commit message:        Deployment commit',
+          ' Push result:           Failure',
+        ],
+      ],
+      'branch mode with custom gitignore and message' => [
+        TRUE,
+        ['mode' => ArtifactCommand::MODE_BRANCH, 'gitignoreCustom' => '/path/to/.gitignore.artifact', 'commitMessage' => 'Release 1.2.3'],
+        [
+          $timestamp,
+          ' Mode:                  branch',
+          ' Source repository:     /path/to/src',
+          ' Remote repository:     /path/to/dst',
+          ' Remote branch:         main',
+          ' Gitignore file:        /path/to/.gitignore.artifact',
+          ' Commit message:        Release 1.2.3',
+          ' Push result:           Success',
+        ],
+      ],
+    ];
+  }
+
+  public function testSummaryBlocksShareRows(): void {
+    $handler = new TestHandler();
+    $command = $this->createSummaryCommand(new BufferedOutput(), $handler, [
+      'mode' => ArtifactCommand::MODE_BRANCH,
+      'gitignoreCustom' => '/path/to/.gitignore.artifact',
+    ]);
+
+    $this->callProtectedMethod($command, 'showInfo');
+    $info = $this->getLoggedMessages($handler);
+    $handler->clear();
+
+    $this->callProtectedMethod($command, 'showReport', [TRUE]);
+    $report = $this->getLoggedMessages($handler);
+
+    // Skip the separator, title and separator that open each block.
+    $this->assertSame(array_slice($info, 3, 6), array_slice($report, 3, 6));
+  }
+
   /**
    * Build a command instance wired for cleanupStaleBranches() in isolation.
    *
@@ -89,6 +278,58 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->setProtectedValue($command, 'logger', new NullLogger());
 
     return $command;
+  }
+
+  /**
+   * Build a command instance wired for the summary blocks in isolation.
+   *
+   * @param \Symfony\Component\Console\Output\BufferedOutput $output
+   *   Output buffer to capture console lines.
+   * @param \Monolog\Handler\TestHandler $handler
+   *   Log handler to capture logged messages.
+   * @param array<string, mixed> $values
+   *   Property values keyed by property name, overriding the defaults.
+   *
+   * @return \DrevOps\GitArtifact\Commands\ArtifactCommand
+   *   Configured command instance.
+   */
+  protected function createSummaryCommand(BufferedOutput $output, TestHandler $handler, array $values = []): ArtifactCommand {
+    $command = new ArtifactCommand();
+
+    $values += [
+      'now' => 100000000,
+      'mode' => ArtifactCommand::MODE_FORCE_PUSH,
+      'sourceDir' => '/path/to/src',
+      'remoteUrl' => '/path/to/dst',
+      'destinationBranch' => 'main',
+      'gitignoreCustom' => NULL,
+      'isDryRun' => FALSE,
+      'cleanupStale' => FALSE,
+      'cleanupPatterns' => [],
+      'cleanupAge' => 3,
+      'commitMessage' => 'Deployment commit',
+      'output' => $output,
+      'logger' => new Logger('artifact', [$handler]),
+    ];
+
+    foreach ($values as $property => $value) {
+      $this->setProtectedValue($command, $property, $value);
+    }
+
+    return $command;
+  }
+
+  /**
+   * Get the messages captured by a log handler, in logging order.
+   *
+   * @param \Monolog\Handler\TestHandler $handler
+   *   Log handler to read the records from.
+   *
+   * @return array<string>
+   *   Logged messages.
+   */
+  protected function getLoggedMessages(TestHandler $handler): array {
+    return array_map(static fn(LogRecord $record): string => $record->message, $handler->getRecords());
   }
 
 }
