@@ -547,8 +547,8 @@ class ArtifactCommand extends Command {
    *   neither option is set.
    */
   protected function resolveSourceDir(array $options): string {
-    $source = empty($options['source']) || !is_string($options['source']) ? NULL : $options['source'];
-    $src = empty($options['src']) || !is_string($options['src']) ? NULL : $options['src'];
+    $source = isset($options['source']) && is_string($options['source']) && $options['source'] !== '' ? $options['source'] : NULL;
+    $src = isset($options['src']) && is_string($options['src']) && $options['src'] !== '' ? $options['src'] : NULL;
 
     if ($source !== NULL && $src !== NULL) {
       throw new \RuntimeException('The --source and --src options cannot be used together.');

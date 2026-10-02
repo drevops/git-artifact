@@ -270,8 +270,10 @@ class ArtifactCommandTest extends UnitTestCase {
       'empty source' => [['source' => ''], '/path/to/root', FALSE],
       'relative source' => [['source' => 'src'], '/path/to/root/src', FALSE],
       'absolute source' => [['source' => '/path/to/src'], '/path/to/src', FALSE],
+      'source named 0' => [['source' => '0'], '/path/to/root/0', FALSE],
       'relative src' => [['src' => 'src'], '/path/to/root/src', TRUE],
       'absolute src' => [['src' => '/path/to/src'], '/path/to/src', TRUE],
+      'src named 0' => [['src' => '0'], '/path/to/root/0', TRUE],
       'source with empty src' => [['source' => 'src', 'src' => ''], '/path/to/root/src', FALSE],
       'src with empty source' => [['source' => '', 'src' => 'src'], '/path/to/root/src', TRUE],
     ];
@@ -291,6 +293,7 @@ class ArtifactCommandTest extends UnitTestCase {
     return [
       'different values' => [['source' => 'src', 'src' => 'other']],
       'identical values' => [['source' => 'src', 'src' => 'src']],
+      'src named 0' => [['source' => 'src', 'src' => '0']],
     ];
   }
 
