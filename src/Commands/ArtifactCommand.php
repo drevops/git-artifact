@@ -197,7 +197,8 @@ class ArtifactCommand extends Command {
       ->addOption('log',                    NULL, InputOption::VALUE_REQUIRED, 'Path to the log file.')
       ->addOption('root',                   NULL, InputOption::VALUE_REQUIRED, 'Path to the root for file path resolution. If not specified, current directory is used.')
       ->addOption('show-changes',           NULL, InputOption::VALUE_NONE,     'Show changes made to the repo during packaging in the output.')
-      ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
+      ->addOption('source',                 NULL, InputOption::VALUE_REQUIRED, 'Directory where source repository is located. If not specified, root directory is used.')
+      ->addOption('src',                    NULL, InputOption::VALUE_REQUIRED, 'Deprecated alias of --source. Will be removed in a future major release.')
       ->addOption('fail-on-missing-branch', NULL, InputOption::VALUE_NONE,     'Fail artifact packaging if source branch cannot be determined. By default, artifact packaging is skipped gracefully.')
       ->addOption('cleanup-stale',          NULL, InputOption::VALUE_NONE,     'Delete stale branches in the remote repository that match --cleanup-pattern and are older than --cleanup-age days.')
       ->addOption('cleanup-pattern',        NULL, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Remote branches eligible for stale cleanup. Repeatable; each value is a comma-separated list of globs (e.g. "feature/*,bugfix/*") or a single regex literal (e.g. "/^feature\/.+$/"). A branch matching any pattern is eligible. Required when --cleanup-stale is set.')
@@ -477,7 +478,7 @@ class ArtifactCommand extends Command {
 
     $this->setMode(is_string($options['mode']) ? $options['mode'] : '', $options);
 
-    $this->sourceDir = empty($options['src']) || !is_string($options['src']) ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($options['src']);
+    $this->sourceDir = $this->resolveSourceDir($options);
 
     $this->repo = new ArtifactGitRepository($this->sourceDir, NULL, $this->logger);
 
@@ -530,6 +531,38 @@ class ArtifactCommand extends Command {
       $this->gitignoreCustom = $gitignore;
       $this->repo->setGitignoreCustom($this->gitignoreCustom);
     }
+  }
+
+  /**
+   * Resolve the source repository directory from the CLI options.
+   *
+   * The --src option is a deprecated alias of --source, and the 2 options
+   * cannot be combined.
+   *
+   * @param array<mixed> $options
+   *   Array of CLI options.
+   *
+   * @return string
+   *   Absolute path to the source repository, or the root directory when
+   *   neither option is set.
+   */
+  protected function resolveSourceDir(array $options): string {
+    $source = empty($options['source']) || !is_string($options['source']) ? NULL : $options['source'];
+    $src = empty($options['src']) || !is_string($options['src']) ? NULL : $options['src'];
+
+    if ($source !== NULL && $src !== NULL) {
+      throw new \RuntimeException('The --source and --src options cannot be used together.');
+    }
+
+    if ($src !== NULL) {
+      $message = 'The --src option is deprecated and will be removed in a future major release. Use --source instead.';
+      $this->output->writeln('<comment>' . $message . '</comment>');
+      $this->logger->notice($message);
+
+      $source = $src;
+    }
+
+    return $source === NULL ? $this->fsGetRootDir() : $this->fsGetAbsolutePath($source);
   }
 
   /**
