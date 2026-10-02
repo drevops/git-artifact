@@ -166,7 +166,7 @@ abstract class FunctionalTestCase extends UnitTestCase {
       ];
 
       if (!empty($this->src)) {
-        $input['--src'] = $this->src;
+        $input['--source'] = $this->src;
       }
 
       if (!empty($this->mode)) {

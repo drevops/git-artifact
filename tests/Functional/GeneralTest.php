@@ -17,6 +17,8 @@ class GeneralTest extends FunctionalTestCase {
 
     $this->assertStringContainsString('artifact [options] [--] <remote>', $output);
     $this->assertStringContainsString('Assemble a code artifact from your codebase, remove unnecessary files, and push it into a separate Git repository.', $output);
+    $this->assertStringContainsString('--source=SOURCE', $output);
+    $this->assertStringContainsString('Deprecated alias of --source. Will be removed in a future major release.', $output);
   }
 
   public function testCompulsoryParameter(): void {
@@ -62,7 +64,7 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertFilesNotExist($this->dst, 'f1');
   }
 
-  public function testSrcDefault(): void {
+  public function testSourceDefault(): void {
     $this->gitCreateFixtureCommits(1);
 
     $old_fixture_dir = $this->fixtureDir;
@@ -77,6 +79,30 @@ class GeneralTest extends FunctionalTestCase {
     $this->assertStringContainsString('Cowardly refusing to push to remote. Use without --dry-run to perform an actual push.', $output);
 
     $this->fixtureDir = $old_fixture_dir;
+  }
+
+  public function testSrcDeprecated(): void {
+    $this->gitCreateFixtureCommits(1);
+
+    $src = $this->src;
+    // An empty $src stops runArtifactCommand() from adding --source.
+    $this->src = '';
+
+    $output = $this->assertArtifactCommandSuccess(['--src' => $src]);
+
+    $this->assertSame(1, substr_count($output, 'The --src option is deprecated and will be removed in a future major release. Use --source instead.'));
+    $this->assertStringContainsString('Source repository:     ' . $src, $output);
+
+    $this->gitCheckout($this->dst, 'testbranch');
+    $this->assertFilesExist($this->dst, 'f1');
+  }
+
+  public function testSourceSrcConflict(): void {
+    $this->gitCreateFixtureCommits(1);
+
+    $output = $this->assertArtifactCommandFailure(['--src' => $this->src]);
+
+    $this->assertStringContainsString('The --source and --src options cannot be used together.', $output);
   }
 
   public function testModeInvalid(): void {

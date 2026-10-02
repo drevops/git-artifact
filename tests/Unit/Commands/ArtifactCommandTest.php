@@ -248,6 +248,55 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertSame(array_slice($info, 3, 6), array_slice($report, 3, 6));
   }
 
+  #[DataProvider('dataProviderResolveSourceDir')]
+  public function testResolveSourceDir(array $options, string $expected, bool $is_deprecated): void {
+    $output = new BufferedOutput();
+    $handler = new TestHandler();
+    $command = $this->createSourceCommand($output, $handler);
+
+    $actual = $this->callProtectedMethod($command, 'resolveSourceDir', [$options]);
+
+    $this->assertSame($expected, $actual);
+
+    $notice = 'The --src option is deprecated and will be removed in a future major release. Use --source instead.';
+    $this->assertSame($is_deprecated ? $notice . PHP_EOL : '', $output->fetch());
+    $this->assertSame($is_deprecated ? [$notice] : [], $this->getLoggedMessages($handler));
+  }
+
+  public static function dataProviderResolveSourceDir(): array {
+    return [
+      'no options' => [[], '/path/to/root', FALSE],
+      'unset options' => [['source' => NULL, 'src' => NULL], '/path/to/root', FALSE],
+      'empty source' => [['source' => ''], '/path/to/root', FALSE],
+      'relative source' => [['source' => 'src'], '/path/to/root/src', FALSE],
+      'absolute source' => [['source' => '/path/to/src'], '/path/to/src', FALSE],
+      'source named 0' => [['source' => '0'], '/path/to/root/0', FALSE],
+      'relative src' => [['src' => 'src'], '/path/to/root/src', TRUE],
+      'absolute src' => [['src' => '/path/to/src'], '/path/to/src', TRUE],
+      'src named 0' => [['src' => '0'], '/path/to/root/0', TRUE],
+      'source with empty src' => [['source' => 'src', 'src' => ''], '/path/to/root/src', FALSE],
+      'src with empty source' => [['source' => '', 'src' => 'src'], '/path/to/root/src', TRUE],
+    ];
+  }
+
+  #[DataProvider('dataProviderResolveSourceDirConflict')]
+  public function testResolveSourceDirConflict(array $options): void {
+    $command = $this->createSourceCommand(new BufferedOutput(), new TestHandler());
+
+    $this->expectException(\RuntimeException::class);
+    $this->expectExceptionMessage('The --source and --src options cannot be used together.');
+
+    $this->callProtectedMethod($command, 'resolveSourceDir', [$options]);
+  }
+
+  public static function dataProviderResolveSourceDirConflict(): array {
+    return [
+      'different values' => [['source' => 'src', 'src' => 'other']],
+      'identical values' => [['source' => 'src', 'src' => 'src']],
+      'src named 0' => [['source' => 'src', 'src' => '0']],
+    ];
+  }
+
   /**
    * Build a command instance wired for cleanupStaleBranches() in isolation.
    *
@@ -315,6 +364,27 @@ class ArtifactCommandTest extends UnitTestCase {
     foreach ($values as $property => $value) {
       $this->setProtectedValue($command, $property, $value);
     }
+
+    return $command;
+  }
+
+  /**
+   * Build a command instance wired for resolveSourceDir() in isolation.
+   *
+   * @param \Symfony\Component\Console\Output\BufferedOutput $output
+   *   Output buffer to capture console lines.
+   * @param \Monolog\Handler\TestHandler $handler
+   *   Log handler to capture logged messages.
+   *
+   * @return \DrevOps\GitArtifact\Commands\ArtifactCommand
+   *   Configured command instance with the root directory "/path/to/root".
+   */
+  protected function createSourceCommand(BufferedOutput $output, TestHandler $handler): ArtifactCommand {
+    $command = new ArtifactCommand();
+
+    $this->setProtectedValue($command, 'fsRootDir', '/path/to/root');
+    $this->setProtectedValue($command, 'output', $output);
+    $this->setProtectedValue($command, 'logger', new Logger('artifact', [$handler]));
 
     return $command;
   }

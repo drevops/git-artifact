@@ -310,7 +310,8 @@ fully-configured [example in the Vortex project](https://github.com/drevops/vort
 | `--now`                    |                     | Internal value used to set internal time                                                                            |
 | `--root`                   |                     | Path to the root for file path resolution. Uses current directory if not specified                                  |
 | `--show-changes`           |                     | Show changes made to the repo during packaging in the output                                                        |
-| `--src`                    |                     | Directory where source repository is located. Uses root directory if not specified                                  |
+| `--source`                 |                     | Directory where source repository is located. Uses root directory if not specified                                  |
+| `--src`                    |                     | Deprecated alias of `--source`. Will be removed in a future major release                                           |
 | `-V, --version`            |                     | Display this application version                                                                                    |
 | `-h, --help`               |                     | Display help for the given command                                                                                  |
 | `-n, --no-interaction`     |                     | Do not ask any interactive question                                                                                 |
