@@ -11,6 +11,7 @@ use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
 use Monolog\LogRecord;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -21,6 +22,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 #[CoversClass(ArtifactGitRepository::class)]
 class ArtifactCommandTest extends UnitTestCase {
 
+  #[AllowMockObjectsWithoutExpectations]
   public function testCleanupStaleBranchesHandlesListFailure(): void {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
       'getRemoteBranchesInfo' => fn(): never => throw new GitException('boom'),
@@ -34,6 +36,7 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertStringContainsString('Unable to list remote branches for cleanup.', $output->fetch());
   }
 
+  #[AllowMockObjectsWithoutExpectations]
   public function testCleanupStaleBranchesHandlesDeleteFailure(): void {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
       'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
@@ -49,6 +52,7 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertStringContainsString('Failed to delete stale branch "deployment/old".', $output->fetch());
   }
 
+  #[AllowMockObjectsWithoutExpectations]
   public function testCleanupStaleBranchesSkipsWhenDefaultBranchUnknown(): void {
     $repo = $this->prepareMock(ArtifactGitRepository::class, [
       'getRemoteBranchesInfo' => fn(): array => ['deployment/old' => 1000],
