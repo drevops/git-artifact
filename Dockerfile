@@ -1,4 +1,4 @@
-FROM php:8.5-cli@sha256:01a109229f4465bc9ef042d9198f09a4d9da7775a825dbd8572dcdbd8756c4d3 AS builder
+FROM php:8.5-cli@sha256:1d322225fdf41d54777fa11de99dfbfbf9cac21d27431b36af61e28a3171f102 AS builder
 
 # hadolint ignore=DL3008
 RUN apt-get update && \
@@ -13,7 +13,7 @@ RUN docker-php-ext-install zip
 # renovate: datasource=github-releases depName=composer/composer extractVersion=^(?<version>.*)$
 ENV COMPOSER_ALLOW_SUPERUSER=1
 # hadolint ignore=DL4006
-RUN version=2.8.10 && \
+RUN version=2.10.3 && \
     curl -sS https://getcomposer.org/download/${version}/composer.phar.sha256sum | awk '{ print $1, "composer.phar" }' > composer.phar.sha256sum && \
     curl -sS -o composer.phar https://getcomposer.org/download/${version}/composer.phar && \
     sha256sum -c composer.phar.sha256sum && \
@@ -33,7 +33,7 @@ COPY . /app
 
 RUN composer build
 
-FROM php:8.5-cli@sha256:01a109229f4465bc9ef042d9198f09a4d9da7775a825dbd8572dcdbd8756c4d3
+FROM php:8.5-cli@sha256:1d322225fdf41d54777fa11de99dfbfbf9cac21d27431b36af61e28a3171f102
 
 # git is required because the tool shells out to the git binary; openssh-client
 # enables pushing to SSH remotes such as git@github.com:org/repo.git.

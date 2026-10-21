@@ -18,7 +18,7 @@ trait MockTrait {
    *
    * @param class-string $class
    *   Class name to generate the mock for.
-   * @param array<string, scalar|\Closure> $methods
+   * @param array<non-empty-string, scalar|\Closure> $methods
    *   Optional array of return values or closures, keyed by method name. A
    *   closure is called to produce the return value.
    * @param bool|array<mixed> $args

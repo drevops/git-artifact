@@ -6,10 +6,10 @@ namespace DrevOps\GitArtifact\Tests\Unit\Traits;
 
 use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use DrevOps\GitArtifact\Traits\TokenTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(TokenTrait::class)]
+#[CoversTrait(TokenTrait::class)]
 class TokenTraitTest extends UnitTestCase {
 
   #[DataProvider('dataProviderTokenProcess')]
