@@ -6,11 +6,11 @@ namespace DrevOps\GitArtifact\Tests\Unit\Traits;
 
 use DrevOps\GitArtifact\Tests\Unit\UnitTestCase;
 use DrevOps\GitArtifact\Traits\FilesystemTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Filesystem\Filesystem;
 
-#[CoversClass(FilesystemTrait::class)]
+#[CoversTrait(FilesystemTrait::class)]
 class FilesystemTraitTest extends UnitTestCase {
 
   public function testFsGetRootDirWithPwd(): void {
