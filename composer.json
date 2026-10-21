@@ -31,7 +31,7 @@
         "drupal/coder": "^9.0.1",
         "ergebnis/composer-normalize": "^2.54.0",
         "phpstan/phpstan": "^2.3.1",
-        "phpunit/phpunit": "^11.5.57",
+        "phpunit/phpunit": "^12.5.40",
         "pyrech/composer-changelogs": "^2.2",
         "rector/rector": "^2.7.0"
     },
