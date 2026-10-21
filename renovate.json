@@ -26,5 +26,12 @@
             "groupName": "all dependencies",
             "groupSlug": "all"
         }
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "managerFilePatterns": ["/(^|/)Dockerfile$/", "/(^|/)Dockerfile\\.[^/]*$/"],
+            "matchStrings": ["#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?(?:\\s+extractVersion=(?<extractVersion>\\S+))?\\s*\\n(?:.*\\n)*?.*?(?:ENV|ARG|RUN)\\s+.*?version=(?<currentValue>[^\\s&]+)"]
+        }
     ]
 }
