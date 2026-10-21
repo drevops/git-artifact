@@ -64,6 +64,12 @@
             "php": "8.3.0"
         }
     },
+    "extra": {
+        "bamarni-bin": {
+            "bin-links": true,
+            "forward-command": false
+        }
+    },
     "scripts": {
         "build": [
             "@composer bin box install",

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "186a82901ca23b7a2c8a7e3c47e51e64",
+    "content-hash": "ec7d3d4c49428da93f4d7b2e16847d26",
     "packages": [
         {
             "name": "czproject/git-php",
