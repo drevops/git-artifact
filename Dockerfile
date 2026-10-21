@@ -13,7 +13,7 @@ RUN docker-php-ext-install zip
 # renovate: datasource=github-releases depName=composer/composer extractVersion=^(?<version>.*)$
 ENV COMPOSER_ALLOW_SUPERUSER=1
 # hadolint ignore=DL4006
-RUN version=2.8.10 && \
+RUN version=2.10.3 && \
     curl -sS https://getcomposer.org/download/${version}/composer.phar.sha256sum | awk '{ print $1, "composer.phar" }' > composer.phar.sha256sum && \
     curl -sS -o composer.phar https://getcomposer.org/download/${version}/composer.phar && \
     sha256sum -c composer.phar.sha256sum && \
