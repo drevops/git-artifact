@@ -5,7 +5,7 @@ aliases:
   - &container_config
     working_directory: ~/workspace/code
     docker:
-      - image: cimg/php:8.5@sha256:81cdc338d5ed2dad7529ac6bd8432694980225dcb45dd99fd071a6430ac6b303
+      - image: cimg/php:8.5@sha256:0b201d37f5f9886f6b8cc51a0f7bc7b12f8314744967f97ff04fcecd5d2cecd3
         environment:
           DEPLOY_SSH_FINGERPRINT: *deploy_ssh_fingerprint
 
