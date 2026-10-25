@@ -293,12 +293,13 @@ jobs:
           date "+%Y%m%d-%H%M%S" >> $TEST_FILE
           cat $TEST_FILE
           echo $TEST_FILE > $HOME/test-file.txt
+          echo "DEPLOY_MINUTE=$(date +%Y-%m-%d_%H-%M)" >> "$GITHUB_ENV"
 
       - name: Deployment 1
         run: |
           ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
-            --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i] \
+            --branch=mode--branch--gha--[branch]--$DEPLOY_MINUTE \
             --mode=branch \
             --log=$HOME/report--mode--branch.txt \
             -vvv
@@ -320,7 +321,7 @@ jobs:
         run: |
           ./git-artifact \
             git@github.com:drevops/git-artifact-destination.git \
-            --branch=mode--branch--gha--[branch]--[timestamp:Y-m-d_H-i] \
+            --branch=mode--branch--gha--[branch]--$DEPLOY_MINUTE \
             --mode=branch \
             --log=$HOME/report--mode--branch.txt \
             -vvv \
