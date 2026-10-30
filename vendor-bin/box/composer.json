@@ -1,5 +1,5 @@
 {
     "require": {
-        "humbug/box": "^4.7"
+        "humbug/box": "^4.7.1"
     }
 }
