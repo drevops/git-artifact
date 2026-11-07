@@ -1,6 +1,6 @@
 <p align="center">
   <a href="" rel="noopener">
-  <img width=150px height=150px src="logo.png" alt="Git Artifact logo"></a>
+  <img width="420" src="logo.png" alt="Git Artifact logo"></a>
 </p>
 
 <h2 align="center">Package and push files to a remote repository</h2>
