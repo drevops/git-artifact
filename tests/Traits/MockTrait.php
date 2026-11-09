@@ -52,13 +52,13 @@ trait MockTrait {
 
     foreach ($methods as $method => $value) {
       if (is_object($value) && str_contains($value::class, 'Callback')) {
-        $mock->expects($this->any())->method($method)->willReturnCallback($value);
+        $mock->method($method)->willReturnCallback($value);
       }
       elseif (is_object($value) && str_contains($value::class, 'Closure')) {
-        $mock->expects($this->any())->method($method)->willReturnCallback($value);
+        $mock->method($method)->willReturnCallback($value);
       }
       else {
-        $mock->expects($this->any())->method($method)->willReturn($value);
+        $mock->method($method)->willReturn($value);
       }
     }
 

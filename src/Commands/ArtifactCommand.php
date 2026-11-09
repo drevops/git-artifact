@@ -421,7 +421,7 @@ class ArtifactCommand extends Command {
 
     $this->remoteUrl = $url;
     $this->now = empty($options['now']) ? time() : (is_scalar($options['now']) ? (int) $options['now'] : time());
-    $this->remoteName = sprintf('%s-%s-%s', self::GIT_REMOTE_NAME, $this->now, rand(1000, 9999));
+    $this->remoteName = sprintf('%s-%s-%s', self::GIT_REMOTE_NAME, $this->now, random_int(1000, 9999));
     $this->showChanges = !empty($options['show-changes']);
     $this->needCleanup = empty($options['no-cleanup']);
     $this->isDryRun = !empty($options['dry-run']);
@@ -432,7 +432,7 @@ class ArtifactCommand extends Command {
     if ($this->cleanupStale) {
       $raw_patterns = $options['cleanup-pattern'] ?? [];
       $raw_patterns = is_array($raw_patterns) ? $raw_patterns : [$raw_patterns];
-      $raw_patterns = array_filter($raw_patterns, 'is_string');
+      $raw_patterns = array_filter($raw_patterns, is_string(...));
 
       $patterns = [];
       foreach ($raw_patterns as $raw_pattern) {
@@ -736,7 +736,7 @@ class ArtifactCommand extends Command {
    * @throws \Exception
    */
   protected function getTokenTags(?string $delimiter = NULL): string {
-    $delimiter = $delimiter ?? '-';
+    $delimiter ??= '-';
 
     return implode($delimiter, $this->repo->getTagsPointingToHead());
   }
@@ -751,7 +751,7 @@ class ArtifactCommand extends Command {
    *   Date string.
    */
   protected function getTokenTimestamp(?string $format = NULL): string {
-    $format = $format ?? 'Y-m-d_H-i-s';
+    $format ??= 'Y-m-d_H-i-s';
 
     return date($format, $this->now);
   }

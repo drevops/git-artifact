@@ -25,8 +25,8 @@ trait FixtureTrait {
    *   Optional root directory.
    */
   protected function fixtureInit(?string $name = NULL, ?string $root = NULL): void {
-    $name = $name ?? $this::class;
-    $root = $root ?? sys_get_temp_dir();
+    $name ??= $this::class;
+    $root ??= sys_get_temp_dir();
     $this->fixtureDir = $root . DIRECTORY_SEPARATOR . $name . '-' . date('U') . '-' . getmypid();
   }
 
@@ -46,7 +46,7 @@ trait FixtureTrait {
   protected function fixtureCreateFile(string $path, string $name = '', string|array $content = ''): string {
     $fs = new Filesystem();
 
-    $name = $name !== '' && $name !== '0' ? $name : 'tmp' . rand(1000, 100000);
+    $name = $name !== '' && $name !== '0' ? $name : 'tmp' . random_int(1000, 100000);
     $path = $path . DIRECTORY_SEPARATOR . $name;
 
     $dir = dirname($path);

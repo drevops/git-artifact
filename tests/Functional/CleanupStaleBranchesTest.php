@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class CleanupStaleBranchesTest extends FunctionalTestCase {
+final class CleanupStaleBranchesTest extends FunctionalTestCase {
 
   /**
    * {@inheritdoc}
@@ -228,16 +228,14 @@ class CleanupStaleBranchesTest extends FunctionalTestCase {
   }
 
   /**
-   * @return array<string, array<string>>
+   * @return \Iterator<string, string[]>
    *   Test data.
    */
-  public static function dataProviderCleanupAgeInvalid(): array {
-    return [
-      'zero' => ['0'],
-      'negative' => ['-1'],
-      'non-numeric' => ['abc'],
-      'fractional' => ['3.5'],
-    ];
+  public static function dataProviderCleanupAgeInvalid(): \Iterator {
+    yield 'zero' => ['0'];
+    yield 'negative' => ['-1'];
+    yield 'non-numeric' => ['abc'];
+    yield 'fractional' => ['3.5'];
   }
 
 }
