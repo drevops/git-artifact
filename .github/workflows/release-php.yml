@@ -45,19 +45,24 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: |
           version="${INPUTS_VERSION:-${REF_NAME}}"
+          if [[ ! "$version" =~ ^[0-9A-Za-z._+-]+$ ]]; then
+            echo "Invalid version: $version" >&2
+            exit 1
+          fi
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
           echo "Release version: $version"
 
       - name: Set PHAR version
         run: |
           sed -i "s/\"git-artifact-version\": \"development\"/\"git-artifact-version\": \"${RELEASE_VERSION}\"/g" box.json
+          grep -qF "\"git-artifact-version\": \"${RELEASE_VERSION}\"" box.json
 
       - name: Build PHAR
         run: composer build
 
       - name: Test PHAR
         run: |
-          ./.build/git-artifact --version
+          ./.build/git-artifact --version | grep -F "Git Artifact ${RELEASE_VERSION}"
           ./.build/git-artifact --help || exit 1
 
       - name: Create Release
