@@ -12,14 +12,47 @@ permissions:
 
 jobs:
   release-drafter:
+    name: Draft release notes
+    runs-on: ubuntu-latest
+
     permissions:
       contents: write
       pull-requests: write
 
-    runs-on: ubuntu-latest
-
     steps:
+      - name: Set version
+        id: version
+        env:
+          RELEASE_VERSION_SCHEME: ${{ vars.RELEASE_VERSION_SCHEME }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SCHEME="${RELEASE_VERSION_SCHEME}"
+          if [ "${SCHEME}" = "calver" ]; then
+            PREFIX="$(date "+%y.%-m")"
+            TAGS="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/git/matching-refs/tags/${PREFIX}." --jq '.[].ref')"
+            PATCH=0
+            while read -r TAG; do
+              NUMBER="${TAG#"refs/tags/${PREFIX}."}"
+              # Skip tags with a suffix, such as 'YY.M.N-rc1'.
+              case "${NUMBER}" in
+                '' | *[!0-9]*) continue ;;
+              esac
+              if [ "$((10#${NUMBER}))" -ge "${PATCH}" ]; then
+                PATCH="$((10#${NUMBER} + 1))"
+              fi
+            done <<<"${TAGS}"
+            VERSION="${PREFIX}.${PATCH}"
+            echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+            echo "Using CalVer: ${VERSION}"
+          else
+            echo "Using SemVer (default)"
+          fi
+
       - name: Draft release notes
         uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7
+        with:
+          tag: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          version: ${{ steps.version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -11,7 +11,7 @@ use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use Symfony\Component\Console\Application;
 
 // @codeCoverageIgnoreStart
-$application = new Application();
+$application = new Application('Git Artifact', '@git-artifact-version@');
 
 $command = new ArtifactCommand();
 $application->add($command);

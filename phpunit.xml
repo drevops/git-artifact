@@ -34,6 +34,7 @@
               disableCodeCoverageIgnore="false">
         <report>
             <html outputDirectory=".logs/.coverage-html" lowUpperBound="50" highLowerBound="90"/>
+            <text outputFile=".logs/coverage.txt"/>
             <cobertura outputFile=".logs/cobertura.xml"/>
         </report>
     </coverage>

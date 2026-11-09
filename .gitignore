@@ -2,6 +2,14 @@
 # https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#configuring-ignored-files-for-all-repositories-on-your-computer
 
 /.build
-/.logs
 /vendor
 /vendor-bin/*/vendor
+
+# Code coverage and test logs.
+/.logs
+
+# Temporary AI agent and developer artifacts (plans, scratch output, reports).
+/.artifacts/
+
+# Claude Code fetches the project update skill on demand; do not commit it.
+/.claude/skills/update-consumer-scaffold/
