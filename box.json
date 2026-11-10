@@ -11,5 +11,8 @@
                 "bin"
             ]
         }
-    ]
+    ],
+    "replacements": {
+        "git-artifact-version": "development"
+    }
 }

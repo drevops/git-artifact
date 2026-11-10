@@ -8,6 +8,13 @@ on:
     branches:
       - main
       - 'feature/**'
+  workflow_dispatch:
+    inputs:
+      enable_terminal:
+        type: boolean
+        description: 'Enable terminal session.'
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -18,6 +25,7 @@ concurrency:
 
 jobs:
   test-docker:
+    name: Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -28,9 +36,22 @@ jobs:
 
       - name: Lint Dockerfile
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
+        with:
+          dockerfile: Dockerfile
+        continue-on-error: ${{ vars.CI_LINT_IGNORE_FAILURE == '1' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Build Docker image
-        run: docker build -t "drevops/git-artifact:test" .
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: drevops/git-artifact:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Test that the image packages and pushes an artifact
         run: |
@@ -68,7 +89,15 @@ jobs:
           # Assert the file landed on the destination branch.
           git -C "${dst}" show artifact:file.txt | grep -q "artifact content"
 
+      - name: Setup upterm session
+        if: ${{ !cancelled() && github.event.inputs.enable_terminal == 'true' }}
+        uses: owenthereal/action-upterm@6c2d60e09009f59cb4c45c88767c78701f14d121 # v2
+        timeout-minutes: 30
+        with:
+          limit-access-to-actor: true
+
   push-canary-to-registry:
+    name: Docker canary
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
@@ -97,13 +126,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
-          images: drevops/git-artifact
+          images: ${{ vars.DOCKER_IMAGE || 'drevops/git-artifact' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           push: true
-          tags: drevops/git-artifact:canary
+          tags: ${{ vars.DOCKER_IMAGE || 'drevops/git-artifact' }}:canary
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
