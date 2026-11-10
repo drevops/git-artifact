@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(ArtifactGitRepository::class)]
-class ArtifactGitRepositoryTest extends UnitTestCase {
+final class ArtifactGitRepositoryTest extends UnitTestCase {
 
   #[DataProvider('dataProviderIsValidRemote')]
   public function testIsValidRemote(string $url, string $type, bool $expect_exception, bool $expected): void {
@@ -23,103 +23,94 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
     $url = $url === '<existing>' ? (new Filesystem())->tempnam(sys_get_temp_dir(), 'test') : $url;
 
     $actual = ArtifactGitRepository::isValidRemote($url, $type);
-    $this->assertEquals($expected, $actual);
+    $this->assertSame($expected, $actual);
   }
 
-  public static function dataProviderIsValidRemote(): array {
-    return [
-      ['<existing>', 'any', FALSE, TRUE],
-      ['<existing>', 'local', FALSE, TRUE],
-      ['<existing>', 'external', FALSE, FALSE],
-      ['<existing>', 'custom_type', TRUE, FALSE],
-      // Negative tests.
-      ['/path/non-existing', 'any', FALSE, FALSE],
-      ['/path/non-existing', 'local', FALSE, FALSE],
-      ['/path/non-existing', 'external', FALSE, FALSE],
-      ['/path/non-existing', 'custom_type', TRUE, FALSE],
-
-      ['git@github.com:user/repo.git', 'any', FALSE, TRUE],
-      ['git@github.com:user/repo.git', 'external', FALSE, TRUE],
-      ['git@github.com:user/repo.git', 'local', FALSE, FALSE],
-      ['git@github.com:user/repo.git', 'custom_type', TRUE, FALSE],
-      // Negative tests.
-      ['git@github.com:user/repo', 'any', FALSE, FALSE],
-      ['git@github.com:user/repo', 'external', FALSE, FALSE],
-      ['git@github.com:user/repo', 'local', FALSE, FALSE],
-      ['git@github.com:user/repo', 'custom_type', TRUE, FALSE],
-
-      ['https://github.com/user/repo.git', 'any', FALSE, TRUE],
-      ['https://github.com/user/repo.git', 'external', FALSE, TRUE],
-      ['https://github.com/user/repo.git', 'local', FALSE, FALSE],
-      ['https://github.com/user/repo.git', 'custom_type', TRUE, FALSE],
-      // Negative tests.
-      ['https://github.com/user/repo', 'any', FALSE, FALSE],
-      ['https://github.com/user/repo', 'external', FALSE, FALSE],
-      ['https://github.com/user/repo', 'local', FALSE, FALSE],
-      ['https://github.com/user/repo', 'custom_type', TRUE, FALSE],
-
-      ['http://github.com/user/repo.git', 'any', FALSE, TRUE],
-      ['http://github.com/user/repo.git', 'external', FALSE, TRUE],
-      ['http://github.com/user/repo.git', 'local', FALSE, FALSE],
-      ['http://github.com/user/repo.git', 'custom_type', TRUE, FALSE],
-      // Negative tests.
-      ['http://github.com/user/repo', 'any', FALSE, FALSE],
-      ['http://github.com/user/repo', 'external', FALSE, FALSE],
-      ['http://github.com/user/repo', 'local', FALSE, FALSE],
-      ['http://github.com/user/repo', 'custom_type', TRUE, FALSE],
-
-      ['git://user/repo.git', 'any', FALSE, TRUE],
-      ['git://user/repo.git', 'external', FALSE, TRUE],
-      ['git://user/repo.git', 'local', FALSE, FALSE],
-      ['git://user/repo.git', 'custom_type', TRUE, FALSE],
-      // Negative tests.
-      ['git://user/repo', 'any', FALSE, FALSE],
-      ['git://user/repo', 'external', FALSE, FALSE],
-      ['git://user/repo', 'local', FALSE, FALSE],
-      ['git://user/repo', 'custom_type', TRUE, FALSE],
-
-      ['ssh://git@github.com/user/repo.git', 'any', FALSE, TRUE],
-      ['ssh://git@github.com/user/repo.git', 'external', FALSE, TRUE],
-      ['ssh://git@github.com/user/repo.git', 'local', FALSE, FALSE],
-      ['ssh://git@github.com/user/repo.git', 'custom_type', TRUE, FALSE],
-      // Negative tests.
-      ['ssh://git@github.com/user/repo', 'any', FALSE, FALSE],
-      ['ssh://git@github.com/user/repo', 'external', FALSE, FALSE],
-      ['ssh://git@github.com/user/repo', 'local', FALSE, FALSE],
-      ['ssh://git@github.com/user/repo', 'custom_type', TRUE, FALSE],
-    ];
+  public static function dataProviderIsValidRemote(): \Iterator {
+    yield ['<existing>', 'any', FALSE, TRUE];
+    yield ['<existing>', 'local', FALSE, TRUE];
+    yield ['<existing>', 'external', FALSE, FALSE];
+    yield ['<existing>', 'custom_type', TRUE, FALSE];
+    // Negative tests.
+    yield ['/path/non-existing', 'any', FALSE, FALSE];
+    yield ['/path/non-existing', 'local', FALSE, FALSE];
+    yield ['/path/non-existing', 'external', FALSE, FALSE];
+    yield ['/path/non-existing', 'custom_type', TRUE, FALSE];
+    yield ['git@github.com:user/repo.git', 'any', FALSE, TRUE];
+    yield ['git@github.com:user/repo.git', 'external', FALSE, TRUE];
+    yield ['git@github.com:user/repo.git', 'local', FALSE, FALSE];
+    yield ['git@github.com:user/repo.git', 'custom_type', TRUE, FALSE];
+    // Negative tests.
+    yield ['git@github.com:user/repo', 'any', FALSE, FALSE];
+    yield ['git@github.com:user/repo', 'external', FALSE, FALSE];
+    yield ['git@github.com:user/repo', 'local', FALSE, FALSE];
+    yield ['git@github.com:user/repo', 'custom_type', TRUE, FALSE];
+    yield ['https://github.com/user/repo.git', 'any', FALSE, TRUE];
+    yield ['https://github.com/user/repo.git', 'external', FALSE, TRUE];
+    yield ['https://github.com/user/repo.git', 'local', FALSE, FALSE];
+    yield ['https://github.com/user/repo.git', 'custom_type', TRUE, FALSE];
+    // Negative tests.
+    yield ['https://github.com/user/repo', 'any', FALSE, FALSE];
+    yield ['https://github.com/user/repo', 'external', FALSE, FALSE];
+    yield ['https://github.com/user/repo', 'local', FALSE, FALSE];
+    yield ['https://github.com/user/repo', 'custom_type', TRUE, FALSE];
+    yield ['http://github.com/user/repo.git', 'any', FALSE, TRUE];
+    yield ['http://github.com/user/repo.git', 'external', FALSE, TRUE];
+    yield ['http://github.com/user/repo.git', 'local', FALSE, FALSE];
+    yield ['http://github.com/user/repo.git', 'custom_type', TRUE, FALSE];
+    // Negative tests.
+    yield ['http://github.com/user/repo', 'any', FALSE, FALSE];
+    yield ['http://github.com/user/repo', 'external', FALSE, FALSE];
+    yield ['http://github.com/user/repo', 'local', FALSE, FALSE];
+    yield ['http://github.com/user/repo', 'custom_type', TRUE, FALSE];
+    yield ['git://user/repo.git', 'any', FALSE, TRUE];
+    yield ['git://user/repo.git', 'external', FALSE, TRUE];
+    yield ['git://user/repo.git', 'local', FALSE, FALSE];
+    yield ['git://user/repo.git', 'custom_type', TRUE, FALSE];
+    // Negative tests.
+    yield ['git://user/repo', 'any', FALSE, FALSE];
+    yield ['git://user/repo', 'external', FALSE, FALSE];
+    yield ['git://user/repo', 'local', FALSE, FALSE];
+    yield ['git://user/repo', 'custom_type', TRUE, FALSE];
+    yield ['ssh://git@github.com/user/repo.git', 'any', FALSE, TRUE];
+    yield ['ssh://git@github.com/user/repo.git', 'external', FALSE, TRUE];
+    yield ['ssh://git@github.com/user/repo.git', 'local', FALSE, FALSE];
+    yield ['ssh://git@github.com/user/repo.git', 'custom_type', TRUE, FALSE];
+    // Negative tests.
+    yield ['ssh://git@github.com/user/repo', 'any', FALSE, FALSE];
+    yield ['ssh://git@github.com/user/repo', 'external', FALSE, FALSE];
+    yield ['ssh://git@github.com/user/repo', 'local', FALSE, FALSE];
+    yield ['ssh://git@github.com/user/repo', 'custom_type', TRUE, FALSE];
   }
 
   #[DataProvider('dataProviderIsValidBranchName')]
   public function testIsValidBranchName(string $name, bool $expected): void {
-    $this->assertEquals($expected, ArtifactGitRepository::isValidBranchName($name));
+    $this->assertSame($expected, ArtifactGitRepository::isValidBranchName($name));
   }
 
-  public static function dataProviderIsValidBranchName(): array {
-    return [
-      ['', FALSE],
-      [' ', FALSE],
-      ["\n", FALSE],
-      ['branch', TRUE],
-      ['branch/sub', TRUE],
-      ['branch/sub/subsub', TRUE],
-      ['branch/*', FALSE],
-      ['branch/sub/*', FALSE],
-      ['branch/sub/subsub/*', FALSE],
-      ['*/branch', FALSE],
-      ['*.branch', FALSE],
-      [':branch', FALSE],
-      ['~branch', FALSE],
-      ['?branch', FALSE],
-      ['branch?', FALSE],
-      ['branch/?', FALSE],
-      ['branch//', FALSE],
-      ['/branch', FALSE],
-      ['//branch', FALSE],
-      [str_repeat('a', 254), TRUE],
-      [str_repeat('a', 255), FALSE],
-      ['branch' . str_repeat('/sub', 255), FALSE],
-    ];
+  public static function dataProviderIsValidBranchName(): \Iterator {
+    yield ['', FALSE];
+    yield [' ', FALSE];
+    yield ["\n", FALSE];
+    yield ['branch', TRUE];
+    yield ['branch/sub', TRUE];
+    yield ['branch/sub/subsub', TRUE];
+    yield ['branch/*', FALSE];
+    yield ['branch/sub/*', FALSE];
+    yield ['branch/sub/subsub/*', FALSE];
+    yield ['*/branch', FALSE];
+    yield ['*.branch', FALSE];
+    yield [':branch', FALSE];
+    yield ['~branch', FALSE];
+    yield ['?branch', FALSE];
+    yield ['branch?', FALSE];
+    yield ['branch/?', FALSE];
+    yield ['branch//', FALSE];
+    yield ['/branch', FALSE];
+    yield ['//branch', FALSE];
+    yield [str_repeat('a', 254), TRUE];
+    yield [str_repeat('a', 255), FALSE];
+    yield ['branch' . str_repeat('/sub', 255), FALSE];
   }
 
   /**
@@ -142,64 +133,61 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
   }
 
   /**
-   * @return array<string, mixed>
+   * @return \Iterator<string, mixed>
    *   Test data.
    */
-  public static function dataProviderFilterStaleBranches(): array {
+  public static function dataProviderFilterStaleBranches(): \Iterator {
     $now = 1000000000;
     $day = 86400;
-
-    return [
-      'empty' => [[], ['*'], 3 * $day, $now, [], []],
-      'empty patterns' => [['deployment/a' => $now - 10 * $day], [], 3 * $day, $now, [], []],
-      'no pattern match' => [['feature/x' => $now - 10 * $day], ['deployment/*'], 3 * $day, $now, [], []],
-      'stale match' => [['deployment/a' => $now - 10 * $day], ['deployment/*'], 3 * $day, $now, [], ['deployment/a']],
-      'fresh kept' => [['deployment/a' => $now - $day], ['deployment/*'], 3 * $day, $now, [], []],
-      'boundary equal kept' => [['deployment/a' => $now - 3 * $day], ['deployment/*'], 3 * $day, $now, [], []],
-      'boundary just over' => [['deployment/a' => $now - 3 * $day - 1], ['deployment/*'], 3 * $day, $now, [], ['deployment/a']],
-      'protected excluded' => [['deployment/a' => $now - 10 * $day], ['deployment/*'], 3 * $day, $now, ['deployment/a'], []],
-      'future timestamp kept' => [['deployment/a' => $now + 5 * $day], ['deployment/*'], 3 * $day, $now, [], []],
-      'sorted output' => [
-        ['deployment/c' => $now - 10 * $day, 'deployment/a' => $now - 10 * $day, 'deployment/b' => $now - 10 * $day],
-        ['deployment/*'], 3 * $day, $now, [], ['deployment/a', 'deployment/b', 'deployment/c'],
-      ],
-      'numeric branch name' => [['123' => $now - 10 * $day], ['*'], 3 * $day, $now, [], ['123']],
-      'wildcard all but protected' => [
-        ['a' => $now - 10 * $day, 'b' => $now - 10 * $day],
-        ['*'], 3 * $day, $now, ['b'], ['a'],
-      ],
-      'multiple globs across prefixes' => [
-        ['feature/a' => $now - 10 * $day, 'bugfix/b' => $now - 10 * $day, 'release/c' => $now - 10 * $day],
-        ['feature/*', 'bugfix/*'], 3 * $day, $now, [], ['bugfix/b', 'feature/a'],
-      ],
-      'overlapping globs dedup' => [
-        ['feature/a' => $now - 10 * $day],
-        ['feature/*', 'feature/a'], 3 * $day, $now, [], ['feature/a'],
-      ],
-      'multiple globs none match' => [
-        ['release/c' => $now - 10 * $day],
-        ['feature/*', 'bugfix/*'], 3 * $day, $now, [], [],
-      ],
-      'multiple globs protected excluded' => [
-        ['feature/a' => $now - 10 * $day, 'bugfix/b' => $now - 10 * $day],
-        ['feature/*', 'bugfix/*'], 3 * $day, $now, ['bugfix/b'], ['feature/a'],
-      ],
-      'regex anchored match' => [
-        ['feature/x' => $now - 10 * $day, 'xfeature/y' => $now - 10 * $day],
-        ['/^feature\/.+$/'], 3 * $day, $now, [], ['feature/x'],
-      ],
-      'regex excludes nested slash' => [
-        ['feature/a' => $now - 10 * $day, 'feature/a/b' => $now - 10 * $day],
-        ['/^feature\/[^\/]+$/'], 3 * $day, $now, [], ['feature/a'],
-      ],
-      'glob spans nested slash' => [
-        ['feature/a' => $now - 10 * $day, 'feature/a/b' => $now - 10 * $day],
-        ['feature/*'], 3 * $day, $now, [], ['feature/a', 'feature/a/b'],
-      ],
-      'glob and regex mixed' => [
-        ['feature/a' => $now - 10 * $day, 'bugfix/b' => $now - 10 * $day, 'release/c' => $now - 10 * $day],
-        ['feature/*', '/^bugfix\/.+$/'], 3 * $day, $now, [], ['bugfix/b', 'feature/a'],
-      ],
+    yield 'empty' => [[], ['*'], 3 * $day, $now, [], []];
+    yield 'empty patterns' => [['deployment/a' => $now - 10 * $day], [], 3 * $day, $now, [], []];
+    yield 'no pattern match' => [['feature/x' => $now - 10 * $day], ['deployment/*'], 3 * $day, $now, [], []];
+    yield 'stale match' => [['deployment/a' => $now - 10 * $day], ['deployment/*'], 3 * $day, $now, [], ['deployment/a']];
+    yield 'fresh kept' => [['deployment/a' => $now - $day], ['deployment/*'], 3 * $day, $now, [], []];
+    yield 'boundary equal kept' => [['deployment/a' => $now - 3 * $day], ['deployment/*'], 3 * $day, $now, [], []];
+    yield 'boundary just over' => [['deployment/a' => $now - 3 * $day - 1], ['deployment/*'], 3 * $day, $now, [], ['deployment/a']];
+    yield 'protected excluded' => [['deployment/a' => $now - 10 * $day], ['deployment/*'], 3 * $day, $now, ['deployment/a'], []];
+    yield 'future timestamp kept' => [['deployment/a' => $now + 5 * $day], ['deployment/*'], 3 * $day, $now, [], []];
+    yield 'sorted output' => [
+      ['deployment/c' => $now - 10 * $day, 'deployment/a' => $now - 10 * $day, 'deployment/b' => $now - 10 * $day],
+      ['deployment/*'], 3 * $day, $now, [], ['deployment/a', 'deployment/b', 'deployment/c'],
+    ];
+    yield 'numeric branch name' => [['123' => $now - 10 * $day], ['*'], 3 * $day, $now, [], ['123']];
+    yield 'wildcard all but protected' => [
+      ['a' => $now - 10 * $day, 'b' => $now - 10 * $day],
+      ['*'], 3 * $day, $now, ['b'], ['a'],
+    ];
+    yield 'multiple globs across prefixes' => [
+      ['feature/a' => $now - 10 * $day, 'bugfix/b' => $now - 10 * $day, 'release/c' => $now - 10 * $day],
+      ['feature/*', 'bugfix/*'], 3 * $day, $now, [], ['bugfix/b', 'feature/a'],
+    ];
+    yield 'overlapping globs dedup' => [
+      ['feature/a' => $now - 10 * $day],
+      ['feature/*', 'feature/a'], 3 * $day, $now, [], ['feature/a'],
+    ];
+    yield 'multiple globs none match' => [
+      ['release/c' => $now - 10 * $day],
+      ['feature/*', 'bugfix/*'], 3 * $day, $now, [], [],
+    ];
+    yield 'multiple globs protected excluded' => [
+      ['feature/a' => $now - 10 * $day, 'bugfix/b' => $now - 10 * $day],
+      ['feature/*', 'bugfix/*'], 3 * $day, $now, ['bugfix/b'], ['feature/a'],
+    ];
+    yield 'regex anchored match' => [
+      ['feature/x' => $now - 10 * $day, 'xfeature/y' => $now - 10 * $day],
+      ['/^feature\/.+$/'], 3 * $day, $now, [], ['feature/x'],
+    ];
+    yield 'regex excludes nested slash' => [
+      ['feature/a' => $now - 10 * $day, 'feature/a/b' => $now - 10 * $day],
+      ['/^feature\/[^\/]+$/'], 3 * $day, $now, [], ['feature/a'],
+    ];
+    yield 'glob spans nested slash' => [
+      ['feature/a' => $now - 10 * $day, 'feature/a/b' => $now - 10 * $day],
+      ['feature/*'], 3 * $day, $now, [], ['feature/a', 'feature/a/b'],
+    ];
+    yield 'glob and regex mixed' => [
+      ['feature/a' => $now - 10 * $day, 'bugfix/b' => $now - 10 * $day, 'release/c' => $now - 10 * $day],
+      ['feature/*', '/^bugfix\/.+$/'], 3 * $day, $now, [], ['bugfix/b', 'feature/a'],
     ];
   }
 
@@ -215,19 +203,17 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
   }
 
   /**
-   * @return array<string, array{string, bool}>
+   * @return \Iterator<string, array{string, bool}>
    *   Test data.
    */
-  public static function dataProviderIsRegexPattern(): array {
-    return [
-      'empty' => ['', FALSE],
-      'glob wildcard' => ['*', FALSE],
-      'glob prefix' => ['feature/*', FALSE],
-      'glob question' => ['feature/?', FALSE],
-      'regex literal' => ['/^feature\/.+$/', TRUE],
-      'regex with flags' => ['/^feature\/.+$/i', TRUE],
-      'bare slash' => ['/', TRUE],
-    ];
+  public static function dataProviderIsRegexPattern(): \Iterator {
+    yield 'empty' => ['', FALSE];
+    yield 'glob wildcard' => ['*', FALSE];
+    yield 'glob prefix' => ['feature/*', FALSE];
+    yield 'glob question' => ['feature/?', FALSE];
+    yield 'regex literal' => ['/^feature\/.+$/', TRUE];
+    yield 'regex with flags' => ['/^feature\/.+$/i', TRUE];
+    yield 'bare slash' => ['/', TRUE];
   }
 
   /**
@@ -242,18 +228,16 @@ class ArtifactGitRepositoryTest extends UnitTestCase {
   }
 
   /**
-   * @return array<string, array{string, bool}>
+   * @return \Iterator<string, array{string, bool}>
    *   Test data.
    */
-  public static function dataProviderIsValidRegex(): array {
-    return [
-      'valid anchored' => ['/^feature\/.+$/', TRUE],
-      'valid with flags' => ['/^feature\/.+$/i', TRUE],
-      'valid char class' => ['/^feature\/[^\/]+$/', TRUE],
-      'missing closing delimiter' => ['/^feature', FALSE],
-      'unmatched paren' => ['/(/', FALSE],
-      'unknown modifier' => ['/^a$/z', FALSE],
-    ];
+  public static function dataProviderIsValidRegex(): \Iterator {
+    yield 'valid anchored' => ['/^feature\/.+$/', TRUE];
+    yield 'valid with flags' => ['/^feature\/.+$/i', TRUE];
+    yield 'valid char class' => ['/^feature\/[^\/]+$/', TRUE];
+    yield 'missing closing delimiter' => ['/^feature', FALSE];
+    yield 'unmatched paren' => ['/(/', FALSE];
+    yield 'unknown modifier' => ['/^a$/z', FALSE];
   }
 
 }

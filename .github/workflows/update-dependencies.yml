@@ -1,0 +1,60 @@
+# Runs Renovate on demand, outside the schedule of the Renovate GitHub app.
+#
+# Requires the RENOVATE_TOKEN repository secret. Set the RENOVATE_GIT_AUTHOR
+# repository variable to commit as a different author.
+name: Update dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        description: 'Dry run: report updates without pushing branches or opening pull requests.'
+        required: false
+        default: false
+      debug:
+        type: boolean
+        description: 'Enable debug logging.'
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  update-dependencies:
+    name: Update dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check requirements
+        run: |
+          if [ -z "${RENOVATE_TOKEN}" ]; then
+            echo "::error::Add a RENOVATE_TOKEN repository secret to run this workflow."
+            exit 1
+          fi
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@266fef21329c44765ad42f9dea1f01f5d2d91084 # v46.3.13
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_ONBOARDING: 'false'
+          RENOVATE_REQUIRE_CONFIG: 'required'
+          # Match the Renovate app's commit author and adopt its pull requests,
+          # so both update the same branches instead of treating them as edited.
+          RENOVATE_GIT_AUTHOR: ${{ vars.RENOVATE_GIT_AUTHOR || 'renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>' }}
+          RENOVATE_IGNORE_PR_AUTHOR: 'true'
+          # Lift the schedule and rate limits, and leave the Renovate app's
+          # Dependency Dashboard issue to the app.
+          RENOVATE_FORCE: '{"schedule": [], "prHourlyLimit": 0, "prConcurrentLimit": 0, "branchConcurrentLimit": 0, "dependencyDashboard": false}'
+          RENOVATE_DEPENDENCY_DASHBOARD_TITLE: 'Dependency Dashboard (Update dependencies workflow)'
+          RENOVATE_DRY_RUN: ${{ inputs.dry_run && 'full' || '' }}
+          LOG_LEVEL: ${{ inputs.debug && 'debug' || 'info' }}

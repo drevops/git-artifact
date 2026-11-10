@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversTrait(TokenTrait::class)]
-class TokenTraitTest extends UnitTestCase {
+final class TokenTraitTest extends UnitTestCase {
 
   #[DataProvider('dataProviderTokenProcess')]
   public function testTokenProcess(string $string, string $expected): void {
@@ -28,48 +28,46 @@ class TokenTraitTest extends UnitTestCase {
     $this->assertEquals($expected, $actual);
   }
 
-  public static function dataProviderTokenProcess(): array {
-    return [
-      [
-        '',
-        '',
-      ],
-      [
-        '',
-        '',
-      ],
-      [
-        'string without a token',
-        'string without a token',
-      ],
-      [
-        'string with sometoken without delimiters',
-        'string with sometoken without delimiters',
-      ],
-      [
-        'string with [sometoken broken delimiters',
-        'string with [sometoken broken delimiters',
-      ],
-      [
-        'string with sometoken] broken delimiters',
-        'string with sometoken] broken delimiters',
-      ],
-      [
-        '[sometoken]',
-        'somevalue',
-      ],
-      [
-        'string with [sometoken] present',
-        'string with somevalue present',
-      ],
-      [
-        'string with [sometoken:prop] present',
-        'string with somevalue with property prop present',
-      ],
-      [
-        'string with [sometoken:prop:otherprop] present',
-        'string with somevalue with property prop:otherprop present',
-      ],
+  public static function dataProviderTokenProcess(): \Iterator {
+    yield [
+      '',
+      '',
+    ];
+    yield [
+      '',
+      '',
+    ];
+    yield [
+      'string without a token',
+      'string without a token',
+    ];
+    yield [
+      'string with sometoken without delimiters',
+      'string with sometoken without delimiters',
+    ];
+    yield [
+      'string with [sometoken broken delimiters',
+      'string with [sometoken broken delimiters',
+    ];
+    yield [
+      'string with sometoken] broken delimiters',
+      'string with sometoken] broken delimiters',
+    ];
+    yield [
+      '[sometoken]',
+      'somevalue',
+    ];
+    yield [
+      'string with [sometoken] present',
+      'string with somevalue present',
+    ];
+    yield [
+      'string with [sometoken:prop] present',
+      'string with somevalue with property prop present',
+    ];
+    yield [
+      'string with [sometoken:prop:otherprop] present',
+      'string with somevalue with property prop:otherprop present',
     ];
   }
 
@@ -84,15 +82,13 @@ class TokenTraitTest extends UnitTestCase {
     $this->assertSame($expected, $actual);
   }
 
-  public static function dataProviderTokenExists(): array {
-    return [
-      ['notoken', FALSE],
-      ['[broken token', FALSE],
-      ['broken token]', FALSE],
-      ['[token]', TRUE],
-      ['string with [token] and other string', TRUE],
-      ['[token] and [otherttoken]', TRUE],
-    ];
+  public static function dataProviderTokenExists(): \Iterator {
+    yield ['notoken', FALSE];
+    yield ['[broken token', FALSE];
+    yield ['broken token]', FALSE];
+    yield ['[token]', TRUE];
+    yield ['string with [token] and other string', TRUE];
+    yield ['[token] and [otherttoken]', TRUE];
   }
 
 }

@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class MissingBranchTest extends FunctionalTestCase {
+final class MissingBranchTest extends FunctionalTestCase {
 
   public function testMissingBranchDefaultBehavior(): void {
     $this->gitCreateFixtureCommits(1);

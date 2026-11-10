@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(BranchNotFoundException::class)]
 #[CoversClass(GitException::class)]
 #[CoversClass(GitArtifactException::class)]
-class BranchNotFoundExceptionTest extends UnitTestCase {
+final class BranchNotFoundExceptionTest extends UnitTestCase {
 
   public function testCommitHashStorage(): void {
     $message = 'Test message';
@@ -21,16 +21,16 @@ class BranchNotFoundExceptionTest extends UnitTestCase {
 
     $exception = new BranchNotFoundException($message, $commit_hash);
 
-    $this->assertEquals($message, $exception->getMessage());
-    $this->assertEquals($commit_hash, $exception->getCommitHash());
+    $this->assertSame($message, $exception->getMessage());
+    $this->assertSame($commit_hash, $exception->getCommitHash());
     $this->assertEquals(0, $exception->getCode());
   }
 
   public function testDefaultValues(): void {
     $exception = new BranchNotFoundException();
 
-    $this->assertEquals('Unable to determine source branch.', $exception->getMessage());
-    $this->assertEquals('', $exception->getCommitHash());
+    $this->assertSame('Unable to determine source branch.', $exception->getMessage());
+    $this->assertSame('', $exception->getCommitHash());
     $this->assertEquals(0, $exception->getCode());
   }
 

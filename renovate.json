@@ -12,12 +12,7 @@
             "enabled": false
         },
         {
-            "matchDepNames": ["node", "yarn"],
-            "matchManagers": ["npm"],
-            "enabled": false
-        },
-        {
-            "matchManagers": ["npm", "composer"],
+            "matchManagers": ["composer"],
             "matchUpdateTypes": ["major"],
             "enabled": false
         },

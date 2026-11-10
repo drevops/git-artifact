@@ -354,18 +354,23 @@ as expected.
 
 You can see examples of the branches created by the Git Artifact in the [example _destination_ repository](https://github.com/drevops/git-artifact-destination/branches).
 
-### Lint and fix code
+### Contribute
+
+[`CONTRIBUTING.md`](CONTRIBUTING.md) lists the commands that install the dependencies and run the linters and tests.
+
+### Configure the GitHub repository
+
+To apply the Scaffold repository settings, labels and default branch ruleset to this project's GitHub repository, run the following command in the project's root directory:
 
 ```bash
-composer lint
-composer lint-fix
+curl -fsSL https://getscaffold.dev/install.sh | bash -s -- github
 ```
 
-### Run tests
+The command needs [GitHub CLI](https://cli.github.com) and a GitHub token in `SCAFFOLD_GITHUB_TOKEN`. The [GitHub repository setup](https://getscaffold.dev/github) page lists the permissions the token needs.
 
-```bash
-composer test
-```
+### Update from the template
+
+To pull the latest infrastructure from the Scaffold template into this project, ask Claude Code to "update scaffold". Claude Code follows the instructions in [`AGENTS.md`](AGENTS.md).
 
 ---
-_Repository created using https://getscaffold.dev/ project scaffold template_
+_This repository was created using the [Scaffold](https://getscaffold.dev/) project template_

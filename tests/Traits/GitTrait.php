@@ -166,7 +166,7 @@ trait GitTrait {
    *   directory is used.
    */
   protected function gitCreateFixtureCommits(int $count, int $offset = 0, ?string $path = NULL): void {
-    $path = $path ? $path : $this->src;
+    $path = $path ?: $this->src;
 
     for ($i = $offset; $i < $count + $offset; $i++) {
       $this->gitCreateFixtureCommit($i + 1, $path);
@@ -186,7 +186,7 @@ trait GitTrait {
    *   Hash of created commit.
    */
   protected function gitCreateFixtureCommit(int $index, ?string $path = NULL): string {
-    $path = $path ? $path : $this->src;
+    $path = $path ?: $this->src;
 
     $filename = 'f' . $index;
 
