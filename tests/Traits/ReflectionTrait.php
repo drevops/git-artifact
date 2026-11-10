@@ -38,21 +38,13 @@ trait ReflectionTrait {
 
     $method = $class->getMethod($name);
 
-    $original_accessibility = $method->isPublic();
-
-    $method->setAccessible(TRUE);
-
     $invoke_object = $method->isStatic() ? NULL : (is_object($object) ? $object : NULL);
 
     if (!$method->isStatic() && $invoke_object === NULL) {
       throw new \InvalidArgumentException("An object instance is required for non-static methods");
     }
 
-    $result = $method->invokeArgs($invoke_object, $args);
-
-    $method->setAccessible($original_accessibility);
-
-    return $result;
+    return $method->invokeArgs($invoke_object, $args);
   }
 
   /**
@@ -68,7 +60,6 @@ trait ReflectionTrait {
   protected function setProtectedValue(object $object, string $property, mixed $value): void {
     $class = new \ReflectionClass($object::class);
     $property = $class->getProperty($property);
-    $property->setAccessible(TRUE);
 
     $property->setValue($object, $value);
   }

@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class ArtifactCommandTest extends UnitTestCase {
+final class ArtifactCommandTest extends UnitTestCase {
 
   #[AllowMockObjectsWithoutExpectations]
   public function testCleanupStaleBranchesHandlesListFailure(): void {
@@ -75,15 +75,13 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertSame([$separator, ' Title', $separator, ...$expected_rows, $separator], $actual);
   }
 
-  public static function dataProviderFormatSummary(): array {
-    return [
-      'no rows' => [[], []],
-      'short label' => [['Mode' => 'branch'], [' Mode:                  branch']],
-      'label at the width' => [['Twenty one characters' => 'value'], [' Twenty one characters: value']],
-      'label beyond the width' => [['Label well beyond the width' => 'value'], [' Label well beyond the width: value']],
-      'empty value' => [['Commit message' => ''], [' Commit message:        ']],
-      'rows in given order' => [['B' => '2', 'A' => '1'], [' B:                     2', ' A:                     1']],
-    ];
+  public static function dataProviderFormatSummary(): \Iterator {
+    yield 'no rows' => [[], []];
+    yield 'short label' => [['Mode' => 'branch'], [' Mode:                  branch']];
+    yield 'label at the width' => [['Twenty one characters' => 'value'], [' Twenty one characters: value']];
+    yield 'label beyond the width' => [['Label well beyond the width' => 'value'], [' Label well beyond the width: value']];
+    yield 'empty value' => [['Commit message' => ''], [' Commit message:        ']];
+    yield 'rows in given order' => [['B' => '2', 'A' => '1'], [' B:                     2', ' A:                     1']];
   }
 
   #[DataProvider('dataProviderShowInfo')]
@@ -101,71 +99,68 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertSame($expected, $this->getLoggedMessages($handler));
   }
 
-  public static function dataProviderShowInfo(): array {
+  public static function dataProviderShowInfo(): \Iterator {
     $timestamp = ' Packaging timestamp:   ' . date('Y/m/d H:i:s', 100000000);
-
-    return [
-      'push' => [
-        [],
-        [
-          $timestamp,
-          ' Mode:                  force-push',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        No',
-          ' Will push:             Yes',
-        ],
+    yield 'push' => [
+      [],
+      [
+        $timestamp,
+        ' Mode:                  force-push',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        No',
+        ' Will push:             Yes',
       ],
-      'dry run' => [
-        ['isDryRun' => TRUE],
-        [
-          $timestamp,
-          ' Mode:                  force-push',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        No',
-          ' Will push:             No',
-        ],
+    ];
+    yield 'dry run' => [
+      ['isDryRun' => TRUE],
+      [
+        $timestamp,
+        ' Mode:                  force-push',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        No',
+        ' Will push:             No',
       ],
-      'branch mode with custom gitignore' => [
-        ['mode' => ArtifactCommand::MODE_BRANCH, 'gitignoreCustom' => '/path/to/.gitignore.artifact'],
-        [
-          $timestamp,
-          ' Mode:                  branch',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        /path/to/.gitignore.artifact',
-          ' Will push:             Yes',
-        ],
+    ];
+    yield 'branch mode with custom gitignore' => [
+      ['mode' => ArtifactCommand::MODE_BRANCH, 'gitignoreCustom' => '/path/to/.gitignore.artifact'],
+      [
+        $timestamp,
+        ' Mode:                  branch',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        /path/to/.gitignore.artifact',
+        ' Will push:             Yes',
       ],
-      'cleanup with 1 pattern' => [
-        ['cleanupStale' => TRUE, 'cleanupPatterns' => ['deployment/*']],
-        [
-          $timestamp,
-          ' Mode:                  force-push',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        No',
-          ' Will push:             Yes',
-          ' Cleanup stale:         Yes (pattern "deployment/*", older than 3 days)',
-        ],
+    ];
+    yield 'cleanup with 1 pattern' => [
+      ['cleanupStale' => TRUE, 'cleanupPatterns' => ['deployment/*']],
+      [
+        $timestamp,
+        ' Mode:                  force-push',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        No',
+        ' Will push:             Yes',
+        ' Cleanup stale:         Yes (pattern "deployment/*", older than 3 days)',
       ],
-      'cleanup with patterns' => [
-        ['cleanupStale' => TRUE, 'cleanupPatterns' => ['feature/*', 'bugfix/*']],
-        [
-          $timestamp,
-          ' Mode:                  force-push',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        No',
-          ' Will push:             Yes',
-          ' Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)',
-        ],
+    ];
+    yield 'cleanup with patterns' => [
+      ['cleanupStale' => TRUE, 'cleanupPatterns' => ['feature/*', 'bugfix/*']],
+      [
+        $timestamp,
+        ' Mode:                  force-push',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        No',
+        ' Will push:             Yes',
+        ' Cleanup stale:         Yes (patterns "feature/*", "bugfix/*", older than 3 days)',
       ],
     ];
   }
@@ -185,51 +180,48 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertSame($expected, $this->getLoggedMessages($handler));
   }
 
-  public static function dataProviderShowReport(): array {
+  public static function dataProviderShowReport(): \Iterator {
     $timestamp = ' Packaging timestamp:   ' . date('Y/m/d H:i:s', 100000000);
-
-    return [
-      'success' => [
-        TRUE,
-        [],
-        [
-          $timestamp,
-          ' Mode:                  force-push',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        No',
-          ' Commit message:        Deployment commit',
-          ' Push result:           Success',
-        ],
+    yield 'success' => [
+      TRUE,
+      [],
+      [
+        $timestamp,
+        ' Mode:                  force-push',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        No',
+        ' Commit message:        Deployment commit',
+        ' Push result:           Success',
       ],
-      'failure' => [
-        FALSE,
-        [],
-        [
-          $timestamp,
-          ' Mode:                  force-push',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        No',
-          ' Commit message:        Deployment commit',
-          ' Push result:           Failure',
-        ],
+    ];
+    yield 'failure' => [
+      FALSE,
+      [],
+      [
+        $timestamp,
+        ' Mode:                  force-push',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        No',
+        ' Commit message:        Deployment commit',
+        ' Push result:           Failure',
       ],
-      'branch mode with custom gitignore and message' => [
-        TRUE,
-        ['mode' => ArtifactCommand::MODE_BRANCH, 'gitignoreCustom' => '/path/to/.gitignore.artifact', 'commitMessage' => 'Release 1.2.3'],
-        [
-          $timestamp,
-          ' Mode:                  branch',
-          ' Source repository:     /path/to/src',
-          ' Remote repository:     /path/to/dst',
-          ' Remote branch:         main',
-          ' Gitignore file:        /path/to/.gitignore.artifact',
-          ' Commit message:        Release 1.2.3',
-          ' Push result:           Success',
-        ],
+    ];
+    yield 'branch mode with custom gitignore and message' => [
+      TRUE,
+      ['mode' => ArtifactCommand::MODE_BRANCH, 'gitignoreCustom' => '/path/to/.gitignore.artifact', 'commitMessage' => 'Release 1.2.3'],
+      [
+        $timestamp,
+        ' Mode:                  branch',
+        ' Source repository:     /path/to/src',
+        ' Remote repository:     /path/to/dst',
+        ' Remote branch:         main',
+        ' Gitignore file:        /path/to/.gitignore.artifact',
+        ' Commit message:        Release 1.2.3',
+        ' Push result:           Success',
       ],
     ];
   }
@@ -267,20 +259,18 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->assertSame($is_deprecated ? [$notice] : [], $this->getLoggedMessages($handler));
   }
 
-  public static function dataProviderResolveSourceDir(): array {
-    return [
-      'no options' => [[], '/path/to/root', FALSE],
-      'unset options' => [['source' => NULL, 'src' => NULL], '/path/to/root', FALSE],
-      'empty source' => [['source' => ''], '/path/to/root', FALSE],
-      'relative source' => [['source' => 'src'], '/path/to/root/src', FALSE],
-      'absolute source' => [['source' => '/path/to/src'], '/path/to/src', FALSE],
-      'source named 0' => [['source' => '0'], '/path/to/root/0', FALSE],
-      'relative src' => [['src' => 'src'], '/path/to/root/src', TRUE],
-      'absolute src' => [['src' => '/path/to/src'], '/path/to/src', TRUE],
-      'src named 0' => [['src' => '0'], '/path/to/root/0', TRUE],
-      'source with empty src' => [['source' => 'src', 'src' => ''], '/path/to/root/src', FALSE],
-      'src with empty source' => [['source' => '', 'src' => 'src'], '/path/to/root/src', TRUE],
-    ];
+  public static function dataProviderResolveSourceDir(): \Iterator {
+    yield 'no options' => [[], '/path/to/root', FALSE];
+    yield 'unset options' => [['source' => NULL, 'src' => NULL], '/path/to/root', FALSE];
+    yield 'empty source' => [['source' => ''], '/path/to/root', FALSE];
+    yield 'relative source' => [['source' => 'src'], '/path/to/root/src', FALSE];
+    yield 'absolute source' => [['source' => '/path/to/src'], '/path/to/src', FALSE];
+    yield 'source named 0' => [['source' => '0'], '/path/to/root/0', FALSE];
+    yield 'relative src' => [['src' => 'src'], '/path/to/root/src', TRUE];
+    yield 'absolute src' => [['src' => '/path/to/src'], '/path/to/src', TRUE];
+    yield 'src named 0' => [['src' => '0'], '/path/to/root/0', TRUE];
+    yield 'source with empty src' => [['source' => 'src', 'src' => ''], '/path/to/root/src', FALSE];
+    yield 'src with empty source' => [['source' => '', 'src' => 'src'], '/path/to/root/src', TRUE];
   }
 
   #[DataProvider('dataProviderResolveSourceDirConflict')]
@@ -293,12 +283,10 @@ class ArtifactCommandTest extends UnitTestCase {
     $this->callProtectedMethod($command, 'resolveSourceDir', [$options]);
   }
 
-  public static function dataProviderResolveSourceDirConflict(): array {
-    return [
-      'different values' => [['source' => 'src', 'src' => 'other']],
-      'identical values' => [['source' => 'src', 'src' => 'src']],
-      'src named 0' => [['source' => 'src', 'src' => '0']],
-    ];
+  public static function dataProviderResolveSourceDirConflict(): \Iterator {
+    yield 'different values' => [['source' => 'src', 'src' => 'other']];
+    yield 'identical values' => [['source' => 'src', 'src' => 'src']];
+    yield 'src named 0' => [['source' => 'src', 'src' => '0']];
   }
 
   /**

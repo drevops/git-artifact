@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversTrait(FilesystemTrait::class)]
-class FilesystemTraitTest extends UnitTestCase {
+final class FilesystemTraitTest extends UnitTestCase {
 
   public function testFsGetRootDirWithPwd(): void {
     $test_class = $this->createTestClass();
@@ -78,15 +78,13 @@ class FilesystemTraitTest extends UnitTestCase {
     $this->callProtectedMethod($test_class, 'fsAssertPathsExist', [$paths, TRUE]);
   }
 
-  public static function dataProviderFsAssertPathsExistWithNonExistingPathStrict(): array {
-    return [
-      'single path' => ['/non/existing/path', 'One of the files or directories does not exist: "/non/existing/path".'],
-      'multiple paths' => [
-        ['/non/existing/path1', '/non/existing/path2'],
-        'One of the files or directories does not exist: "/non/existing/path1", "/non/existing/path2".',
-      ],
-      'path with spaces' => ['/non/existing/path with spaces', 'One of the files or directories does not exist: "/non/existing/path with spaces".'],
+  public static function dataProviderFsAssertPathsExistWithNonExistingPathStrict(): \Iterator {
+    yield 'single path' => ['/non/existing/path', 'One of the files or directories does not exist: "/non/existing/path".'];
+    yield 'multiple paths' => [
+      ['/non/existing/path1', '/non/existing/path2'],
+      'One of the files or directories does not exist: "/non/existing/path1", "/non/existing/path2".',
     ];
+    yield 'path with spaces' => ['/non/existing/path with spaces', 'One of the files or directories does not exist: "/non/existing/path with spaces".'];
   }
 
   public function testFsAssertPathsExistWithNonExistingPathNonStrict(): void {
@@ -151,7 +149,7 @@ class FilesystemTraitTest extends UnitTestCase {
     $tmp_dir = NULL;
 
     for ($attempt = 0; $attempt < 10; $attempt++) {
-      $candidate = sprintf('%s%s%s%s', sys_get_temp_dir(), DIRECTORY_SEPARATOR, 'unit', rand(100000, getrandmax()));
+      $candidate = sprintf('%s%s%s%s', sys_get_temp_dir(), DIRECTORY_SEPARATOR, 'unit', random_int(100000, mt_getrandmax()));
 
       if (mkdir($candidate, 0755, TRUE)) {
         $tmp_dir = $candidate;

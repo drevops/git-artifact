@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(ArtifactCommand::class)]
 #[CoversClass(ArtifactGitRepository::class)]
-class BranchModeTest extends FunctionalTestCase {
+final class BranchModeTest extends FunctionalTestCase {
 
   /**
    * {@inheritdoc}
@@ -48,7 +48,7 @@ class BranchModeTest extends FunctionalTestCase {
   public function testPackageMoreCommits(): void {
     $this->gitCreateFixtureCommits(2);
 
-    $this->now = time() - rand(1, 10 * 60);
+    $this->now = time() - random_int(1, 10 * 60);
     $branch1 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $output = $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch1);
     $this->assertStringContainsString('Remote branch:         ' . $branch1, $output);
@@ -58,7 +58,7 @@ class BranchModeTest extends FunctionalTestCase {
 
     $this->gitCreateFixtureCommits(3, 2);
 
-    $this->now -= rand(1, 10 * 60);
+    $this->now -= random_int(1, 10 * 60);
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $output = $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
     $this->assertStringContainsString('Remote branch:         ' . $branch2, $output);
@@ -95,7 +95,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitCreateFixtureCommits(2);
     $this->fixtureCreateFile($this->src, 'f3');
 
-    $this->now = time() - rand(1, 10 * 60);
+    $this->now = time() - random_int(1, 10 * 60);
     $branch1 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch1);
 
@@ -104,7 +104,7 @@ class BranchModeTest extends FunctionalTestCase {
 
     $this->fixtureRemoveFile($this->src, '.gitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
-    $this->now -= rand(1, 10 * 60);
+    $this->now -= random_int(1, 10 * 60);
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
 
@@ -120,7 +120,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->gitCreateFixtureCommits(2);
     $this->fixtureCreateFile($this->src, 'f3');
 
-    $this->now = time() - rand(1, 10 * 60);
+    $this->now = time() - random_int(1, 10 * 60);
     $branch1 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess([
       '--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]',
@@ -133,7 +133,7 @@ class BranchModeTest extends FunctionalTestCase {
     $this->fixtureCreateFile($this->src, 'f3');
     $this->fixtureRemoveFile($this->src, 'mygitignore');
     $this->gitCommitAll($this->src, 'Commit number 3');
-    $this->now -= rand(1, 10 * 60);
+    $this->now -= random_int(1, 10 * 60);
     $branch2 = 'testbranch-' . date('Y-m-d_H-i-s', $this->now);
     $this->assertArtifactCommandSuccess(['--branch' => 'testbranch-[timestamp:Y-m-d_H-i-s]'], $branch2);
 

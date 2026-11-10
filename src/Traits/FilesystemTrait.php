@@ -91,7 +91,7 @@ trait FilesystemTrait {
       return self::fsRealpath($file);
     }
 
-    $root = $root ? $root : $this->fsGetRootDir();
+    $root = $root ?: $this->fsGetRootDir();
     $root = self::fsRealpath($root);
     $file = $root . DIRECTORY_SEPARATOR . $file;
 
@@ -156,9 +156,7 @@ trait FilesystemTrait {
     }
 
     $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static function (string $part): bool {
-      return $part !== '';
-    });
+    $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), static fn(string $part): bool => $part !== '');
 
     $absolutes = [];
     foreach ($parts as $part) {
