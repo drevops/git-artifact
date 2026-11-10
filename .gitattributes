@@ -12,4 +12,5 @@
 /phpstan.neon    export-ignore
 /phpunit.xml     export-ignore
 /rector.php      export-ignore
+/release-key.asc export-ignore
 /renovate.json   export-ignore
