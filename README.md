@@ -206,6 +206,55 @@ have PHP installed on your system to run the binary.
 
 Download the latest release from the [GitHub releases page](https://github.com/drevops/git-artifact/releases/latest).
 
+<details>
+<summary>Verify the downloaded binary</summary>
+
+Each release signs the checksum of the `git-artifact` binary with GPG and records a GitHub build attestation for it. Verify a release that lists `SHA256SUMS` and `SHA256SUMS.asc` among its assets:
+
+1. Download the binary of the latest release:
+
+   ```bash
+   curl -fsSLO https://github.com/drevops/git-artifact/releases/latest/download/git-artifact
+   ```
+
+2. Verify the binary with [GitHub CLI](https://cli.github.com):
+
+   ```bash
+   gh attestation verify git-artifact --repo drevops/git-artifact
+   ```
+
+   Or verify it with GPG:
+
+   ```bash
+   BASE=https://github.com/drevops/git-artifact/releases/latest/download
+   RAW=https://raw.githubusercontent.com/drevops/git-artifact/main
+
+   curl -fsSLO $BASE/SHA256SUMS
+   curl -fsSLO $BASE/SHA256SUMS.asc
+   curl -fsSLO $RAW/release-key.asc
+
+   gpg --show-keys --with-fingerprint release-key.asc
+   gpg --import release-key.asc
+   gpg --verify SHA256SUMS.asc SHA256SUMS
+   sha256sum -c SHA256SUMS    # macOS: shasum -a 256 -c SHA256SUMS
+   ```
+
+   Confirm that `gpg --verify` reports a good signature from the key with this fingerprint:
+
+   ```text
+   1468 C246 213B 8658 33BE  4A60 5F86 D116 C8B2 2A96
+   ```
+
+   `gpg` also warns that the key isn't certified with a trusted signature. That warning is normal for a newly imported key, and the fingerprint match is the check that counts.
+
+3. Make the verified binary executable:
+
+   ```bash
+   chmod +x git-artifact
+   ```
+
+</details>
+
 ### As a Docker container
 
 The tool is also published as a multi-architecture (`linux/amd64`, `linux/arm64`) Docker image at [`drevops/git-artifact`](https://hub.docker.com/r/drevops/git-artifact), with `git` and an SSH client bundled in - no local PHP required. Mount your source repository at `/app` and pass the same arguments you would pass to the binary:

@@ -12,12 +12,36 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
+
+# Runs for the same version upload to the same release, so they must not
+# interleave and mix assets from different builds.
+concurrency:
+  group: release-php-${{ inputs.version || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   release-php:
     name: Release PHP
     runs-on: ubuntu-latest
+
+    # The signing key is a secret of this environment, so its protection rules
+    # apply before the job can read the key.
+    environment: release
+
+    permissions:
+      contents: write # Upload the release assets.
+      id-token: write # Sign the attestations.
+      attestations: write # Record the attestations.
+
+    env:
+      # 'gpg --verify' accepts a signature from any key in the keyring, so the
+      # signing key is pinned by fingerprint.
+      GPG_FINGERPRINT: 1468C246213B865833BE4A605F86D116C8B22A96
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout code
@@ -65,9 +89,67 @@ jobs:
           ./.build/git-artifact --version | grep -F "Git Artifact ${RELEASE_VERSION}"
           ./.build/git-artifact --help || exit 1
 
+      - name: Generate checksums
+        working-directory: .build
+        run: sha256sum git-artifact > SHA256SUMS
+
+      - name: Import GPG key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          [ -n "${GPG_PRIVATE_KEY}" ] || { echo "::error::The GPG_PRIVATE_KEY secret of the \"release\" environment is not set."; exit 1; }
+          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+
+      # GPG_PASSPHRASE is needed only for a key that has a passphrase.
+      - name: Sign checksums
+        working-directory: .build
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -n "${GPG_PASSPHRASE}" ]; then
+            echo "${GPG_PASSPHRASE}" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --local-user "${GPG_FINGERPRINT}" --detach-sign --armor SHA256SUMS
+          else
+            gpg --batch --yes --local-user "${GPG_FINGERPRINT}" --detach-sign --armor SHA256SUMS
+          fi
+
+      # A keyring holding only the committed public key, so the signature must
+      # verify against the key that users download.
+      - name: Verify signature
+        working-directory: .build
+        run: |
+          export GNUPGHOME="${RUNNER_TEMP}/gnupg-verify"
+          mkdir -m 700 "${GNUPGHOME}"
+          gpg --batch --quiet --import "${GITHUB_WORKSPACE}/release-key.asc"
+          status="$(gpg --batch --status-fd 1 --verify SHA256SUMS.asc SHA256SUMS 2>/dev/null || true)"
+          grep -q "^\[GNUPG:\] VALIDSIG ${GPG_FINGERPRINT} " <<<"${status}" || { echo "::error::SHA256SUMS is not signed by the key \"${GPG_FINGERPRINT}\"."; exit 1; }
+          sha256sum -c SHA256SUMS
+
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            .build/git-artifact
+            .build/SHA256SUMS
+
       - name: Create Release
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           files: |
             ./.build/git-artifact
+            ./.build/SHA256SUMS
+            ./.build/SHA256SUMS.asc
+
+      # The local copies passed the signature check, so a byte match carries
+      # that check over to the uploaded copies.
+      - name: Verify uploaded assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .uploaded
+          gh release download "${RELEASE_VERSION}" --repo "${GITHUB_REPOSITORY}" --dir .uploaded --pattern git-artifact --pattern SHA256SUMS --pattern SHA256SUMS.asc
+          for file in git-artifact SHA256SUMS SHA256SUMS.asc; do
+            cmp ".uploaded/${file}" ".build/${file}" || { echo "::error::The uploaded \"${file}\" differs from the built one."; exit 1; }
+          done
+          gh attestation verify .uploaded/git-artifact --repo "${GITHUB_REPOSITORY}"
+          gh attestation verify .uploaded/SHA256SUMS --repo "${GITHUB_REPOSITORY}"
