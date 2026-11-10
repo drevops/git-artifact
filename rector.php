@@ -19,7 +19,6 @@ use Rector\CodingStyle\Rector\Stmt\NewlineAfterStatementRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\If_\RemoveAlwaysTrueIfConditionRector;
 use Rector\Php80\Rector\Switch_\ChangeSwitchToMatchRector;
-use Rector\TypeDeclaration\Rector\StmtsAwareInterface\DeclareStrictTypesRector;
 
 return RectorConfig::configure()
   ->withPaths([
@@ -38,9 +37,6 @@ return RectorConfig::configure()
     phpunitCodeQuality: TRUE,
   )
   ->withComposerBased(phpunit: TRUE)
-  ->withRules([
-    DeclareStrictTypesRector::class,
-  ])
   ->withSkip([
     // Rules added by Rector's rule sets.
     CatchExceptionNameMatchingTypeRector::class,
