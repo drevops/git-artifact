@@ -242,7 +242,7 @@ Each release signs the checksum of the `git-artifact` binary with GPG and record
    Confirm that `gpg --verify` reports a good signature from the key with this fingerprint:
 
    ```text
-   REPLACE_WITH_FORMATTED_FINGERPRINT
+   1468 C246 213B 8658 33BE  4A60 5F86 D116 C8B2 2A96
    ```
 
    `gpg` also warns that the key isn't certified with a trusted signature. That warning is normal for a newly imported key, and the fingerprint match is the check that counts.

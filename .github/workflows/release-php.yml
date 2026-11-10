@@ -31,7 +31,7 @@ jobs:
     env:
       # 'gpg --verify' accepts a signature from any key in the keyring, so the
       # signing key is pinned by fingerprint.
-      GPG_FINGERPRINT: REPLACE_WITH_FINGERPRINT
+      GPG_FINGERPRINT: 1468C246213B865833BE4A605F86D116C8B22A96
 
     defaults:
       run:
