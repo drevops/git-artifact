@@ -11,7 +11,10 @@ use DrevOps\GitArtifact\Commands\ArtifactCommand;
 use Symfony\Component\Console\Application;
 
 // @codeCoverageIgnoreStart
-$application = new Application('Git Artifact', '@git-artifact-version@');
+// Box replaces the placeholder only in the PHAR; a source or Composer install
+// still carries it, so report 'development' there.
+$version = '@git-artifact-version@';
+$application = new Application('Git Artifact', str_starts_with($version, '@') ? 'development' : $version);
 
 $command = new ArtifactCommand();
 $application->add($command);

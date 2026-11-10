@@ -52,6 +52,16 @@ jobs:
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
           echo "Release version: $version"
 
+      - name: Check release tag commit
+        run: |
+          # An existing tag must point at the commit the PHAR is built from.
+          tag_sha="$(git ls-remote origin "refs/tags/${RELEASE_VERSION}^{}" | cut -f1)"
+          [ -n "$tag_sha" ] || tag_sha="$(git ls-remote origin "refs/tags/${RELEASE_VERSION}" | cut -f1)"
+          if [ -n "$tag_sha" ] && [ "$tag_sha" != "$GITHUB_SHA" ]; then
+            echo "Tag \"${RELEASE_VERSION}\" points to \"$tag_sha\", not to the checked out commit \"$GITHUB_SHA\"."
+            exit 1
+          fi
+
       - name: Set PHAR version
         run: |
           sed -i "s/\"git-artifact-version\": \"development\"/\"git-artifact-version\": \"${RELEASE_VERSION}\"/g" box.json
@@ -69,5 +79,6 @@ jobs:
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
+          target_commitish: ${{ github.sha }}
           files: |
             ./.build/git-artifact
