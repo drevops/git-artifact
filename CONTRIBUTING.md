@@ -43,4 +43,15 @@ gpg --quick-set-expire 1468C246213B865833BE4A605F86D116C8B22A96 2y
 gpg --armor --output release-key.asc --export 1468C246213B865833BE4A605F86D116C8B22A96
 ```
 
-A new key needs a new `release-key.asc`, the new fingerprint in `GPG_FINGERPRINT` in `release-php.yml` and in the "Verify the downloaded binary" section of `README.md`, and new secrets in the `release` environment.
+To replace the key, update 3 places:
+
+1. Export the new key and the previous one together into `release-key.asc`, so the signatures of earlier releases still verify:
+
+   ```bash
+   gpg --armor --output release-key.asc --export NEW_FINGERPRINT 1468C246213B865833BE4A605F86D116C8B22A96
+   ```
+
+   `NEW_FINGERPRINT` is the fingerprint of the new key.
+
+2. Set `GPG_FINGERPRINT` in `release-php.yml` to the new fingerprint, and list both fingerprints in the "Verify the downloaded binary" section of `README.md`.
+3. Store the new key in the `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` secrets of the `release` environment.

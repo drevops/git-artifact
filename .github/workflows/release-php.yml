@@ -14,6 +14,12 @@ on:
 permissions:
   contents: read
 
+# Runs for the same version upload to the same release, so they must not
+# interleave and mix assets from different builds.
+concurrency:
+  group: release-php-${{ inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   release-php:
     name: Release PHP
